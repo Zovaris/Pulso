@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/mark.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Soffy</title>
+    <script>
+      (() => {
+        var pref = "system";
+        var glass = true;
+        var resolved = "dark";
+        var params;
+        try {
+          params = new URLSearchParams(location.search);
+          pref =
+            params.get("theme") ||
+            localStorage.getItem("soffy:theme") ||
+            "system";
+          glass =
+            params.get("glass") === "0"
+              ? false
+              : params.get("glass") === "1" ||
+                localStorage.getItem("soffy:transparency") !== "0";
+          resolved =
+            pref === "system"
+              ? matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light"
+              : pref === "light"
+                ? "light"
+                : "dark";
+          document.documentElement.dataset.theme = resolved;
+          document.documentElement.dataset.themePref = pref;
+          document.documentElement.dataset.transparency = glass ? "on" : "off";
+          document.documentElement.dataset.surface =
+            params.get("surface") || "app";
+          document.documentElement.style.colorScheme = resolved;
+        } catch {
+          document.documentElement.dataset.theme = "dark";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

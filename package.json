@@ -1,0 +1,40 @@
+{
+  "name": "soffy",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "bun@1.4.2",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "macos": "tauri dev",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/soffy-icon.svg",
+    "check": "biome check .",
+    "format": "biome format --write . && biome check --write --only=assist/source/organizeImports .",
+    "format:check": "biome format . && biome check --only=assist/source/organizeImports ."
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@phosphor-icons/react": "2.1.10",
+    "@tailwindcss/vite": "4.3.3",
+    "@tauri-apps/api": "2",
+    "@tauri-apps/plugin-dialog": "2",
+    "@tauri-apps/plugin-opener": "2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwindcss": "4.3.3",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.13",
+    "@tauri-apps/cli": "2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "typescript": "~5.9.2",
+    "vite": "8.3.0"
+  }
+}
