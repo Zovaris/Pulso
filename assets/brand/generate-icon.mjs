@@ -6,8 +6,7 @@ import { deflateSync } from "node:zlib";
 const SIZE = 1024;
 const BG = "#111111";
 const ACCENT = "#D71921";
-const S_D =
-  "M 680 300 C 680 220 600 190 512 190 C 390 190 330 250 330 320 C 330 400 420 430 512 460 C 640 500 710 560 710 660 C 710 770 620 830 512 830 C 390 830 320 760 320 690";
+const ACCENT_LIGHT = "#E23B42";
 
 function squirclePath(size, n = 5, samples = 128) {
   const a = size / 2;
@@ -30,8 +29,102 @@ function squirclePath(size, n = 5, samples = 128) {
   return `${d} Z`;
 }
 
-const maskPath = squirclePath(SIZE, 5);
+function boundsOf(pts) {
+  return [
+    Math.min(...pts.map((p) => p[0])),
+    Math.max(...pts.map((p) => p[0])),
+    Math.min(...pts.map((p) => p[1])),
+    Math.max(...pts.map((p) => p[1])),
+  ];
+}
 
+function fitGroup(groups, size, padRatio) {
+  const all = groups.flat();
+  const [minX, maxX, minY, maxY] = boundsOf(all);
+  const pad = size * padRatio;
+  const s = Math.min(
+    (size - pad * 2) / (maxX - minX),
+    (size - pad * 2) / (maxY - minY),
+  );
+  const ox = (size - (maxX - minX) * s) / 2 - minX * s;
+  const oy = (size - (maxY - minY) * s) / 2 - minY * s;
+  return groups.map((pts) => pts.map(([x, y]) => [x * s + ox, y * s + oy]));
+}
+
+function sub(a, b) {
+  return [a[0] - b[0], a[1] - b[1]];
+}
+function add(a, b) {
+  return [a[0] + b[0], a[1] + b[1]];
+}
+function mul(v, s) {
+  return [v[0] * s, v[1] * s];
+}
+function len(v) {
+  return Math.hypot(v[0], v[1]);
+}
+function norm(v) {
+  const l = len(v) || 1;
+  return [v[0] / l, v[1] / l];
+}
+
+function roundPoly(pts, r) {
+  const n = pts.length;
+  let d = "";
+  for (let i = 0; i < n; i++) {
+    const prev = pts[(i + n - 1) % n];
+    const curr = pts[i];
+    const next = pts[(i + 1) % n];
+    const v1 = sub(curr, prev);
+    const v2 = sub(next, curr);
+    const r1 = Math.min(r, len(v1) * 0.48);
+    const r2 = Math.min(r, len(v2) * 0.48);
+    const p1 = add(curr, mul(norm(v1), -r1));
+    const p2 = add(curr, mul(norm(v2), r2));
+    if (i === 0) d += `M ${p1[0].toFixed(2)} ${p1[1].toFixed(2)}`;
+    else d += ` L ${p1[0].toFixed(2)} ${p1[1].toFixed(2)}`;
+    d += ` Q ${curr[0].toFixed(2)} ${curr[1].toFixed(2)} ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+  }
+  return `${d} Z`;
+}
+
+function pointInPoly(x, y, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const xi = pts[i][0];
+    const yi = pts[i][1];
+    const xj = pts[j][0];
+    const yj = pts[j][1];
+    const hit =
+      yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi + 0.00001) + xi;
+    if (hit) inside = !inside;
+  }
+  return inside;
+}
+
+const left = [
+  [40, 500],
+  [460, 140],
+  [460, 860],
+];
+const right = [
+  [540, 140],
+  [960, 500],
+  [540, 860],
+];
+
+const [iconL, iconR] = fitGroup([left, right], SIZE, 0.2);
+const [markL, markR] = fitGroup([left, right], 24, 0.08);
+const [tray32L, tray32R] = fitGroup([left, right], 32, 0.1);
+const [tray64L, tray64R] = fitGroup([left, right], 64, 0.1);
+
+const iconRRound =
+  Math.min(
+    boundsOf(iconL)[1] - boundsOf(iconL)[0],
+    boundsOf(iconL)[3] - boundsOf(iconL)[2],
+  ) * 0.2;
+
+const maskPath = squirclePath(SIZE, 5);
 const appSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}" fill="none">
   <defs>
@@ -41,8 +134,8 @@ const appSvg = `<?xml version="1.0" encoding="UTF-8"?>
   </defs>
   <g clip-path="url(#plate)">
     <rect width="${SIZE}" height="${SIZE}" fill="${BG}"/>
-    <circle cx="512" cy="512" r="340" fill="${ACCENT}"/>
-    <path d="${S_D}" stroke="#F6F6F6" stroke-width="92" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${roundPoly(iconL, iconRRound)}" fill="${ACCENT}"/>
+    <path d="${roundPoly(iconR, iconRRound)}" fill="${ACCENT_LIGHT}"/>
   </g>
 </svg>
 `;
@@ -50,14 +143,15 @@ const appSvg = `<?xml version="1.0" encoding="UTF-8"?>
 const markSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img">
   <title>Soffy</title>
-  <circle cx="12" cy="12" r="10" fill="${ACCENT}"/>
-  <path d="M15.6 8.2c0-1.5-1.4-2.2-3.4-2.2S8.6 7.2 8.6 8.6s1.7 2.2 3.4 2.8 3.8 1.6 3.8 3.6-1.6 3.4-3.8 3.4-4-1.3-4-2.8" stroke="#F6F6F6" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+  <path fill="${ACCENT}" d="${roundPoly(markL, 2.4)}"/>
+  <path fill="${ACCENT_LIGHT}" d="${roundPoly(markR, 2.4)}"/>
 </svg>
 `;
 
 const traySvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-  <path d="M22 9.2c0-2.1-2-3.1-4.8-3.1S12 7.8 12 9.7s2.4 3.1 4.8 4 5.4 2.3 5.4 5.1-2.3 4.8-5.4 4.8-5.6-1.8-5.6-4" stroke="#000000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path fill="#000000" d="${roundPoly(tray32L, 3.2)}"/>
+  <path fill="#000000" d="${roundPoly(tray32R, 3.2)}"/>
 </svg>
 `;
 
@@ -65,7 +159,7 @@ const dir = dirname(fileURLToPath(import.meta.url));
 writeFileSync(join(dir, "soffy-icon.svg"), appSvg);
 writeFileSync(join(dir, "soffy-mark.svg"), markSvg);
 writeFileSync(join(dir, "soffy-tray.svg"), traySvg);
-writeFileSync(join(dir, "soffy-tray.png"), trayPng(64));
+writeFileSync(join(dir, "soffy-tray.png"), trayPng(64, [tray64L, tray64R]));
 console.log(`wrote ${join(dir, "soffy-icon.svg")}`);
 
 function crc32(buf) {
@@ -87,46 +181,14 @@ function chunk(type, data) {
   return Buffer.concat([len, typeBuf, data, crc]);
 }
 
-function distToPoly(x, y, pts) {
-  let min = Infinity;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [ax, ay] = pts[i];
-    const [bx, by] = pts[i + 1];
-    const abx = bx - ax;
-    const aby = by - ay;
-    const t = Math.max(
-      0,
-      Math.min(1, ((x - ax) * abx + (y - ay) * aby) / (abx * abx + aby * aby)),
-    );
-    const dx = x - (ax + abx * t);
-    const dy = y - (ay + aby * t);
-    min = Math.min(min, Math.hypot(dx, dy));
-  }
-  return min;
-}
-
-function trayPng(size) {
-  const pts = [
-    [0.7, 0.22],
-    [0.52, 0.14],
-    [0.34, 0.18],
-    [0.3, 0.3],
-    [0.38, 0.4],
-    [0.55, 0.47],
-    [0.7, 0.56],
-    [0.72, 0.7],
-    [0.62, 0.82],
-    [0.42, 0.86],
-    [0.28, 0.76],
-  ].map(([x, y]) => [x * size, y * size]);
-  const thickness = size * 0.09;
+function trayPng(size, polys) {
   const pixels = Buffer.alloc(size * (size * 4 + 1));
   for (let y = 0; y < size; y++) {
     const row = y * (size * 4 + 1);
     pixels[row] = 0;
     for (let x = 0; x < size; x++) {
       const i = row + 1 + x * 4;
-      const on = distToPoly(x + 0.5, y + 0.5, pts) <= thickness;
+      const on = polys.some((pts) => pointInPoly(x + 0.5, y + 0.5, pts));
       pixels[i] = 0;
       pixels[i + 1] = 0;
       pixels[i + 2] = 0;
