@@ -7,7 +7,7 @@ export function PopoverShell() {
   const { t } = useI18n();
 
   return (
-    <div className="flex h-full flex-col bg-void text-paper">
+    <div className="flex h-full flex-col overflow-hidden rounded-[12px] bg-panel text-paper">
       <header className="flex items-baseline justify-between px-4 pt-3.5 pb-2">
         <h1 className="text-[15px] font-semibold tracking-tight">
           {t("appName")}

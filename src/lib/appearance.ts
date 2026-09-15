@@ -17,9 +17,9 @@ export function readStoredTheme(): ThemePref {
 
 export function readStoredTransparency(): boolean {
   try {
-    return window.localStorage.getItem(GLASS_KEY) !== "0";
+    return window.localStorage.getItem(GLASS_KEY) === "1";
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -58,6 +58,11 @@ export async function applyWindowChrome(
     );
     const win = getCurrentWindow();
     await win.setTheme(resolved);
+    if (win.label === "popover") {
+      await win.clearEffects();
+      await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
+      return;
+    }
     if (transparency) {
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
       await win.setEffects({

@@ -18,11 +18,17 @@ import type { Locale, Surface, ThemePref } from "@/lib/types";
 
 function currentSurface(): Surface {
   try {
+    const internals = window as unknown as {
+      __TAURI_INTERNALS__?: {
+        metadata?: { currentWindow?: { label?: string } };
+      };
+    };
+    const label = internals.__TAURI_INTERNALS__?.metadata?.currentWindow?.label;
+    if (label === "popover") return "popover";
     const params = new URLSearchParams(window.location.search);
-    return params.get("surface") === "popover" ? "popover" : "app";
-  } catch {
-    return "app";
-  }
+    if (params.get("surface") === "popover") return "popover";
+  } catch {}
+  return "app";
 }
 
 type AppState = {
@@ -39,9 +45,11 @@ type AppState = {
 const initialLocale = readStoredLocale() ?? detectLocale();
 const initialTheme = readStoredTheme();
 const initialGlass = readStoredTransparency();
+const initialSurface = currentSurface();
+document.documentElement.dataset.surface = initialSurface;
 
 export const useStore = create<AppState>((set, get) => ({
-  surface: currentSurface(),
+  surface: initialSurface,
   locale: initialLocale,
   themePref: initialTheme,
   transparency: initialGlass,

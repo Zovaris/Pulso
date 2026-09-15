@@ -94,7 +94,9 @@ body {
 }
 
 html[data-transparency="on"],
-html[data-transparency="on"] body {
+html[data-transparency="on"] body,
+html[data-surface="popover"],
+html[data-surface="popover"] body {
   background: transparent;
 }
 

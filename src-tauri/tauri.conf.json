@@ -35,7 +35,6 @@
       {
         "label": "popover",
         "title": "Soffy",
-        "url": "index.html?surface=popover",
         "width": 360,
         "height": 420,
         "visible": false,
@@ -45,8 +44,7 @@
         "resizable": false,
         "alwaysOnTop": true,
         "skipTaskbar": true,
-        "focus": false,
-        "backgroundColor": "#111111"
+        "backgroundColor": "#1c1c1c"
       }
     ],
     "security": {

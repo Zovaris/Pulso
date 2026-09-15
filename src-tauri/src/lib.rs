@@ -8,6 +8,9 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             app::tray::install(app.handle())?;
+            if cfg!(debug_assertions) {
+                app::windows::show_main(app.handle());
+            }
             if let Some(win) = app::windows::popover(app.handle()) {
                 let handle = app.handle().clone();
                 win.on_window_event(move |event| {

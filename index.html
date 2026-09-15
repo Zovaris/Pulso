@@ -8,9 +8,10 @@
     <script>
       (() => {
         var pref = "system";
-        var glass = true;
+        var glass = false;
         var resolved = "dark";
         var params;
+        var label;
         try {
           params = new URLSearchParams(location.search);
           pref =
@@ -18,10 +19,8 @@
             localStorage.getItem("soffy:theme") ||
             "system";
           glass =
-            params.get("glass") === "0"
-              ? false
-              : params.get("glass") === "1" ||
-                localStorage.getItem("soffy:transparency") !== "0";
+            params.get("glass") === "1" ||
+            localStorage.getItem("soffy:transparency") === "1";
           resolved =
             pref === "system"
               ? matchMedia("(prefers-color-scheme: dark)").matches
@@ -33,8 +32,11 @@
           document.documentElement.dataset.theme = resolved;
           document.documentElement.dataset.themePref = pref;
           document.documentElement.dataset.transparency = glass ? "on" : "off";
+          label = window.__TAURI_INTERNALS__?.metadata?.currentWindow?.label;
           document.documentElement.dataset.surface =
-            params.get("surface") || "app";
+            label === "popover" || params.get("surface") === "popover"
+              ? "popover"
+              : "app";
           document.documentElement.style.colorScheme = resolved;
         } catch {
           document.documentElement.dataset.theme = "dark";
