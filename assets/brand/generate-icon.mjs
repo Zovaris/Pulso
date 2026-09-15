@@ -6,6 +6,8 @@ import { deflateSync } from "node:zlib";
 const SIZE = 1024;
 const BG = "#111111";
 const ACCENT = "#D71921";
+const S_D =
+  "M 680 300 C 680 220 600 190 512 190 C 390 190 330 250 330 320 C 330 400 420 430 512 460 C 640 500 710 560 710 660 C 710 770 620 830 512 830 C 390 830 320 760 320 690";
 
 function squirclePath(size, n = 5, samples = 128) {
   const a = size / 2;
@@ -28,32 +30,7 @@ function squirclePath(size, n = 5, samples = 128) {
   return `${d} Z`;
 }
 
-function sMarkPath(size) {
-  const u = size / 1024;
-  const p = (xs) =>
-    `${xs
-      .map(
-        ([x, y], i) =>
-          `${i === 0 ? "M" : "L"} ${(x * u).toFixed(2)} ${(y * u).toFixed(2)}`,
-      )
-      .join(" ")} Z`;
-  const upper = p([
-    [290, 188],
-    [790, 188],
-    [638, 428],
-    [138, 428],
-  ]);
-  const lower = p([
-    [386, 596],
-    [886, 596],
-    [734, 836],
-    [234, 836],
-  ]);
-  return `${upper} ${lower}`;
-}
-
 const maskPath = squirclePath(SIZE, 5);
-const mark = sMarkPath(SIZE);
 
 const appSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}" fill="none">
@@ -64,7 +41,8 @@ const appSvg = `<?xml version="1.0" encoding="UTF-8"?>
   </defs>
   <g clip-path="url(#plate)">
     <rect width="${SIZE}" height="${SIZE}" fill="${BG}"/>
-    <path d="${mark}" fill="${ACCENT}"/>
+    <circle cx="512" cy="512" r="340" fill="${ACCENT}"/>
+    <path d="${S_D}" stroke="#F6F6F6" stroke-width="92" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>
 `;
@@ -72,13 +50,14 @@ const appSvg = `<?xml version="1.0" encoding="UTF-8"?>
 const markSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img">
   <title>Soffy</title>
-  <path fill="${ACCENT}" d="M6.8 4.4h11.7L14.9 10H3.2L6.8 4.4zm2.2 9.6h11.7L16.9 19.6H5.2L9 14z"/>
+  <circle cx="12" cy="12" r="10" fill="${ACCENT}"/>
+  <path d="M15.6 8.2c0-1.5-1.4-2.2-3.4-2.2S8.6 7.2 8.6 8.6s1.7 2.2 3.4 2.8 3.8 1.6 3.8 3.6-1.6 3.4-3.8 3.4-4-1.3-4-2.8" stroke="#F6F6F6" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `;
 
 const traySvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-  <path fill="#000000" d="M9 6h15.6L19.9 14.8H4.2L9 6zm3 12h15.6L22.9 26.8H7.2L12 18z"/>
+  <path d="M22 9.2c0-2.1-2-3.1-4.8-3.1S12 7.8 12 9.7s2.4 3.1 4.8 4 5.4 2.3 5.4 5.1-2.3 4.8-5.4 4.8-5.6-1.8-5.6-4" stroke="#000000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
 `;
 
@@ -86,7 +65,7 @@ const dir = dirname(fileURLToPath(import.meta.url));
 writeFileSync(join(dir, "soffy-icon.svg"), appSvg);
 writeFileSync(join(dir, "soffy-mark.svg"), markSvg);
 writeFileSync(join(dir, "soffy-tray.svg"), traySvg);
-writeFileSync(join(dir, "soffy-tray.png"), trayPng(32));
+writeFileSync(join(dir, "soffy-tray.png"), trayPng(64));
 console.log(`wrote ${join(dir, "soffy-icon.svg")}`);
 
 function crc32(buf) {
@@ -108,29 +87,46 @@ function chunk(type, data) {
   return Buffer.concat([len, typeBuf, data, crc]);
 }
 
+function distToPoly(x, y, pts) {
+  let min = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [ax, ay] = pts[i];
+    const [bx, by] = pts[i + 1];
+    const abx = bx - ax;
+    const aby = by - ay;
+    const t = Math.max(
+      0,
+      Math.min(1, ((x - ax) * abx + (y - ay) * aby) / (abx * abx + aby * aby)),
+    );
+    const dx = x - (ax + abx * t);
+    const dy = y - (ay + aby * t);
+    min = Math.min(min, Math.hypot(dx, dy));
+  }
+  return min;
+}
+
 function trayPng(size) {
+  const pts = [
+    [0.7, 0.22],
+    [0.52, 0.14],
+    [0.34, 0.18],
+    [0.3, 0.3],
+    [0.38, 0.4],
+    [0.55, 0.47],
+    [0.7, 0.56],
+    [0.72, 0.7],
+    [0.62, 0.82],
+    [0.42, 0.86],
+    [0.28, 0.76],
+  ].map(([x, y]) => [x * size, y * size]);
+  const thickness = size * 0.09;
   const pixels = Buffer.alloc(size * (size * 4 + 1));
-  const inS = (x, y) => {
-    const nx = x / size;
-    const ny = y / size;
-    const inUpper =
-      ny >= 0.18 &&
-      ny <= 0.42 &&
-      nx >= 0.12 + (0.42 - ny) * 0.3 &&
-      nx <= 0.78 - (ny - 0.18) * 0.75;
-    const inLower =
-      ny >= 0.58 &&
-      ny <= 0.82 &&
-      nx >= 0.22 + (0.82 - ny) * 0.3 &&
-      nx <= 0.88 - (ny - 0.58) * 0.75;
-    return inUpper || inLower;
-  };
   for (let y = 0; y < size; y++) {
     const row = y * (size * 4 + 1);
     pixels[row] = 0;
     for (let x = 0; x < size; x++) {
       const i = row + 1 + x * 4;
-      const on = inS(x + 0.5, y + 0.5);
+      const on = distToPoly(x + 0.5, y + 0.5, pts) <= thickness;
       pixels[i] = 0;
       pixels[i + 1] = 0;
       pixels[i + 2] = 0;

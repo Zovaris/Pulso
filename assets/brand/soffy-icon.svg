@@ -7,6 +7,7 @@
   </defs>
   <g clip-path="url(#plate)">
     <rect width="1024" height="1024" fill="#111111"/>
-    <path d="M 290.00 188.00 L 790.00 188.00 L 638.00 428.00 L 138.00 428.00 Z M 386.00 596.00 L 886.00 596.00 L 734.00 836.00 L 234.00 836.00 Z" fill="#D71921"/>
+    <circle cx="512" cy="512" r="340" fill="#D71921"/>
+    <path d="M 680 300 C 680 220 600 190 512 190 C 390 190 330 250 330 320 C 330 400 420 430 512 460 C 640 500 710 560 710 660 C 710 770 620 830 512 830 C 390 830 320 760 320 690" stroke="#F6F6F6" stroke-width="92" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>
