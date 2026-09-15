@@ -1,0 +1,70 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Soffy",
+  "version": "0.1.0",
+  "identifier": "com.sthbryan.soffy",
+  "build": {
+    "beforeDevCommand": "bun run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "bun run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Soffy",
+        "width": 720,
+        "height": 520,
+        "minWidth": 560,
+        "minHeight": 400,
+        "visible": false,
+        "resizable": true,
+        "hiddenTitle": true,
+        "titleBarStyle": "Overlay",
+        "transparent": true,
+        "shadow": true,
+        "skipTaskbar": true,
+        "trafficLightPosition": {
+          "x": 16,
+          "y": 18
+        },
+        "backgroundColor": "#111111"
+      },
+      {
+        "label": "popover",
+        "title": "Soffy",
+        "url": "index.html?surface=popover",
+        "width": 360,
+        "height": 420,
+        "visible": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
+        "resizable": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "backgroundColor": "#111111"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "infoPlist": "Info.plist"
+    }
+  }
+}
