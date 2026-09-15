@@ -1,0 +1,118 @@
+@import "./styles/fonts.css";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
+  --color-void: var(--void);
+  --color-night: var(--night);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-overlay: var(--overlay);
+  --color-line: var(--line);
+  --color-hairline: var(--hairline);
+  --color-mist: var(--mist);
+  --color-faint: var(--faint);
+  --color-paper: var(--paper);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-press: var(--accent-press);
+  --color-ok: var(--ok);
+  --color-hover: var(--hover);
+  --color-fill: var(--fill);
+}
+
+html {
+  --void-base: #111111;
+  --night-base: #191919;
+  --panel-base: #1c1c1c;
+  --raised-base: #232323;
+  --overlay-base: #2a2a2a;
+  --line-base: #2e2e2e;
+  --hairline-base: #242424;
+  --void: var(--void-base);
+  --night: var(--night-base);
+  --panel: var(--panel-base);
+  --raised: var(--raised-base);
+  --overlay: var(--overlay-base);
+  --line: var(--line-base);
+  --hairline: var(--hairline-base);
+  --mist: #a3a3a3;
+  --faint: #8a8a8a;
+  --paper: #ececec;
+  --accent: #d71921;
+  --accent-hover: #ea343c;
+  --accent-press: #b9151c;
+  --ok: #28c840;
+  --hover: rgb(255 255 255 / 0.04);
+  --fill: rgb(255 255 255 / 0.06);
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  --void-base: #f3f3f3;
+  --night-base: #ececec;
+  --panel-base: #ffffff;
+  --raised-base: #f6f6f6;
+  --overlay-base: #e8e8e8;
+  --line-base: #dcdcdc;
+  --hairline-base: #e4e4e4;
+  --mist: #5c5c5c;
+  --faint: #6e6e6e;
+  --paper: #161616;
+  --accent: #d71921;
+  --accent-hover: #c1161d;
+  --accent-press: #a51319;
+  --ok: #188a2c;
+  --hover: rgb(0 0 0 / 0.045);
+  --fill: rgb(0 0 0 / 0.06);
+  color-scheme: light;
+}
+
+html[data-transparency="on"] {
+  --void: color-mix(in srgb, var(--void-base) 42%, transparent);
+  --night: color-mix(in srgb, var(--night-base) 26%, transparent);
+  --panel: color-mix(in srgb, var(--panel-base) 70%, transparent);
+  --raised: color-mix(in srgb, var(--raised-base) 74%, transparent);
+  --overlay: color-mix(in srgb, var(--overlay-base) 82%, transparent);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html[data-transparency="on"],
+html[data-transparency="on"] body {
+  background: transparent;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-transparency="on"] {
+    --void: var(--void-base);
+    --night: var(--night-base);
+    --panel: var(--panel-base);
+    --raised: var(--raised-base);
+    --overlay: var(--overlay-base);
+  }
+}

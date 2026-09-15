@@ -1,0 +1,24 @@
+{
+  "appName": "Soffy",
+  "runningCount": {
+    "one": "{count} proceso activo",
+    "other": "{count} procesos activos"
+  },
+  "noneRunning": "Ningun proceso activo",
+  "favorites": "Favoritos",
+  "emptyFavorites": "Fija hasta tres favoritos. Aparecen aqui.",
+  "emptyProjects": "Agrega una carpeta para detectar sus comandos.",
+  "addProject": "Agregar proyecto",
+  "settings": "Ajustes",
+  "openApp": "Abrir Soffy",
+  "quit": "Salir de Soffy",
+  "projects": "Proyectos",
+  "appearance": "Apariencia",
+  "theme": "Tema",
+  "themeDark": "Oscuro",
+  "themeLight": "Claro",
+  "themeSystem": "Sistema",
+  "language": "Idioma",
+  "transparency": "Transparencia",
+  "comingSoon": "La deteccion de comandos llega en el siguiente corte."
+}
