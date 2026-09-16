@@ -11,11 +11,6 @@ const MESSAGES: Record<BackendErrorKind, string> = {
   internal: "errorInternal",
 };
 
-/**
- * The backend sends a kind and a technical message; the copy a person reads is
- * chosen here. The technical line is only worth showing when the failure came
- * from inside Soffy, because that is the case nobody can guess.
- */
 export function ErrorNote({
   error,
   onDismiss,

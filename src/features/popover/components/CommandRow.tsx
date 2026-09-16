@@ -1,12 +1,6 @@
 import { useI18n } from "@/app/hooks/useI18n";
 import type { DetectedCommand } from "@/lib/types";
 
-/**
- * One detected command: what it is called and what Soffy would run.
- *
- * There is no play control yet on purpose. Running commands arrives with the
- * supervisor, and a button that does nothing is worse than no button.
- */
 export function CommandRow({ command }: { command: DetectedCommand }) {
   const { t } = useI18n();
   const invocation = [command.program, ...command.args].join(" ");

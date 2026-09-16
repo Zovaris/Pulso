@@ -45,12 +45,6 @@ pub struct Appearance {
     pub transparency: bool,
 }
 
-/// The record for both values lives in `settings`.
-///
-/// The webview keeps a copy in `localStorage` so it can paint the first frame
-/// without waiting for this call, but that copy is a cache: `None` here means
-/// nothing has been chosen yet, and the frontend then writes what it booted
-/// with.
 #[tauri::command]
 pub async fn get_appearance(db: State<'_, Arc<Database>>) -> Result<Option<Appearance>> {
     let stored = in_database(&db, |conn| {

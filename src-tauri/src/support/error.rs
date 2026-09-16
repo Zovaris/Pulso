@@ -3,9 +3,6 @@ use std::path::Path;
 
 use serde::Serialize;
 
-/// Every failure a command can return. `kind` is what the UI localizes against;
-/// `message` is the technical detail, safe to show as a fallback and as the
-/// second line of an error state.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BackendError {
@@ -17,17 +14,11 @@ pub struct BackendError {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ErrorKind {
-    /// The thing being acted on is not where it was.
     NotFound,
-    /// A folder was expected and a file was picked.
     NotADirectory,
-    /// The path exists but cannot be read.
     Unreadable,
-    /// A value from the frontend is not one the backend accepts.
     InvalidInput,
-    /// SQLite refused an operation.
     Storage,
-    /// A task did not finish. Always worth reporting, never worth guessing at.
     Internal,
 }
 

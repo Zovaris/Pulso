@@ -7,11 +7,9 @@ export type Appearance = {
   transparency: boolean;
 };
 
-/** Resolved by Rust on every read, because a folder can move between reads. */
 export type Availability = "available" | "missing";
 
 export type Project = {
-  /** Surrogate key from the database, not the path. */
   id: number;
   name: string;
   path: string;
@@ -28,7 +26,6 @@ export type CommandCategory =
   | "other";
 
 export type DetectedCommand = {
-  /** Stable across scans: `<detector>:<label>`. */
   id: string;
   label: string;
   program: string;
@@ -40,10 +37,6 @@ export type DetectedCommand = {
   longRunning: boolean;
 };
 
-/**
- * Why a scan produced the commands it did. The UI has copy for every status, so
- * an empty project explains itself instead of showing a blank area.
- */
 export type ScanStatus =
   | "detected"
   | "noManifest"
@@ -56,7 +49,7 @@ export type CommandScan = {
   projectId: number;
   commands: DetectedCommand[];
   status: ScanStatus;
-  /** The technical reason. Only worth showing for a broken or unreadable file. */
+
   detail: string | null;
 };
 

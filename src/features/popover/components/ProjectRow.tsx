@@ -5,14 +5,6 @@ import { CommandRow } from "@/features/popover/components/CommandRow";
 import { scanMessage } from "@/features/projects/scanMessage";
 import type { Project } from "@/lib/types";
 
-/**
- * A project and, when it is open, the commands Soffy found in it.
- *
- * The row is a plain button rather than a package control because it carries
- * two lines of content, a count and a chevron. Forget is revealed on hover or
- * keyboard focus so that a list you open often does not read as a list of
- * delete buttons.
- */
 export function ProjectRow({ project }: { project: Project }) {
   const { t } = useI18n();
   const scan = useStore((state) => state.scans[String(project.id)]);

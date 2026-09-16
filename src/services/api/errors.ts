@@ -9,11 +9,6 @@ const KINDS: readonly BackendErrorKind[] = [
   "internal",
 ];
 
-/**
- * Every rejection from a command arrives as a `BackendError`. Anything else is
- * a bug on our side or a call made outside Tauri, and it is worth surfacing
- * rather than swallowing.
- */
 export function toBackendError(cause: unknown): BackendError {
   if (cause && typeof cause === "object") {
     const candidate = cause as Partial<BackendError>;

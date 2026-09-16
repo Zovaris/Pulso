@@ -5,8 +5,6 @@ use rusqlite::Connection;
 
 use crate::support::error::{BackendError, ErrorKind, Result};
 
-/// Applied in order and tracked with SQLite's own `user_version`, so a schema
-/// change is a new file here and nothing else.
 const MIGRATIONS: &[&str] = &[include_str!("../../migrations/0001_projects.sql")];
 
 pub struct Database {
@@ -33,8 +31,6 @@ impl Database {
             )
         })?;
 
-        // WAL keeps a read from blocking a write; the busy timeout covers the
-        // moment two commands meet.
         conn.execute_batch(
             "PRAGMA journal_mode = WAL;
              PRAGMA foreign_keys = ON;
@@ -51,8 +47,6 @@ impl Database {
         })
     }
 
-    /// `rusqlite` is synchronous, so callers reach this through the blocking
-    /// pool: a slow query on the main thread freezes the window that asked.
     pub fn with<T>(&self, work: impl FnOnce(&Connection) -> Result<T>) -> Result<T> {
         let conn = self
             .conn

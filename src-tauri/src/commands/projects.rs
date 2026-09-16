@@ -17,8 +17,6 @@ pub async fn list_projects(db: State<'_, Arc<Database>>) -> Result<Vec<Project>>
     in_database(&db, repositories::projects::list).await
 }
 
-/// The path is validated and canonicalized on the Rust side, because the
-/// frontend has no business deciding what a project is.
 #[tauri::command]
 pub async fn add_project(
     app: AppHandle,
@@ -43,7 +41,6 @@ pub async fn add_project(
     Ok(project)
 }
 
-/// Forgets the folder. Nothing on disk is touched, and the UI says so.
 #[tauri::command]
 pub async fn remove_project(
     app: AppHandle,
@@ -67,9 +64,6 @@ pub async fn remove_project(
     Ok(())
 }
 
-/// Reads the project's manifests and returns what can be run.
-///
-/// The scan is broadcast as well, so the window that did not ask stays correct.
 #[tauri::command]
 pub async fn list_commands(
     app: AppHandle,

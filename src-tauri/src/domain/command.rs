@@ -1,14 +1,8 @@
 use serde::Serialize;
 
-/// Everything needed to run a command later.
-///
-/// Program and arguments stay separate on purpose: nothing read from a manifest
-/// is ever concatenated into a shell line, so a script name cannot turn into a
-/// second command.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DetectedCommand {
-    /// Stable across scans: `<detector>:<label>`.
     pub id: String,
     pub label: String,
     pub program: String,
@@ -33,8 +27,6 @@ pub enum CommandCategory {
 }
 
 impl CommandCategory {
-    /// Display order. The commands reached for many times a day come first, the
-    /// one-shot build steps last.
     pub fn rank(self) -> u8 {
         match self {
             Self::Dev => 0,
@@ -48,9 +40,6 @@ impl CommandCategory {
     }
 }
 
-/// What one scan of a project found, including why it found nothing. The UI
-/// renders an honest empty state from `status` instead of guessing, and only
-/// shows `detail` when the reason is technical.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommandScan {
@@ -63,17 +52,11 @@ pub struct CommandScan {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ScanStatus {
-    /// Commands were found.
     Detected,
-    /// No manifest Soffy reads is present.
     NoManifest,
-    /// The manifest is there and declares nothing.
     NoCommands,
-    /// The manifest is there and could not be parsed.
     InvalidManifest,
-    /// The manifest could not be read as a file.
     Unreadable,
-    /// The project folder itself is gone.
     Unavailable,
 }
 

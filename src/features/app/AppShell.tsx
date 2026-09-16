@@ -8,11 +8,6 @@ import { scanMessage } from "@/features/projects/scanMessage";
 import { useAddProject } from "@/features/projects/useAddProject";
 import type { Locale, Project, ThemePref } from "@/lib/types";
 
-/**
- * The same projection the popover reads, one line per project: what it is and
- * what Soffy found in it. Commands live in the popover; this is the place to
- * take in several projects at once.
- */
 function ProjectSummary({ project }: { project: Project }) {
   const { t } = useI18n();
   const scan = useStore((state) => state.scans[String(project.id)]);

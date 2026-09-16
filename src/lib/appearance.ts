@@ -31,13 +31,6 @@ export function resolveTheme(pref: ThemePref): ResolvedTheme {
   return pref;
 }
 
-/**
- * Applies the theme to the document and refreshes the `localStorage` copy.
- *
- * That copy exists so the next launch paints the right frame immediately; the
- * record itself lives in the backend, so a stale cache is corrected by
- * `hydrateAppearance` a moment later.
- */
 export function applyDocumentAppearance(
   pref: ThemePref,
   resolved: ResolvedTheme,

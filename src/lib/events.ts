@@ -2,10 +2,6 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { isTauri } from "@/lib/tauri";
 import type { CommandScan, Project } from "@/lib/types";
 
-/**
- * Rust pushes the whole list, so a subscriber replaces its copy instead of
- * merging. Overlapping pushes are harmless for the same reason.
- */
 export function onProjectsChanged(
   handler: (projects: Project[]) => void,
 ): Promise<UnlistenFn> {
@@ -14,7 +10,6 @@ export function onProjectsChanged(
   );
 }
 
-/** Emitted after every scan, including the ones triggered by another window. */
 export function onCommandsChanged(
   handler: (scan: CommandScan) => void,
 ): Promise<UnlistenFn> {

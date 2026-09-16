@@ -50,7 +50,6 @@ const initialGlass = readStoredTransparency();
 const initialSurface = currentSurface();
 document.documentElement.dataset.surface = initialSurface;
 
-/** Preferencias de sesión y apariencia. Es el estado que no viene del backend. */
 export const createSessionSlice: StateCreator<
   AppStore,
   [],
@@ -85,8 +84,6 @@ export const createSessionSlice: StateCreator<
     );
     set({ transparency: value });
   },
-  // The `localStorage` copy already painted the first frame; this reconciles it
-  // with the record in Rust, and seeds that record on a first run.
   hydrateAppearance: async () => {
     const stored = await getAppearance().catch(() => null);
     if (!stored) {

@@ -12,8 +12,7 @@ export function PopoverShell() {
 
   return (
     <div className="soffy-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper">
-      {/* The count is real once the supervisor exists; until then it is zero
-          because nothing Soffy started can be running. */}
+      {}
       <PopoverHeader title={t("appName")} runningCount={0} />
       <PopoverProjects projects={projects} />
       <PopoverFooter {...actions} />

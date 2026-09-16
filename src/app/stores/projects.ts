@@ -32,11 +32,6 @@ function upsert(projects: Project[], project: Project): Project[] {
   return next;
 }
 
-/**
- * A projection of what Rust owns, never a second source of truth. Every write
- * goes through a command and is confirmed by its return value or by an event;
- * nothing here is persisted.
- */
 export const createProjectsSlice: StateCreator<
   AppStore,
   [],
@@ -69,8 +64,6 @@ export const createProjectsSlice: StateCreator<
       const project = await projectsApi.addProject(path);
       set((state) => ({
         projects: upsert(state.projects, project),
-        // The new project opens itself: the point of adding a folder is seeing
-        // what Soffy found in it.
         expandedProjectId: project.id,
         projectError: null,
       }));

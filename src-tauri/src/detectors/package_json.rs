@@ -55,8 +55,6 @@ fn detect(
             id: format!("{}:{name}", detector.id()),
             label: name.clone(),
             program: program.clone(),
-            // The script name is data read from a file, and it stays a single
-            // argument: nothing here is ever handed to a shell.
             args: vec!["run".to_string(), name.clone()],
             cwd: cwd.clone(),
             source: source.clone(),
@@ -77,9 +75,6 @@ fn detect(
     Ok(commands)
 }
 
-/// The manager a person would type for this project. A declared
-/// `packageManager` wins over lockfiles, and with neither, npm is the one that
-/// ships with Node.
 fn package_manager(manifest: &Value, project_dir: &Path) -> String {
     const KNOWN: [&str; 4] = ["bun", "pnpm", "yarn", "npm"];
 
@@ -110,8 +105,6 @@ fn package_manager(manifest: &Value, project_dir: &Path) -> String {
     "npm".to_string()
 }
 
-/// Script names are read as words, so `dev:web` and `db_migrate` categorize the
-/// way their author meant them.
 fn tokens(script: &str) -> Vec<String> {
     script
         .split(|character: char| !character.is_alphanumeric())
@@ -199,9 +192,6 @@ fn categorize(script: &str) -> CommandCategory {
     CommandCategory::Other
 }
 
-/// Whether the process is expected to keep running. This is asked separately
-/// from the category on purpose: `test:watch` belongs in Test and still never
-/// exits on its own.
 fn is_long_running(script: &str) -> bool {
     const PERSISTENT: [&str; 9] = [
         "dev",
@@ -256,7 +246,6 @@ mod tests {
         assert_eq!(dev.id, "package_json:dev");
         assert_eq!(dev.detector, "package_json");
         assert_eq!(dev.program, "bun");
-        // The script name is one argument, never part of a shell line.
         assert_eq!(dev.args, vec!["run".to_string(), "dev".to_string()]);
         assert!(dev.cwd.ends_with("node-project"));
         assert!(dev.source.ends_with("package.json"));

@@ -33,8 +33,6 @@ pub fn run() {
                 let handle = handle.clone();
                 win.on_window_event(move |event| {
                     if let tauri::WindowEvent::Focused(false) = event {
-                        // The folder panel takes focus while it is open, and
-                        // closing the popover there would end the flow.
                         if !app::picker::is_open() {
                             app::windows::hide_popover(&handle);
                         }

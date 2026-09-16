@@ -5,8 +5,6 @@ use crate::persistence::storage_error;
 use crate::support::error::{BackendError, Result};
 use crate::support::paths;
 
-/// A row exactly as SQLite stores it. Availability is deliberately absent from
-/// the table and resolved when the row becomes a `Project`.
 #[derive(Debug, Clone)]
 pub struct ProjectRow {
     pub id: i64,
@@ -75,9 +73,6 @@ fn by_path(conn: &Connection, path: &str) -> Result<Option<ProjectRow>> {
     })
 }
 
-/// Add or return. Picking a folder Soffy already knows is not an error: the row
-/// that is already there is the answer, which is what makes a second pick of the
-/// same folder (or of a symlink to it) a no-op.
 pub fn ensure(conn: &Connection, path: &str, name: &str, added_at: i64) -> Result<ProjectRow> {
     conn.execute(
         "INSERT INTO projects (path, name, added_at) VALUES (?1, ?2, ?3)
@@ -114,16 +109,12 @@ mod tests {
     use crate::persistence::Database;
     use crate::support::now_ms;
 
-    /// A real database in a temporary file, removed when the test ends. The
-    /// point is to exercise the migration and the SQL, not a stub.
     struct TempDatabase {
         database: Database,
         path: std::path::PathBuf,
     }
 
     impl TempDatabase {
-        /// The name keeps parallel tests in separate files; the timestamp keeps
-        /// a rerun from meeting the previous file.
         fn open(name: &str) -> Self {
             let path = std::env::temp_dir().join(format!(
                 "soffy-test-{name}-{}-{}.db",

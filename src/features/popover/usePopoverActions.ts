@@ -13,10 +13,6 @@ export type PopoverActions = {
   quit: () => void;
 };
 
-/**
- * Rust keeps the popover open while the folder panel is up, and this restores
- * its focus once the panel closes, whether a folder was picked or not.
- */
 export function usePopoverActions(): PopoverActions {
   const pickAndAddProject = useAddProject();
 

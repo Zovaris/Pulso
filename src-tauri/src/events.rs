@@ -11,15 +11,12 @@ use crate::persistence::{repositories, Database};
 pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
 
-/// Payloads are additive-compatible: fields get added, never renamed or
-/// retyped, so an older frontend keeps working against a newer backend.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProjectsChanged {
     pub projects: Vec<Project>,
 }
 
-/// The full list, so a subscriber never has to merge.
 pub fn projects_changed(app: &AppHandle, projects: Vec<Project>) {
     let _ = app.emit(PROJECTS_CHANGED, ProjectsChanged { projects });
 }
@@ -28,18 +25,12 @@ pub fn commands_changed(app: &AppHandle, scan: &CommandScan) {
     let _ = app.emit(COMMANDS_CHANGED, scan);
 }
 
-/// Re-reads the list and pushes it to every window. Called after a mutation.
 pub async fn broadcast_projects(app: &AppHandle) -> Option<Vec<Project>> {
     let projects = read_projects(app).await?;
     projects_changed(app, projects.clone());
     Some(projects)
 }
 
-/// Re-reads projects and re-derives every project's commands, then pushes both.
-///
-/// This is what keeps the popover honest when it opens: a manifest edited
-/// outside Soffy, or a folder that was moved, shows up without the frontend
-/// polling anything.
 pub async fn refresh(app: &AppHandle) {
     let Some(projects) = broadcast_projects(app).await else {
         return;
