@@ -1,4 +1,4 @@
-import { WarningCircle, X } from "@phosphor-icons/react";
+import { WarningCircleIcon, XIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
 import type { BackendError, BackendErrorKind } from "@/lib/types";
 
@@ -23,7 +23,7 @@ export function ErrorNote({
 
   return (
     <p role="alert" className="soffy-error">
-      <WarningCircle size={13} className="soffy-error__icon" />
+      <WarningCircleIcon size={13} className="soffy-error__icon" />
       <span className="soffy-error__text">
         {t(MESSAGES[error.kind])}
         {technical ? (
@@ -36,7 +36,7 @@ export function ErrorNote({
         aria-label={t("dismiss")}
         onClick={onDismiss}
       >
-        <X size={12} />
+        <XIcon size={12} />
       </button>
     </p>
   );

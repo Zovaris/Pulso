@@ -1,4 +1,4 @@
-import { FolderSimplePlus } from "@phosphor-icons/react";
+import { FolderSimplePlusIcon } from "@phosphor-icons/react";
 import { Select, Toggle } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -63,7 +63,7 @@ export function AppShell() {
             {t("projects")}
           </p>
           <ActionRow
-            icon={<FolderSimplePlus size={15} />}
+            icon={<FolderSimplePlusIcon size={15} />}
             label={t("addProject")}
             onClick={() => {
               void addProject();

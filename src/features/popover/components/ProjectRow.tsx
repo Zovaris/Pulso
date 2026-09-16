@@ -1,4 +1,8 @@
-import { CaretRight, FolderSimple, Trash } from "@phosphor-icons/react";
+import {
+  CaretRightIcon,
+  FolderSimpleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { CommandRow } from "@/features/popover/components/CommandRow";
@@ -25,7 +29,7 @@ export function ProjectRow({ project }: { project: Project }) {
           aria-expanded={expanded}
           onClick={() => toggleProject(project.id)}
         >
-          <FolderSimple size={14} className="soffy-project__icon" />
+          <FolderSimpleIcon size={14} className="soffy-project__icon" />
           <span className="soffy-project__text">
             <span className="soffy-project__head">
               <span className="truncate text-[12.5px] font-medium">
@@ -43,7 +47,7 @@ export function ProjectRow({ project }: { project: Project }) {
           </span>
         </button>
 
-        <CaretRight size={12} className="soffy-project__chevron" />
+        <CaretRightIcon size={12} className="soffy-project__chevron" />
         <button
           type="button"
           className="soffy-project__forget"
@@ -51,7 +55,7 @@ export function ProjectRow({ project }: { project: Project }) {
           title={t("forgetHint")}
           onClick={() => void removeProject(project.id)}
         >
-          <Trash size={13} />
+          <TrashIcon size={13} />
         </button>
       </div>
 

@@ -1,4 +1,4 @@
-import { CaretRight, Play, Stop } from "@phosphor-icons/react";
+import { CaretRightIcon, PlayIcon, StopIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { CommandLogs } from "@/features/executions/CommandLogs";
@@ -44,7 +44,7 @@ export function CommandRow({
           aria-expanded={open}
           onClick={() => toggleLogs(key, execution?.id ?? null)}
         >
-          <CaretRight
+          <CaretRightIcon
             size={10}
             className="soffy-command__caret"
             data-quiet={execution === undefined}
@@ -90,7 +90,7 @@ export function CommandRow({
               if (execution) void stopExecution(execution.id);
             }}
           >
-            <Stop size={11} weight="fill" />
+            <StopIcon size={11} weight="fill" />
           </button>
         ) : (
           <button
@@ -101,7 +101,7 @@ export function CommandRow({
             disabled={pendingCommandId === command.id}
             onClick={() => void startCommand(projectId, command.id)}
           >
-            <Play size={11} weight="fill" />
+            <PlayIcon size={11} weight="fill" />
           </button>
         )}
       </div>
