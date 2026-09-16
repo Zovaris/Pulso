@@ -1,6 +1,6 @@
 use tauri::AppHandle;
 
-use crate::app::windows;
+use crate::app::{picker, windows};
 
 #[tauri::command]
 pub fn quit_soffy(app: AppHandle) {
@@ -23,8 +23,5 @@ pub fn hide_popover(app: AppHandle) {
 
 #[tauri::command]
 pub async fn pick_project_folder(app: AppHandle, title: String) -> Option<String> {
-    crate::app::picker::pick_folder(&app, title).await
+    picker::pick_folder(&app, title).await
 }
-
-#[tauri::command]
-pub fn save_appearance(_theme: String, _transparency: bool) {}

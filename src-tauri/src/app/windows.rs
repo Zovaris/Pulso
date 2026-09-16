@@ -20,6 +20,11 @@ pub fn show_main(app: &AppHandle) {
         let _ = win.unminimize();
         let _ = win.set_focus();
     }
+
+    // Same reason as the popover: a window is a view over Rust's state, so the
+    // state is re-derived as it opens and pushed to whoever is listening.
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move { crate::events::refresh(&app).await });
 }
 
 pub fn position_popover(win: &WebviewWindow, x: i32, y: i32, width: u32, height: u32) {

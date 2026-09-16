@@ -4,6 +4,8 @@ use tauri::{
     AppHandle, PhysicalPosition, PhysicalSize,
 };
 
+use crate::events;
+
 use super::windows;
 
 const TRAY_PNG: &[u8] = include_bytes!("../../../assets/brand/soffy-tray.png");
@@ -54,4 +56,10 @@ fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {
     windows::position_popover(&win, x, y, width, height);
     let _ = win.show();
     let _ = win.set_focus();
+
+    // The popover is a view over Rust's state, so the state is re-derived as
+    // the window opens: a manifest edited or a folder moved while it was closed
+    // is already correct by the time it is on screen.
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move { events::refresh(&app).await });
 }

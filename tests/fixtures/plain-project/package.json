@@ -1,0 +1,8 @@
+{
+  "name": "plain-project",
+  "scripts": {
+    "build": "tsup",
+    "db_seed": "node seed.js",
+    "legacy": 12
+  }
+}

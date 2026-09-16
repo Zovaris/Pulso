@@ -1,0 +1,7 @@
+{
+  "name": "bare-project",
+  "private": true,
+  "dependencies": {
+    "react": "19.3.0"
+  }
+}

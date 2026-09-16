@@ -1,0 +1,8 @@
+{
+  "name": "pnpm-project",
+  "packageManager": "pnpm@9.1.0",
+  "scripts": {
+    "start": "node server.js",
+    "watch:css": "tailwindcss --watch"
+  }
+}

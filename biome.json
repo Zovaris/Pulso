@@ -6,7 +6,14 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!dist", "!node_modules", "!src-tauri", "!assets/brand"]
+    "includes": [
+      "**",
+      "!dist",
+      "!node_modules",
+      "!src-tauri",
+      "!assets/brand",
+      "!tests/fixtures"
+    ]
   },
   "formatter": {
     "enabled": true,
