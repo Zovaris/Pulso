@@ -8,7 +8,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             app::tray::install(app.handle())?;
-            if cfg!(debug_assertions) {
+            if std::env::var("SOFFY_SHOW_MAIN").as_deref() == Ok("1") {
                 app::windows::show_main(app.handle());
             }
             if let Some(win) = app::windows::popover(app.handle()) {
