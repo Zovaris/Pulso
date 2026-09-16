@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import type { ThemePref } from "./types";
 
 export type ResolvedTheme = "dark" | "light";
@@ -32,6 +31,13 @@ export function resolveTheme(pref: ThemePref): ResolvedTheme {
   return pref;
 }
 
+/**
+ * Applies the theme to the document and refreshes the `localStorage` copy.
+ *
+ * That copy exists so the next launch paints the right frame immediately; the
+ * record itself lives in the backend, so a stale cache is corrected by
+ * `hydrateAppearance` a moment later.
+ */
 export function applyDocumentAppearance(
   pref: ThemePref,
   resolved: ResolvedTheme,
@@ -98,10 +104,4 @@ export async function applyWindowChrome(
       );
     }
   } catch {}
-}
-
-export function saveAppearance(theme: ThemePref, transparency: boolean) {
-  applyDocumentAppearance(theme, resolveTheme(theme), transparency);
-  if (!("__TAURI_INTERNALS__" in window)) return Promise.resolve();
-  return invoke("save_appearance", { theme, transparency });
 }

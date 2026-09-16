@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AppShell } from "@/features/app/AppShell";
 import { PopoverShell } from "@/features/popover/PopoverShell";
+import { useProjectSync } from "@/features/projects/useProjectSync";
 import {
   applyDocumentAppearance,
   applyWindowChrome,
@@ -12,6 +13,13 @@ export default function App() {
   const surface = useStore((s) => s.surface);
   const themePref = useStore((s) => s.themePref);
   const transparency = useStore((s) => s.transparency);
+  const hydrateAppearance = useStore((s) => s.hydrateAppearance);
+
+  useProjectSync();
+
+  useEffect(() => {
+    void hydrateAppearance();
+  }, [hydrateAppearance]);
 
   useEffect(() => {
     const resolved = resolveTheme(themePref);

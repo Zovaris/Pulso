@@ -4,8 +4,9 @@ import { useStore } from "@/app/store";
 import { pickProjectFolder } from "@/lib/tauri";
 
 /**
- * Opens the native folder panel and adds the chosen project.
- * Never throws: a cancelled or failed panel resolves to `false`.
+ * Opens the native folder panel and hands the result to the store, which is
+ * where the backend call and its errors live. Never throws: a cancelled panel
+ * resolves to `false`.
  */
 export function useAddProject(): () => Promise<boolean> {
   const { t } = useI18n();
@@ -15,7 +16,6 @@ export function useAddProject(): () => Promise<boolean> {
     const path = await pickProjectFolder(t("addProject")).catch(() => null);
     if (!path) return false;
 
-    addProject(path);
-    return true;
+    return (await addProject(path)) !== null;
   }, [addProject, t]);
 }

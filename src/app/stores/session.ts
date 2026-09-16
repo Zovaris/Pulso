@@ -5,7 +5,6 @@ import {
   readStoredTheme,
   readStoredTransparency,
   resolveTheme,
-  saveAppearance,
 } from "@/lib/appearance";
 import {
   applyDocumentLocale,
@@ -14,6 +13,7 @@ import {
   translate,
 } from "@/lib/i18n";
 import type { Surface } from "@/lib/types";
+import { getAppearance, persistAppearance } from "@/services/api/settings";
 import type { AppStore } from "./types";
 
 export type SessionSlice = Pick<
@@ -25,6 +25,7 @@ export type SessionSlice = Pick<
   | "setLocale"
   | "setThemePref"
   | "setTransparency"
+  | "hydrateAppearance"
   | "t"
 >;
 
@@ -69,7 +70,9 @@ export const createSessionSlice: StateCreator<
     const glass = get().transparency;
     applyDocumentAppearance(pref, resolved, glass);
     void applyWindowChrome(resolved, glass);
-    void saveAppearance(pref, glass);
+    void persistAppearance({ theme: pref, transparency: glass }).catch(
+      () => undefined,
+    );
     set({ themePref: pref });
   },
   setTransparency: (value) => {
@@ -77,8 +80,33 @@ export const createSessionSlice: StateCreator<
     const resolved = resolveTheme(pref);
     applyDocumentAppearance(pref, resolved, value);
     void applyWindowChrome(resolved, value);
-    void saveAppearance(pref, value);
+    void persistAppearance({ theme: pref, transparency: value }).catch(
+      () => undefined,
+    );
     set({ transparency: value });
+  },
+  // The `localStorage` copy already painted the first frame; this reconciles it
+  // with the record in Rust, and seeds that record on a first run.
+  hydrateAppearance: async () => {
+    const stored = await getAppearance().catch(() => null);
+    if (!stored) {
+      await persistAppearance({
+        theme: get().themePref,
+        transparency: get().transparency,
+      }).catch(() => undefined);
+      return;
+    }
+    if (
+      stored.theme === get().themePref &&
+      stored.transparency === get().transparency
+    ) {
+      return;
+    }
+
+    const resolved = resolveTheme(stored.theme);
+    applyDocumentAppearance(stored.theme, resolved, stored.transparency);
+    void applyWindowChrome(resolved, stored.transparency);
+    set({ themePref: stored.theme, transparency: stored.transparency });
   },
   t: (key, vars) => translate(get().locale, key, vars),
 });
