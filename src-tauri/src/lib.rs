@@ -48,6 +48,16 @@ pub fn run() {
                 app::windows::show_main(&handle);
             }
 
+            if let Some(win) = app::windows::main_window(&handle) {
+                let handle = handle.clone();
+                win.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        api.prevent_close();
+                        app::windows::hide_main(&handle);
+                    }
+                });
+            }
+
             if let Some(win) = app::windows::popover(&handle) {
                 let handle = handle.clone();
                 win.on_window_event(move |event| {

@@ -14,15 +14,25 @@ pub fn hide_popover(app: &AppHandle) {
     }
 }
 
-pub fn show_main(app: &AppHandle) {
+pub fn hide_main(app: &AppHandle) {
     if let Some(win) = main_window(app) {
-        let _ = win.show();
-        let _ = win.unminimize();
-        let _ = win.set_focus();
+        let _ = win.hide();
     }
+}
+
+pub fn show_main(app: &AppHandle) -> bool {
+    let Some(win) = main_window(app) else {
+        return false;
+    };
+
+    let _ = win.show();
+    let _ = win.unminimize();
+    let _ = win.set_focus();
 
     let app = app.clone();
     tauri::async_runtime::spawn(async move { crate::events::refresh(&app).await });
+
+    true
 }
 
 pub fn position_popover(win: &WebviewWindow, x: i32, y: i32, width: u32, height: u32) {

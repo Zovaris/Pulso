@@ -4,7 +4,7 @@ use tauri::{AppHandle, State};
 
 use crate::app::{picker, windows};
 use crate::process::supervisor::ProcessSupervisor;
-use crate::support::error::Result;
+use crate::support::error::{BackendError, Result};
 
 #[tauri::command]
 pub async fn quit_soffy(
@@ -23,8 +23,14 @@ pub async fn quit_soffy(
 }
 
 #[tauri::command]
-pub fn open_main_window(app: AppHandle) {
-    windows::show_main(&app);
+pub fn open_main_window(app: AppHandle) -> Result<()> {
+    if windows::show_main(&app) {
+        return Ok(());
+    }
+
+    Err(BackendError::internal(
+        "The main window is not there any more; restart Soffy.",
+    ))
 }
 
 #[tauri::command]
