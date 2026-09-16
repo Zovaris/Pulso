@@ -23,3 +23,5 @@ src-tauri/gen/schemas
 *.njsproj
 *.sln
 *.sw?
+
+docs/**
