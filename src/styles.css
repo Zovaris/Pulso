@@ -117,16 +117,10 @@ button {
   color: inherit;
 }
 
-/* WebKit draws an arrow over buttons, and a borderless desktop app has no
-   chrome left to suggest what is clickable. */
 button:not(:disabled) {
   cursor: pointer;
 }
 
-/* The popover window clears its native effects, so its surface carries the
-   contrast alone: 92% is the floor that keeps muted text above 4.5:1 over
-   whatever sits behind it. The main window can drop further because a macOS
-   material sits underneath it. */
 .soffy-popover {
   background-color: var(--popover-base);
   border: 1px solid var(--popover-rim);
@@ -137,9 +131,6 @@ html[data-transparency="on"] .soffy-popover {
   backdrop-filter: saturate(180%) blur(30px);
 }
 
-/* A menu row: the host owns the row box, the package keeps the control.
-   The 10px inset lands the icon on the same 16px grid as the header and the
-   project list (6px footer padding + 10px). */
 .soffy-row.sph-button {
   width: 100%;
   justify-content: flex-start;
@@ -167,9 +158,6 @@ html[data-transparency="on"] .soffy-popover {
   background-color: var(--accent-strong);
 }
 
-/* A project row carries two lines, a count and a chevron, so the host owns the
-   whole box. The chevron and the forget action share the right edge: hovering
-   swaps one for the other, which keeps the geometry from shifting. */
 .soffy-project {
   position: relative;
   display: flex;
@@ -180,7 +168,7 @@ html[data-transparency="on"] .soffy-popover {
   gap: 10px;
   align-items: flex-start;
   width: 100%;
-  padding: 6px 34px 6px 6px;
+  padding: 6px 50px 6px 6px;
   border-radius: 8px;
   text-align: left;
   transition: background-color var(--motion-fast) var(--ease-out);
@@ -233,22 +221,13 @@ html[data-transparency="on"] .soffy-popover {
   white-space: nowrap;
 }
 
-/* The chevron and the forget action share one box, so revealing one hides the
-   other in place instead of stacking two glyphs on top of each other. The
-   chevron never takes clicks: the row behind it is the control. */
 .soffy-project__chevron {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
+  top: 9px;
+  right: 9px;
   color: var(--faint);
   pointer-events: none;
-  transition:
-    opacity var(--motion-fast) var(--ease-out),
-    transform var(--motion-fast) var(--ease-out);
+  transition: transform var(--motion-fast) var(--ease-out);
 }
 
 .soffy-project__open[aria-expanded="true"] ~ .soffy-project__chevron {
@@ -258,7 +237,7 @@ html[data-transparency="on"] .soffy-popover {
 .soffy-project__forget {
   position: absolute;
   top: 5px;
-  right: 5px;
+  right: 26px;
   display: grid;
   place-items: center;
   width: 22px;
@@ -269,11 +248,6 @@ html[data-transparency="on"] .soffy-popover {
   transition:
     opacity var(--motion-fast) var(--ease-out),
     background-color var(--motion-fast) var(--ease-out);
-}
-
-.soffy-project-row:hover .soffy-project__chevron,
-.soffy-project-row:focus-within .soffy-project__chevron {
-  opacity: 0;
 }
 
 .soffy-project-row:hover .soffy-project__forget,
@@ -287,8 +261,6 @@ html[data-transparency="on"] .soffy-popover {
   color: var(--paper);
 }
 
-/* Commands hang off their project: the indent lines them up under the folder
-   name, so the row reads as a heading for them. */
 .soffy-scan {
   padding: 2px 6px 6px 26px;
 }
@@ -301,8 +273,6 @@ html[data-transparency="on"] .soffy-popover {
   padding: 2px 0;
 }
 
-/* The marker is always present so labels stay on one column; it only lights up
-   for the commands that start something that keeps running. */
 .soffy-command__marker {
   flex: none;
   width: 5px;
@@ -354,8 +324,6 @@ html[data-transparency="on"] .soffy-popover {
   white-space: nowrap;
 }
 
-/* An error about something the person just did: legible, dismissible, and not
-   dressed up as a catastrophe. */
 .soffy-error {
   display: flex;
   gap: 8px;
