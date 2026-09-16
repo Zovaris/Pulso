@@ -1,5 +1,6 @@
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
+import { isActiveState } from "@/features/executions/execution";
 import { PopoverFooter } from "@/features/popover/components/PopoverFooter";
 import { PopoverHeader } from "@/features/popover/components/PopoverHeader";
 import { PopoverProjects } from "@/features/popover/components/PopoverProjects";
@@ -8,12 +9,16 @@ import { usePopoverActions } from "@/features/popover/usePopoverActions";
 export function PopoverShell() {
   const { t } = useI18n();
   const projects = useStore((state) => state.projects);
+  const runningCount = useStore(
+    (state) =>
+      state.executions.filter((execution) => isActiveState(execution.state))
+        .length,
+  );
   const actions = usePopoverActions();
 
   return (
     <div className="soffy-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper">
-      {}
-      <PopoverHeader title={t("appName")} runningCount={0} />
+      <PopoverHeader title={t("appName")} runningCount={runningCount} />
       <PopoverProjects projects={projects} />
       <PopoverFooter {...actions} />
     </div>

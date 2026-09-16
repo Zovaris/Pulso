@@ -26,6 +26,8 @@
   "forgetProject": "Olvidar proyecto",
   "forgetHint": "Olvidar lo quita de Soffy. La carpeta no se toca.",
   "longRunningHint": "Sigue corriendo",
+  "runCommand": "Ejecutar",
+  "stopCommand": "Detener",
   "dismiss": "Descartar",
   "errorNotFound": "Esa carpeta no esta ahi.",
   "errorNotADirectory": "Eso es un archivo, no una carpeta.",

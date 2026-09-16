@@ -65,7 +65,7 @@ export function ProjectRow({ project }: { project: Project }) {
             <ul className="flex flex-col">
               {scan?.commands.map((command) => (
                 <li key={command.id}>
-                  <CommandRow command={command} />
+                  <CommandRow projectId={project.id} command={command} />
                 </li>
               ))}
             </ul>

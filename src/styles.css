@@ -291,13 +291,66 @@ html[data-transparency="on"] .soffy-popover {
   font-weight: 500;
 }
 
-.soffy-command__invocation {
+.soffy-command-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.soffy-command__value {
   min-width: 0;
   margin-left: auto;
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 10.5px;
   color: var(--faint);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soffy-command__value[data-active="true"] {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper);
+}
+
+.soffy-command__control {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  color: var(--faint);
+  transition:
+    color var(--motion-fast) var(--ease-out),
+    background-color var(--motion-fast) var(--ease-out);
+}
+
+.soffy-command__control:hover:not(:disabled) {
+  background-color: var(--fill);
+  color: var(--paper);
+}
+
+.soffy-command__control:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: -2px;
+}
+
+.soffy-command__control:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.soffy-command__control[data-kind="stop"] {
+  color: var(--paper);
+}
+
+.soffy-command__detail {
+  padding: 1px 0 3px 13px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--mist);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

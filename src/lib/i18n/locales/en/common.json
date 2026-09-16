@@ -26,6 +26,8 @@
   "forgetProject": "Forget project",
   "forgetHint": "Forget removes it from Soffy. The folder is left alone.",
   "longRunningHint": "Keeps running",
+  "runCommand": "Run",
+  "stopCommand": "Stop",
   "dismiss": "Dismiss",
   "errorNotFound": "That folder is not there.",
   "errorNotADirectory": "That is a file, not a folder.",
