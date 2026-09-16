@@ -5,11 +5,13 @@ use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::domain::command::CommandScan;
+use crate::domain::execution::Execution;
 use crate::domain::project::Project;
 use crate::persistence::{repositories, Database};
 
 pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
+pub const EXECUTION_CHANGED: &str = "execution://state-changed";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -23,6 +25,10 @@ pub fn projects_changed(app: &AppHandle, projects: Vec<Project>) {
 
 pub fn commands_changed(app: &AppHandle, scan: &CommandScan) {
     let _ = app.emit(COMMANDS_CHANGED, scan);
+}
+
+pub fn execution_changed(app: &AppHandle, execution: &Execution) {
+    let _ = app.emit(EXECUTION_CHANGED, execution);
 }
 
 pub async fn broadcast_projects(app: &AppHandle) -> Option<Vec<Project>> {

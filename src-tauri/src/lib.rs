@@ -4,6 +4,8 @@ mod detectors;
 mod domain;
 mod events;
 mod persistence;
+mod platform;
+mod process;
 mod support;
 
 use std::sync::Arc;
@@ -22,6 +24,16 @@ pub fn run() {
             app.manage(Arc::new(persistence::Database::open(
                 &data_dir.join("soffy.db"),
             )?));
+
+            let notifier = {
+                let handle = handle.clone();
+                Arc::new(move |execution: &domain::execution::Execution| {
+                    events::execution_changed(&handle, execution)
+                })
+            };
+            app.manage(Arc::new(process::supervisor::ProcessSupervisor::new(
+                notifier,
+            )));
 
             app::tray::install(&handle)?;
 
@@ -51,6 +63,9 @@ pub fn run() {
             commands::projects::add_project,
             commands::projects::remove_project,
             commands::projects::list_commands,
+            commands::executions::list_executions,
+            commands::executions::start_command,
+            commands::executions::stop_execution,
             commands::settings::get_appearance,
             commands::settings::save_appearance,
         ])
