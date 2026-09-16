@@ -56,11 +56,28 @@ export async function applyWindowChrome(
     const { Effect, EffectState, getCurrentWindow } = await import(
       "@tauri-apps/api/window"
     );
+    const { getCurrentWebview } = await import("@tauri-apps/api/webview");
     const win = getCurrentWindow();
     await win.setTheme(resolved);
+    const clearWebviewBackground = () =>
+      getCurrentWebview()
+        .setBackgroundColor(null)
+        .catch(() => undefined);
     if (win.label === "popover") {
-      await win.clearEffects();
+      await clearWebviewBackground();
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
+      if (!transparency) {
+        await win.clearEffects();
+        return;
+      }
+      try {
+        await win.setEffects({
+          effects: [Effect.Popover],
+          state: EffectState.Active,
+        });
+      } catch {
+        await win.clearEffects();
+      }
       return;
     }
     if (transparency) {
