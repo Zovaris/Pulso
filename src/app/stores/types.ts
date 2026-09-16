@@ -2,6 +2,7 @@ import type { TplVars } from "@/lib/i18n";
 import type {
   BackendError,
   CommandScan,
+  Execution,
   Locale,
   Project,
   Surface,
@@ -21,6 +22,9 @@ export type StoreState = {
 
   expandedProjectId: number | null;
   projectError: BackendError | null;
+
+  executions: Execution[];
+  pendingCommandId: string | null;
 };
 
 export type StoreActions = {
@@ -41,6 +45,11 @@ export type StoreActions = {
 
   applyScan: (scan: CommandScan) => void;
   dismissProjectError: () => void;
+
+  loadExecutions: () => Promise<void>;
+  applyExecution: (execution: Execution) => void;
+  startCommand: (projectId: number, commandId: string) => Promise<void>;
+  stopExecution: (executionId: number) => Promise<void>;
 };
 
 export type AppStore = StoreState & StoreActions;

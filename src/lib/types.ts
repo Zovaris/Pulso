@@ -53,6 +53,31 @@ export type CommandScan = {
   detail: string | null;
 };
 
+export type ExecutionState =
+  | "starting"
+  | "running"
+  | "stopping"
+  | "exited"
+  | "failed";
+
+export type Execution = {
+  id: number;
+  projectId: number;
+  commandId: string;
+  label: string;
+  program: string;
+  args: string[];
+  cwd: string;
+  state: ExecutionState;
+  pid: number | null;
+  startedAt: number;
+  endedAt: number | null;
+  exitCode: number | null;
+  /** Why it failed, including the resolved PATH when the program was missing. */
+  detail: string | null;
+  restartedFrom: number | null;
+};
+
 export type BackendErrorKind =
   | "notFound"
   | "notADirectory"
