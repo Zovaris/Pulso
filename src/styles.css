@@ -137,15 +137,29 @@ html[data-transparency="on"] .soffy-popover {
   width: 100%;
   justify-content: flex-start;
   padding-inline: 10px;
+  color: var(--faint);
 }
 
 .soffy-row .sph-button__label {
   gap: 10px;
+  color: var(--mist);
 }
 
 .soffy-row__icon {
   display: inline-flex;
   flex: none;
+}
+
+.soffy-row--primary .sph-button__label {
+  color: var(--paper);
+}
+
+.soffy-row--primary.sph-button {
+  color: var(--accent-strong);
+}
+
+.soffy-row--primary .soffy-row__icon {
+  color: var(--accent-strong);
 }
 
 .soffy-status {
@@ -211,7 +225,7 @@ html[data-transparency="on"] .soffy-popover {
   flex: none;
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
-  color: var(--faint);
+  color: var(--mist);
 }
 
 .soffy-project__path {
@@ -381,6 +395,8 @@ html[data-transparency="on"] .soffy-popover {
   flex: none;
   gap: 4px;
   align-items: center;
+  justify-content: flex-end;
+  min-width: 48px;
 }
 
 .soffy-port {
@@ -410,8 +426,8 @@ button.soffy-port:hover {
   display: grid;
   flex: none;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 5px;
   color: var(--faint);
   transition:
@@ -439,13 +455,13 @@ button.soffy-port:hover {
 }
 
 .soffy-command__detail {
-  padding: 1px 0 3px 31px;
+  padding: 2px 0 4px 31px;
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 10.5px;
+  line-height: 1.5;
   color: var(--mist);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .soffy-logs {
@@ -500,10 +516,51 @@ button.soffy-port:hover {
   animation: soffy-breathe 2.4s ease-in-out infinite;
 }
 
+.soffy-scroll {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.soffy-scroll::before,
+.soffy-scroll::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 20px;
+  opacity: 0;
+  pointer-events: none;
+  content: "";
+  transition: opacity var(--motion-fast) var(--ease-out);
+}
+
+.soffy-scroll::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--popover-base), transparent);
+}
+
+.soffy-scroll::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--popover-base), transparent);
+}
+
+.soffy-scroll[data-edge="bottom"]::after,
+.soffy-scroll[data-edge="both"]::after,
+.soffy-scroll[data-edge="both"]::before,
+.soffy-scroll[data-edge="top"]::before {
+  opacity: 1;
+}
+
 .soffy-logs__list,
 .soffy-project-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--faint) transparent;
 }
 
 .soffy-logs__list::-webkit-scrollbar,
@@ -521,12 +578,12 @@ button.soffy-port:hover {
   border: 3px solid transparent;
   border-radius: 999px;
   background-clip: content-box;
-  background-color: var(--line);
+  background-color: var(--faint);
 }
 
 .soffy-logs__list::-webkit-scrollbar-thumb:hover,
 .soffy-project-list::-webkit-scrollbar-thumb:hover {
-  background-color: var(--faint);
+  background-color: var(--mist);
 }
 
 @keyframes soffy-live {

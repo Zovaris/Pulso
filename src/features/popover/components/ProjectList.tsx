@@ -1,4 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useCallback } from "react";
+import { useScrollEdges } from "@/app/hooks/useScrollEdges";
 import { ProjectRow } from "@/features/popover/components/ProjectRow";
 import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
 import type { Project } from "@/lib/types";
@@ -8,17 +10,24 @@ export function ProjectList({ projects }: { projects: Project[] }) {
     duration: REVEAL_DURATION,
     easing: REVEAL_EASE,
   });
+  const { box, edges } = useScrollEdges<HTMLUListElement>();
+  const attach = useCallback(
+    (node: HTMLUListElement | null) => {
+      list(node);
+      box.current = node;
+    },
+    [list, box],
+  );
 
   return (
-    <ul
-      ref={list}
-      className="soffy-project-list flex min-h-0 flex-col overflow-y-auto"
-    >
-      {projects.map((project) => (
-        <li key={project.id} className="py-0.5">
-          <ProjectRow project={project} />
-        </li>
-      ))}
-    </ul>
+    <div className="soffy-scroll" data-edge={edges}>
+      <ul ref={attach} className="soffy-project-list flex flex-col">
+        {projects.map((project) => (
+          <li key={project.id} className="py-0.5">
+            <ProjectRow project={project} />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

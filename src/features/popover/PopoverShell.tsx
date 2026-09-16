@@ -24,8 +24,8 @@ export function PopoverShell() {
       className="soffy-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper"
     >
       <PopoverHeader title={t("appName")} runningCount={runningCount} />
-      <PopoverProjects projects={projects} />
-      <PopoverFooter {...actions} />
+      <PopoverProjects projects={projects} onAddProject={actions.addProject} />
+      <PopoverFooter {...actions} showAddProject={projects.length > 0} />
     </div>
   );
 }

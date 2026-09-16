@@ -107,7 +107,12 @@ export function CommandRow({
       </div>
 
       {execution?.state === "failed" && execution.detail ? (
-        <p className="soffy-command__detail">{execution.detail}</p>
+        <p
+          className="soffy-command__detail line-clamp-2"
+          title={execution.detail}
+        >
+          {execution.detail}
+        </p>
       ) : null}
 
       {execution ? (

@@ -5,7 +5,13 @@ import { PopoverEmptyState } from "@/features/popover/components/PopoverEmptySta
 import { ProjectList } from "@/features/popover/components/ProjectList";
 import type { Project } from "@/lib/types";
 
-export function PopoverProjects({ projects }: { projects: Project[] }) {
+export function PopoverProjects({
+  projects,
+  onAddProject,
+}: {
+  projects: Project[];
+  onAddProject: () => void;
+}) {
   const { t } = useI18n();
   const error = useStore((state) => state.projectError);
   const dismissProjectError = useStore((state) => state.dismissProjectError);
@@ -21,7 +27,7 @@ export function PopoverProjects({ projects }: { projects: Project[] }) {
       {hasProjects ? (
         <ProjectList projects={projects} />
       ) : (
-        <PopoverEmptyState />
+        <PopoverEmptyState onAddProject={onAddProject} />
       )}
       {error ? (
         <ErrorNote error={error} onDismiss={dismissProjectError} />
