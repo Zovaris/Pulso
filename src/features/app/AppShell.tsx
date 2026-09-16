@@ -1,4 +1,5 @@
 import { FolderSimplePlus } from "@phosphor-icons/react";
+import { Button, Select, Toggle } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import type { Locale, ThemePref } from "@/lib/types";
@@ -26,13 +27,15 @@ export function AppShell() {
           <p className="mb-3 px-1 text-[11px] font-medium text-faint">
             {t("projects")}
           </p>
-          <button
+          <Button
             type="button"
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12.5px] text-mist hover:bg-hover"
+            variant="quiet"
+            size="sm"
+            className="justify-start gap-2 text-left text-[12.5px] text-mist"
           >
             <FolderSimplePlus size={15} />
             {t("addProject")}
-          </button>
+          </Button>
         </aside>
 
         <main className="overflow-auto px-8 py-8">
@@ -48,37 +51,39 @@ export function AppShell() {
             <section className="mt-10">
               <h2 className="text-[13px] font-medium">{t("appearance")}</h2>
               <div className="mt-4 flex flex-col gap-4">
-                <label className="flex items-center justify-between gap-4 text-[13px]">
+                <div className="flex items-center justify-between gap-4 text-[13px]">
                   <span>{t("theme")}</span>
-                  <select
+                  <Select
                     value={themePref}
-                    onChange={(e) => setThemePref(e.target.value as ThemePref)}
-                    className="rounded-lg border border-line bg-raised px-2 py-1 text-[12.5px]"
-                  >
-                    <option value="system">{t("themeSystem")}</option>
-                    <option value="dark">{t("themeDark")}</option>
-                    <option value="light">{t("themeLight")}</option>
-                  </select>
-                </label>
-                <label className="flex items-center justify-between gap-4 text-[13px]">
-                  <span>{t("language")}</span>
-                  <select
-                    value={locale}
-                    onChange={(e) => setLocale(e.target.value as Locale)}
-                    className="rounded-lg border border-line bg-raised px-2 py-1 text-[12.5px]"
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Espanol</option>
-                  </select>
-                </label>
-                <label className="flex items-center justify-between gap-4 text-[13px]">
-                  <span>{t("transparency")}</span>
-                  <input
-                    type="checkbox"
-                    checked={transparency}
-                    onChange={(e) => setTransparency(e.target.checked)}
+                    onValueChange={(value) => setThemePref(value as ThemePref)}
+                    options={[
+                      { value: "system", label: t("themeSystem") },
+                      { value: "dark", label: t("themeDark") },
+                      { value: "light", label: t("themeLight") },
+                    ]}
+                    ariaLabel={t("theme")}
+                    size="sm"
                   />
-                </label>
+                </div>
+                <div className="flex items-center justify-between gap-4 text-[13px]">
+                  <span>{t("language")}</span>
+                  <Select
+                    value={locale}
+                    onValueChange={(value) => setLocale(value as Locale)}
+                    options={[
+                      { value: "en", label: "English" },
+                      { value: "es", label: "Espanol" },
+                    ]}
+                    ariaLabel={t("language")}
+                    size="sm"
+                  />
+                </div>
+                <Toggle
+                  checked={transparency}
+                  onCheckedChange={setTransparency}
+                  label={t("transparency")}
+                  size="sm"
+                />
               </div>
             </section>
           </div>

@@ -6,6 +6,7 @@ import {
   detectLocale,
   readStoredLocale,
 } from "@/lib/i18n/locale";
+import "@zovaris/sephiro/styles.css";
 import "@/styles.css";
 
 applyDocumentLocale(readStoredLocale() ?? detectLocale());

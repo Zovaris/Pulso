@@ -1,4 +1,5 @@
 import { Gear, Plus, SignOut, SquaresFour } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { hidePopover, openMainWindow, quitSoffy } from "@/lib/tauri";
@@ -70,13 +71,15 @@ function FooterButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[12.5px] hover:bg-hover active:scale-[0.99]"
+      variant="quiet"
+      size="sm"
+      className="w-full justify-start gap-2.5 text-left text-[12.5px]"
     >
       <span className="text-mist">{icon}</span>
       {label}
-    </button>
+    </Button>
   );
 }
