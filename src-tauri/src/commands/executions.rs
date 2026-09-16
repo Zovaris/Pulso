@@ -1,16 +1,20 @@
 use std::path::Path;
 use std::sync::Arc;
 
-use tauri::State;
+use tauri::{AppHandle, State};
+use tauri_plugin_opener::OpenerExt;
 
 use crate::detectors;
 use crate::domain::command::DetectedCommand;
 use crate::domain::execution::Execution;
+use crate::domain::log::LogSnapshot;
 use crate::persistence::{repositories, Database};
 use crate::process::supervisor::ProcessSupervisor;
 use crate::support::error::{BackendError, ErrorKind, Result};
 
 use super::{in_database, off_thread};
+
+const TAIL: usize = 200;
 
 #[tauri::command]
 pub async fn list_executions(
@@ -37,6 +41,29 @@ pub async fn stop_execution(
     execution_id: i64,
 ) -> Result<Execution> {
     supervisor.stop(execution_id).await
+}
+
+#[tauri::command]
+pub async fn get_log_snapshot(
+    supervisor: State<'_, Arc<ProcessSupervisor>>,
+    execution_id: i64,
+    after_seq: Option<u64>,
+) -> Result<LogSnapshot> {
+    supervisor.logs(execution_id, after_seq, TAIL)
+}
+
+#[tauri::command]
+pub async fn open_detected_url(
+    app: AppHandle,
+    supervisor: State<'_, Arc<ProcessSupervisor>>,
+    execution_id: i64,
+    port_id: String,
+) -> Result<()> {
+    let url = supervisor.url(execution_id, &port_id)?;
+
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|error| BackendError::internal(format!("The browser did not open: {error}")))
 }
 
 async fn resolve_command(

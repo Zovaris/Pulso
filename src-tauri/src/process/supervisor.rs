@@ -2,17 +2,20 @@ use std::collections::HashMap;
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command as StdCommand, Stdio};
-use std::sync::atomic::{AtomicI64, Ordering};
+use std::sync::atomic::{AtomicI64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use tokio::io::{AsyncBufReadExt, AsyncRead, BufReader};
 use tokio::process::Command;
 use tokio::time::{sleep, Instant};
 
 use crate::domain::command::DetectedCommand;
 use crate::domain::execution::{Execution, ExecutionState};
+use crate::domain::log::{LogLine, LogSnapshot, LogStream};
 use crate::platform::macos::environment::ShellEnvironment;
-use crate::process::signals;
+use crate::process::log_buffer::LogBuffer;
+use crate::process::{ports, signals};
 use crate::support::error::{BackendError, ErrorKind, Result};
 use crate::support::now_ms;
 
@@ -20,12 +23,15 @@ const GRACE: Duration = Duration::from_secs(6);
 const QUIT_GRACE: Duration = Duration::from_secs(3);
 const CONFIRM_TIMEOUT: Duration = Duration::from_secs(2);
 const POLL: Duration = Duration::from_millis(20);
+const FLUSH: Duration = Duration::from_millis(50);
 const KEPT_FINISHED: usize = 50;
 
 pub type ExecutionNotifier = Arc<dyn Fn(&Execution) + Send + Sync + 'static>;
+pub type LogNotifier = Arc<dyn Fn(i64, &[LogLine]) + Send + Sync + 'static>;
 
 pub struct ProcessSupervisor {
     notifier: ExecutionNotifier,
+    log_notifier: LogNotifier,
     environment: ShellEnvironment,
     executions: Arc<Mutex<HashMap<i64, Managed>>>,
     next_id: AtomicI64,
@@ -34,12 +40,14 @@ pub struct ProcessSupervisor {
 struct Managed {
     execution: Execution,
     pgid: i32,
+    logs: Arc<LogBuffer>,
 }
 
 impl ProcessSupervisor {
-    pub fn new(notifier: ExecutionNotifier) -> Self {
+    pub fn new(notifier: ExecutionNotifier, log_notifier: LogNotifier) -> Self {
         Self {
             notifier,
+            log_notifier,
             environment: ShellEnvironment::new(),
             executions: Arc::new(Mutex::new(HashMap::new())),
             next_id: AtomicI64::new(1),
@@ -79,22 +87,52 @@ impl ProcessSupervisor {
             .env_clear()
             .envs(&environment)
             .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .process_group(0);
 
         match Command::from(std_command).spawn() {
-            Ok(child) => {
+            Ok(mut child) => {
                 let pid = child.id();
                 execution.pid = pid;
                 execution.state = ExecutionState::Running;
 
+                let logs = Arc::new(LogBuffer::new());
+                let readers = Arc::new(AtomicUsize::new(0));
+
+                if let Some(stdout) = child.stdout.take() {
+                    readers.fetch_add(1, Ordering::SeqCst);
+                    read_stream(
+                        stdout,
+                        LogStream::Stdout,
+                        Arc::clone(&logs),
+                        Arc::clone(&self.executions),
+                        Arc::clone(&self.notifier),
+                        Arc::clone(&readers),
+                        id,
+                    );
+                }
+                if let Some(stderr) = child.stderr.take() {
+                    readers.fetch_add(1, Ordering::SeqCst);
+                    read_stream(
+                        stderr,
+                        LogStream::Stderr,
+                        Arc::clone(&logs),
+                        Arc::clone(&self.executions),
+                        Arc::clone(&self.notifier),
+                        Arc::clone(&readers),
+                        id,
+                    );
+                }
+
                 self.remember(Managed {
                     pgid: pid.map(|pid| pid as i32).unwrap_or_default(),
+                    logs: Arc::clone(&logs),
                     execution: execution.clone(),
                 });
                 self.notify(&execution);
                 self.watch(child, id);
+                self.flush_logs(id, logs, readers);
 
                 Ok(execution)
             }
@@ -105,6 +143,7 @@ impl ProcessSupervisor {
 
                 self.remember(Managed {
                     pgid: 0,
+                    logs: Arc::new(LogBuffer::new()),
                     execution: execution.clone(),
                 });
                 self.notify(&execution);
@@ -185,6 +224,38 @@ impl ProcessSupervisor {
         }
     }
 
+    pub fn logs(
+        &self,
+        execution_id: i64,
+        after_seq: Option<u64>,
+        limit: usize,
+    ) -> Result<LogSnapshot> {
+        let logs = self.logs_of(execution_id)?;
+
+        let lines = match after_seq {
+            Some(seq) => logs.after(seq, limit),
+            None => logs.tail(limit),
+        };
+
+        Ok(LogSnapshot {
+            execution_id,
+            lines,
+        })
+    }
+
+    pub fn url(&self, execution_id: i64, port_id: &str) -> Result<String> {
+        let execution = self.snapshot(execution_id)?;
+
+        execution
+            .ports
+            .into_iter()
+            .find(|port| port.id == port_id)
+            .and_then(|port| port.url)
+            .ok_or_else(|| {
+                BackendError::new(ErrorKind::NotFound, "That port has no URL to open yet.")
+            })
+    }
+
     fn watch(&self, mut child: tokio::process::Child, execution_id: i64) {
         let executions = Arc::clone(&self.executions);
         let notifier = Arc::clone(&self.notifier);
@@ -197,11 +268,41 @@ impl ProcessSupervisor {
         });
     }
 
+    fn flush_logs(&self, execution_id: i64, logs: Arc<LogBuffer>, readers: Arc<AtomicUsize>) {
+        let executions = Arc::clone(&self.executions);
+        let log_notifier = Arc::clone(&self.log_notifier);
+
+        tokio::spawn(async move {
+            loop {
+                sleep(FLUSH).await;
+
+                let pending = logs.take_pending();
+                if !pending.is_empty() {
+                    log_notifier(execution_id, &pending);
+                    continue;
+                }
+
+                if readers.load(Ordering::SeqCst) == 0 && !is_active(&executions, execution_id) {
+                    break;
+                }
+            }
+        });
+    }
+
     fn notify(&self, execution: &Execution) {
         (self.notifier)(execution);
     }
 
     fn snapshot(&self, execution_id: i64) -> Result<Execution> {
+        snapshot_of(&self.executions, execution_id).ok_or_else(|| {
+            BackendError::new(
+                ErrorKind::NotFound,
+                "That execution is not in Soffy anymore.",
+            )
+        })
+    }
+
+    fn logs_of(&self, execution_id: i64) -> Result<Arc<LogBuffer>> {
         let executions = self
             .executions
             .lock()
@@ -209,7 +310,7 @@ impl ProcessSupervisor {
 
         executions
             .get(&execution_id)
-            .map(|managed| managed.execution.clone())
+            .map(|managed| Arc::clone(&managed.logs))
             .ok_or_else(|| {
                 BackendError::new(
                     ErrorKind::NotFound,
@@ -312,6 +413,66 @@ impl ProcessSupervisor {
     }
 }
 
+fn read_stream<R>(
+    reader: R,
+    stream: LogStream,
+    logs: Arc<LogBuffer>,
+    executions: Arc<Mutex<HashMap<i64, Managed>>>,
+    notifier: ExecutionNotifier,
+    readers: Arc<AtomicUsize>,
+    execution_id: i64,
+) where
+    R: AsyncRead + Unpin + Send + 'static,
+{
+    tokio::spawn(async move {
+        let mut lines = BufReader::new(reader).lines();
+
+        while let Ok(Some(line)) = lines.next_line().await {
+            logs.push(stream, &line);
+
+            if infer_ports(&executions, execution_id, &line) {
+                if let Some(snapshot) = snapshot_of(&executions, execution_id) {
+                    notifier(&snapshot);
+                }
+            }
+        }
+
+        readers.fetch_sub(1, Ordering::SeqCst);
+    });
+}
+
+fn snapshot_of(executions: &Mutex<HashMap<i64, Managed>>, execution_id: i64) -> Option<Execution> {
+    executions
+        .lock()
+        .ok()?
+        .get(&execution_id)
+        .map(|managed| managed.execution.clone())
+}
+
+fn is_active(executions: &Mutex<HashMap<i64, Managed>>, execution_id: i64) -> bool {
+    executions
+        .lock()
+        .ok()
+        .and_then(|guarded| {
+            guarded
+                .get(&execution_id)
+                .map(|managed| managed.execution.is_active())
+        })
+        .unwrap_or(false)
+}
+
+fn infer_ports(executions: &Mutex<HashMap<i64, Managed>>, execution_id: i64, text: &str) -> bool {
+    let Ok(mut guarded) = executions.lock() else {
+        return false;
+    };
+
+    let Some(managed) = guarded.get_mut(&execution_id) else {
+        return false;
+    };
+
+    ports::infer(&mut managed.execution.ports, text)
+}
+
 fn finish(
     executions: &Mutex<HashMap<i64, Managed>>,
     execution_id: i64,
@@ -400,7 +561,7 @@ mod tests {
     }
 
     fn supervisor() -> ProcessSupervisor {
-        ProcessSupervisor::new(Arc::new(|_| {}))
+        ProcessSupervisor::new(Arc::new(|_| {}), Arc::new(|_, _| {}))
     }
 
     #[tokio::test]
@@ -457,7 +618,7 @@ mod tests {
             .expect("a failure is reported, not thrown");
 
         assert_eq!(failed.state, ExecutionState::Failed);
-        assert!(failed.is_active() == false);
+        assert!(!failed.is_active());
 
         let detail = failed.detail.unwrap_or_default();
         assert!(detail.contains("/soffy/nowhere/ghost"), "{detail}");
@@ -503,6 +664,63 @@ mod tests {
         }
     }
 
+    #[tokio::test]
+    async fn the_output_of_a_command_reaches_its_buffer() {
+        let supervisor = supervisor();
+        let started = supervisor
+            .start(
+                1,
+                &command(
+                    "talk",
+                    "/bin/sh",
+                    &[
+                        "-c",
+                        "echo 'Local http://localhost:4321/en/'; echo down 1>&2",
+                    ],
+                ),
+                None,
+            )
+            .await
+            .expect("start");
+
+        let finished = supervisor
+            .await_final_state(started.id)
+            .await
+            .expect("the command finishes on its own");
+        assert_eq!(finished.state, ExecutionState::Exited);
+
+        let mut lines = Vec::new();
+        let mut ports = Vec::new();
+        for _ in 0..60 {
+            lines = supervisor
+                .logs(started.id, None, 50)
+                .expect("the buffer is readable")
+                .lines;
+            ports = supervisor
+                .snapshot(started.id)
+                .expect("the execution is still listed")
+                .ports;
+
+            if lines.len() >= 2 && !ports.is_empty() {
+                break;
+            }
+            sleep(FLUSH).await;
+        }
+
+        assert_eq!(lines.len(), 2, "both streams are captured");
+        assert_eq!(lines[0].stream, LogStream::Stdout);
+        assert_eq!(lines[1].stream, LogStream::Stderr);
+
+        assert_eq!(ports.len(), 1);
+        assert_eq!(ports[0].port, 4321);
+        assert_eq!(
+            supervisor
+                .url(started.id, &ports[0].id)
+                .expect("the URL is openable"),
+            "http://localhost:4321/en/"
+        );
+    }
+
     #[test]
     fn finished_executions_are_pruned_but_the_recent_ones_stay() {
         let mut executions: HashMap<i64, Managed> = HashMap::new();
@@ -510,7 +728,14 @@ mod tests {
         for id in 1..=(KEPT_FINISHED as i64 + 10) {
             let mut execution = Execution::new(id, 1, &command("sleep", "/bin/sleep", &[]), id);
             execution.state = ExecutionState::Exited;
-            executions.insert(id, Managed { execution, pgid: 0 });
+            executions.insert(
+                id,
+                Managed {
+                    execution,
+                    pgid: 0,
+                    logs: Arc::new(LogBuffer::new()),
+                },
+            );
         }
 
         prune(&mut executions);

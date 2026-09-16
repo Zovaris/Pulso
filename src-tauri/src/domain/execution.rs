@@ -1,6 +1,7 @@
 use serde::Serialize;
 
 use crate::domain::command::DetectedCommand;
+use crate::domain::port::DetectedPort;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -19,6 +20,7 @@ pub struct Execution {
     pub exit_code: Option<i32>,
     pub detail: Option<String>,
     pub restarted_from: Option<i64>,
+    pub ports: Vec<DetectedPort>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -54,6 +56,7 @@ impl Execution {
             exit_code: None,
             detail: None,
             restarted_from: None,
+            ports: Vec::new(),
         }
     }
 

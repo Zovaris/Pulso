@@ -31,8 +31,15 @@ pub fn run() {
                     events::execution_changed(&handle, execution)
                 })
             };
+            let log_notifier = {
+                let handle = handle.clone();
+                Arc::new(move |execution_id: i64, lines: &[domain::log::LogLine]| {
+                    events::log_appended(&handle, execution_id, lines)
+                })
+            };
             app.manage(Arc::new(process::supervisor::ProcessSupervisor::new(
                 notifier,
+                log_notifier,
             )));
 
             app::tray::install(&handle)?;
@@ -66,6 +73,8 @@ pub fn run() {
             commands::executions::list_executions,
             commands::executions::start_command,
             commands::executions::stop_execution,
+            commands::executions::get_log_snapshot,
+            commands::executions::open_detected_url,
             commands::settings::get_appearance,
             commands::settings::save_appearance,
         ])

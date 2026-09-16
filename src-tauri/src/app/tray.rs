@@ -56,6 +56,7 @@ fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {
     windows::position_popover(&win, x, y, width, height);
     let _ = win.show();
     let _ = win.set_focus();
+    events::popover_shown(app);
 
     let app = app.clone();
     tauri::async_runtime::spawn(async move { events::refresh(&app).await });

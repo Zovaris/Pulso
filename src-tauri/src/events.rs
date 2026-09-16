@@ -6,12 +6,15 @@ use tauri::{AppHandle, Emitter, Manager};
 
 use crate::domain::command::CommandScan;
 use crate::domain::execution::Execution;
+use crate::domain::log::LogLine;
 use crate::domain::project::Project;
 use crate::persistence::{repositories, Database};
 
 pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
 pub const EXECUTION_CHANGED: &str = "execution://state-changed";
+pub const LOG_APPENDED: &str = "execution://log-appended";
+pub const POPOVER_SHOWN: &str = "popover://shown";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -27,8 +30,29 @@ pub fn commands_changed(app: &AppHandle, scan: &CommandScan) {
     let _ = app.emit(COMMANDS_CHANGED, scan);
 }
 
+pub fn popover_shown(app: &AppHandle) {
+    let _ = app.emit(POPOVER_SHOWN, ());
+}
+
 pub fn execution_changed(app: &AppHandle, execution: &Execution) {
     let _ = app.emit(EXECUTION_CHANGED, execution);
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LogAppended {
+    pub execution_id: i64,
+    pub lines: Vec<LogLine>,
+}
+
+pub fn log_appended(app: &AppHandle, execution_id: i64, lines: &[LogLine]) {
+    let _ = app.emit(
+        LOG_APPENDED,
+        LogAppended {
+            execution_id,
+            lines: lines.to_vec(),
+        },
+    );
 }
 
 pub async fn broadcast_projects(app: &AppHandle) -> Option<Vec<Project>> {
