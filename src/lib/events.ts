@@ -1,6 +1,12 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { isTauri } from "@/lib/tauri";
-import type { CommandScan, Execution, LogLine, Project } from "@/lib/types";
+import type {
+  CommandScan,
+  Execution,
+  LogLine,
+  Preferences,
+  Project,
+} from "@/lib/types";
 
 export function onProjectsChanged(
   handler: (projects: Project[]) => void,
@@ -35,6 +41,13 @@ export function onLogAppended(
 
 export function onPopoverShown(handler: () => void): Promise<UnlistenFn> {
   return subscribe<unknown>("popover://shown", handler);
+}
+
+/** Theme, transparency and language, so both windows cannot drift apart. */
+export function onPreferencesChanged(
+  handler: (preferences: Preferences) => void,
+): Promise<UnlistenFn> {
+  return subscribe<Preferences>("settings://changed", handler);
 }
 
 async function subscribe<T>(

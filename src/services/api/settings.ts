@@ -1,16 +1,17 @@
 import { invoke } from "@tauri-apps/api/core";
 import { isTauri } from "@/lib/tauri";
-import type { Appearance } from "@/lib/types";
+import type { Preferences } from "@/lib/types";
 
-export function getAppearance(): Promise<Appearance | null> {
+export function getPreferences(): Promise<Preferences | null> {
   if (!isTauri()) return Promise.resolve(null);
-  return invoke("get_appearance");
+  return invoke("get_preferences");
 }
 
-export function persistAppearance(appearance: Appearance): Promise<void> {
+export function persistPreferences(preferences: Preferences): Promise<void> {
   if (!isTauri()) return Promise.resolve();
-  return invoke("save_appearance", {
-    theme: appearance.theme,
-    transparency: appearance.transparency,
+  return invoke("save_preferences", {
+    theme: preferences.theme,
+    transparency: preferences.transparency,
+    locale: preferences.locale,
   });
 }

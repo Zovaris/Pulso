@@ -4,6 +4,7 @@ use std::sync::Arc;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
+use crate::commands::settings::Preferences;
 use crate::domain::command::CommandScan;
 use crate::domain::execution::Execution;
 use crate::domain::log::LogLine;
@@ -15,6 +16,7 @@ pub const COMMANDS_CHANGED: &str = "project://commands-changed";
 pub const EXECUTION_CHANGED: &str = "execution://state-changed";
 pub const LOG_APPENDED: &str = "execution://log-appended";
 pub const POPOVER_SHOWN: &str = "popover://shown";
+pub const PREFERENCES_CHANGED: &str = "settings://changed";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -28,6 +30,10 @@ pub fn projects_changed(app: &AppHandle, projects: Vec<Project>) {
 
 pub fn commands_changed(app: &AppHandle, scan: &CommandScan) {
     let _ = app.emit(COMMANDS_CHANGED, scan);
+}
+
+pub fn preferences_changed(app: &AppHandle, preferences: &Preferences) {
+    let _ = app.emit(PREFERENCES_CHANGED, preferences);
 }
 
 pub fn popover_shown(app: &AppHandle) {

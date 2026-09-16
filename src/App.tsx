@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { AppShell } from "@/features/app/AppShell";
+import { usePreferencesSync } from "@/features/app/usePreferencesSync";
 import { PopoverShell } from "@/features/popover/PopoverShell";
 import { useProjectSync } from "@/features/projects/useProjectSync";
 import {
@@ -13,13 +14,14 @@ export default function App() {
   const surface = useStore((s) => s.surface);
   const themePref = useStore((s) => s.themePref);
   const transparency = useStore((s) => s.transparency);
-  const hydrateAppearance = useStore((s) => s.hydrateAppearance);
+  const hydratePreferences = useStore((s) => s.hydratePreferences);
 
   useProjectSync();
+  usePreferencesSync();
 
   useEffect(() => {
-    void hydrateAppearance();
-  }, [hydrateAppearance]);
+    void hydratePreferences();
+  }, [hydratePreferences]);
 
   useEffect(() => {
     const resolved = resolveTheme(themePref);

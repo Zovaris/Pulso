@@ -2,9 +2,10 @@ export type ThemePref = "dark" | "light" | "system";
 export type Locale = "es" | "en";
 export type Surface = "popover" | "app";
 
-export type Appearance = {
+export type Preferences = {
   theme: ThemePref;
   transparency: boolean;
+  locale: Locale;
 };
 
 export type Availability = "available" | "missing";

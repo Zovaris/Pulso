@@ -5,6 +5,7 @@ import type {
   Execution,
   Locale,
   LogLine,
+  Preferences,
   Project,
   Surface,
   ThemePref,
@@ -36,7 +37,8 @@ export type StoreActions = {
   setThemePref: (pref: ThemePref) => void;
   setTransparency: (value: boolean) => void;
 
-  hydrateAppearance: () => Promise<void>;
+  hydratePreferences: () => Promise<void>;
+  applyPreferences: (preferences: Preferences) => void;
   t: (key: string, vars?: TplVars) => string;
 
   loadProjects: () => Promise<void>;

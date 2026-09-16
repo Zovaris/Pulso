@@ -12,8 +12,8 @@ import {
   readStoredLocale,
   translate,
 } from "@/lib/i18n";
-import type { Surface } from "@/lib/types";
-import { getAppearance, persistAppearance } from "@/services/api/settings";
+import type { Locale, Preferences, Surface, ThemePref } from "@/lib/types";
+import { getPreferences, persistPreferences } from "@/services/api/settings";
 import type { AppStore } from "./types";
 
 export type SessionSlice = Pick<
@@ -25,7 +25,8 @@ export type SessionSlice = Pick<
   | "setLocale"
   | "setThemePref"
   | "setTransparency"
-  | "hydrateAppearance"
+  | "applyPreferences"
+  | "hydratePreferences"
   | "t"
 >;
 
@@ -55,55 +56,81 @@ export const createSessionSlice: StateCreator<
   [],
   [],
   SessionSlice
-> = (set, get) => ({
-  surface: initialSurface,
-  locale: initialLocale,
-  themePref: initialTheme,
-  transparency: initialGlass,
-  setLocale: (locale) => {
-    applyDocumentLocale(locale);
-    set({ locale });
-  },
-  setThemePref: (pref) => {
-    const resolved = resolveTheme(pref);
-    const glass = get().transparency;
-    applyDocumentAppearance(pref, resolved, glass);
-    void applyWindowChrome(resolved, glass);
-    void persistAppearance({ theme: pref, transparency: glass }).catch(
-      () => undefined,
-    );
-    set({ themePref: pref });
-  },
-  setTransparency: (value) => {
-    const pref = get().themePref;
-    const resolved = resolveTheme(pref);
-    applyDocumentAppearance(pref, resolved, value);
-    void applyWindowChrome(resolved, value);
-    void persistAppearance({ theme: pref, transparency: value }).catch(
-      () => undefined,
-    );
-    set({ transparency: value });
-  },
-  hydrateAppearance: async () => {
-    const stored = await getAppearance().catch(() => null);
-    if (!stored) {
-      await persistAppearance({
-        theme: get().themePref,
-        transparency: get().transparency,
-      }).catch(() => undefined);
-      return;
-    }
-    if (
-      stored.theme === get().themePref &&
-      stored.transparency === get().transparency
-    ) {
-      return;
-    }
+> = (set, get) => {
+  const persist = (preferences: Preferences) => {
+    void persistPreferences(preferences).catch(() => undefined);
+  };
 
-    const resolved = resolveTheme(stored.theme);
-    applyDocumentAppearance(stored.theme, resolved, stored.transparency);
-    void applyWindowChrome(resolved, stored.transparency);
-    set({ themePref: stored.theme, transparency: stored.transparency });
-  },
-  t: (key, vars) => translate(get().locale, key, vars),
-});
+  const chosen = (): Preferences => {
+    const state = get();
+    return {
+      theme: state.themePref,
+      transparency: state.transparency,
+      locale: state.locale,
+    };
+  };
+
+  const apply = (preferences: Preferences) => {
+    const resolved = resolveTheme(preferences.theme);
+    applyDocumentAppearance(
+      preferences.theme,
+      resolved,
+      preferences.transparency,
+    );
+    applyDocumentLocale(preferences.locale);
+    void applyWindowChrome(resolved, preferences.transparency);
+    set({
+      themePref: preferences.theme,
+      transparency: preferences.transparency,
+      locale: preferences.locale,
+    });
+  };
+
+  return {
+    surface: initialSurface,
+    locale: initialLocale,
+    themePref: initialTheme,
+    transparency: initialGlass,
+
+    setLocale: (locale: Locale) => {
+      const next = { ...chosen(), locale };
+      apply(next);
+      persist(next);
+    },
+
+    setThemePref: (pref: ThemePref) => {
+      const next = { ...chosen(), theme: pref };
+      apply(next);
+      persist(next);
+    },
+
+    setTransparency: (value: boolean) => {
+      const next = { ...chosen(), transparency: value };
+      apply(next);
+      persist(next);
+    },
+
+    applyPreferences: apply,
+
+    hydratePreferences: async () => {
+      const stored = await getPreferences().catch(() => null);
+      if (!stored) {
+        persist(chosen());
+        return;
+      }
+
+      const current = chosen();
+      if (
+        stored.theme === current.theme &&
+        stored.transparency === current.transparency &&
+        stored.locale === current.locale
+      ) {
+        return;
+      }
+
+      apply(stored);
+    },
+
+    t: (key, vars) => translate(get().locale, key, vars),
+  };
+};
