@@ -56,6 +56,42 @@ impl Database {
     }
 }
 
+fn migrate(conn: &Connection) -> Result<()> {
+    let applied: usize = conn
+        .query_row("PRAGMA user_version", [], |row| row.get::<_, i64>(0))
+        .map(|version| version.max(0) as usize)
+        .map_err(|error| {
+            BackendError::storage(format!("The schema version could not be read: {error}"))
+        })?;
+
+    for (index, migration) in MIGRATIONS.iter().enumerate().skip(applied) {
+        let version = index + 1;
+        conn.execute_batch("BEGIN;").map_err(|error| {
+            BackendError::storage(format!("Migration {version} could not start: {error}"))
+        })?;
+
+        let step = conn
+            .execute_batch(migration)
+            .and_then(|()| conn.execute_batch(&format!("PRAGMA user_version = {version};")));
+
+        match step {
+            Ok(()) => conn.execute_batch("COMMIT;").map_err(|error| {
+                BackendError::storage(format!(
+                    "Migration {version} could not be committed: {error}"
+                ))
+            })?,
+            Err(error) => {
+                let _ = conn.execute_batch("ROLLBACK;");
+                return Err(BackendError::storage(format!(
+                    "Migration {version} failed: {error}"
+                )));
+            }
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,40 +150,4 @@ mod tests {
 
         remove(&path);
     }
-}
-
-fn migrate(conn: &Connection) -> Result<()> {
-    let applied: usize = conn
-        .query_row("PRAGMA user_version", [], |row| row.get::<_, i64>(0))
-        .map(|version| version.max(0) as usize)
-        .map_err(|error| {
-            BackendError::storage(format!("The schema version could not be read: {error}"))
-        })?;
-
-    for (index, migration) in MIGRATIONS.iter().enumerate().skip(applied) {
-        let version = index + 1;
-        conn.execute_batch("BEGIN;").map_err(|error| {
-            BackendError::storage(format!("Migration {version} could not start: {error}"))
-        })?;
-
-        let step = conn
-            .execute_batch(migration)
-            .and_then(|()| conn.execute_batch(&format!("PRAGMA user_version = {version};")));
-
-        match step {
-            Ok(()) => conn.execute_batch("COMMIT;").map_err(|error| {
-                BackendError::storage(format!(
-                    "Migration {version} could not be committed: {error}"
-                ))
-            })?,
-            Err(error) => {
-                let _ = conn.execute_batch("ROLLBACK;");
-                return Err(BackendError::storage(format!(
-                    "Migration {version} failed: {error}"
-                )));
-            }
-        }
-    }
-
-    Ok(())
 }
