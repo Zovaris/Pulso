@@ -3,16 +3,53 @@ import { Select, Toggle } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { ActionRow } from "@/components/shared/ActionRow";
+import { ErrorNote } from "@/components/shared/ErrorNote";
+import { scanMessage } from "@/features/projects/scanMessage";
 import { useAddProject } from "@/features/projects/useAddProject";
-import type { Locale, ThemePref } from "@/lib/types";
+import type { Locale, Project, ThemePref } from "@/lib/types";
+
+/**
+ * The same projection the popover reads, one line per project: what it is and
+ * what Soffy found in it. Commands live in the popover; this is the place to
+ * take in several projects at once.
+ */
+function ProjectSummary({ project }: { project: Project }) {
+  const { t } = useI18n();
+  const scan = useStore((state) => state.scans[String(project.id)]);
+  const message = scan ? scanMessage(scan) : null;
+
+  const summary = !scan
+    ? t("readingManifest")
+    : message
+      ? t(message.key)
+      : t("commandCount", { count: scan.commands.length });
+
+  return (
+    <li>
+      <div className="flex items-baseline justify-between gap-4">
+        <p className="text-[13px] font-medium">{project.name}</p>
+        <p
+          className="min-w-0 truncate text-[11.5px] text-faint"
+          title={project.path}
+        >
+          {project.path}
+        </p>
+      </div>
+      <p className="mt-1 text-[11.5px] text-mist">{summary}</p>
+    </li>
+  );
+}
 
 export function AppShell() {
   const { t, locale, setLocale } = useI18n();
   const addProject = useAddProject();
-  const themePref = useStore((s) => s.themePref);
-  const setThemePref = useStore((s) => s.setThemePref);
-  const transparency = useStore((s) => s.transparency);
-  const setTransparency = useStore((s) => s.setTransparency);
+  const projects = useStore((state) => state.projects);
+  const error = useStore((state) => state.projectError);
+  const dismissProjectError = useStore((state) => state.dismissProjectError);
+  const themePref = useStore((state) => state.themePref);
+  const setThemePref = useStore((state) => state.setThemePref);
+  const transparency = useStore((state) => state.transparency);
+  const setTransparency = useStore((state) => state.setTransparency);
 
   return (
     <div className="flex h-full flex-col bg-void text-paper">
@@ -44,10 +81,22 @@ export function AppShell() {
             <h1 className="text-[22px] font-semibold tracking-tight">
               {t("projects")}
             </h1>
-            <p className="mt-2 text-[13px] leading-6 text-mist">
-              {t("emptyProjects")}
-            </p>
-            <p className="mt-1 text-[12.5px] text-faint">{t("comingSoon")}</p>
+
+            {projects.length === 0 ? (
+              <p className="mt-2 text-[13px] leading-6 text-mist">
+                {t("emptyProjects")}
+              </p>
+            ) : (
+              <ul className="mt-6 flex flex-col gap-5">
+                {projects.map((project) => (
+                  <ProjectSummary key={project.id} project={project} />
+                ))}
+              </ul>
+            )}
+
+            {error ? (
+              <ErrorNote error={error} onDismiss={dismissProjectError} />
+            ) : null}
 
             <section className="mt-10">
               <h2 className="text-[13px] font-medium">{t("appearance")}</h2>
