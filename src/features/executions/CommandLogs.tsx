@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
+import { useReveal } from "@/app/hooks/useReveal";
 import { useStore } from "@/app/store";
 import { formatLogTime } from "@/features/executions/execution";
 import { prefersReducedMotion } from "@/lib/motion";
 import type { LogLine } from "@/lib/types";
 
 const NONE: LogLine[] = [];
-const REVEAL_DELAY = 320;
 
 export function CommandLogs({
   executionId,
@@ -21,22 +21,31 @@ export function CommandLogs({
 }) {
   const { t } = useI18n();
   const lines = useStore((state) => state.logs[executionId] ?? NONE);
+  const box = useReveal<HTMLDivElement>(open);
   const panel = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLOListElement>(null);
   const following = useRef(true);
 
   useEffect(() => {
-    if (!open) return;
+    const element = box.current;
+    if (!open || !element) return;
 
-    const timer = window.setTimeout(() => {
+    const reveal = () =>
       panel.current?.scrollIntoView({
         block: "nearest",
         behavior: prefersReducedMotion() ? "auto" : "smooth",
       });
-    }, REVEAL_DELAY);
 
-    return () => window.clearTimeout(timer);
-  }, [open]);
+    const animations = element.getAnimations();
+    if (animations.length === 0) {
+      reveal();
+      return;
+    }
+
+    void Promise.all(animations.map((animation) => animation.finished))
+      .then(reveal)
+      .catch(reveal);
+  }, [open, box]);
 
   useEffect(() => {
     const element = list.current;
@@ -55,7 +64,7 @@ export function CommandLogs({
   };
 
   return (
-    <div className="soffy-logs" data-open={open}>
+    <div className="soffy-logs" ref={box} inert={!open}>
       <div className="soffy-logs__panel" ref={panel}>
         {lines.length > 0 ? (
           <ol

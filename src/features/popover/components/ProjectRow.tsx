@@ -1,12 +1,15 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   CaretRightIcon,
   FolderSimpleIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
+import { useReveal } from "@/app/hooks/useReveal";
 import { useStore } from "@/app/store";
 import { CommandRow } from "@/features/popover/components/CommandRow";
 import { scanMessage } from "@/features/projects/scanMessage";
+import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
 import type { Project } from "@/lib/types";
 
 export function ProjectRow({ project }: { project: Project }) {
@@ -16,6 +19,12 @@ export function ProjectRow({ project }: { project: Project }) {
   const scanning = useStore((state) => state.scanningProjectId === project.id);
   const toggleProject = useStore((state) => state.toggleProject);
   const removeProject = useStore((state) => state.removeProject);
+
+  const scanBox = useReveal<HTMLDivElement>(expanded);
+  const [commands] = useAutoAnimate<HTMLUListElement>({
+    duration: REVEAL_DURATION,
+    easing: REVEAL_EASE,
+  });
 
   const count = scan?.commands.length ?? 0;
   const message = scan ? scanMessage(scan) : null;
@@ -59,14 +68,14 @@ export function ProjectRow({ project }: { project: Project }) {
         </button>
       </div>
 
-      {expanded ? (
-        <div className="soffy-scan">
+      <div className="soffy-scan" ref={scanBox} inert={!expanded}>
+        <div className="soffy-scan__body">
           {scanning && !scan ? (
             <p className="soffy-scan__note">{t("readingManifest")}</p>
           ) : null}
 
           {count > 0 ? (
-            <ul className="flex flex-col">
+            <ul ref={commands} className="flex flex-col">
               {scan?.commands.map((command) => (
                 <li key={command.id}>
                   <CommandRow projectId={project.id} command={command} />
@@ -87,7 +96,7 @@ export function ProjectRow({ project }: { project: Project }) {
             </p>
           ) : null}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
