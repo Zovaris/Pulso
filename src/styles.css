@@ -50,7 +50,10 @@ html {
   --popover-base: #212121;
   --popover-rim: rgb(255 255 255 / 0.08);
   --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 260ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark;
 }
 
@@ -267,10 +270,51 @@ html[data-transparency="on"] .soffy-popover {
 
 .soffy-command {
   display: flex;
+  gap: 4px;
+  align-items: center;
+  min-height: 26px;
+}
+
+.soffy-command__open {
+  display: flex;
+  flex: 1;
   gap: 8px;
   align-items: center;
-  min-height: 24px;
-  padding: 2px 0;
+  min-width: 0;
+  min-height: 26px;
+  margin-left: -6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  text-align: left;
+  transition: background-color var(--motion-fast) var(--ease-out);
+}
+
+.soffy-command__open:hover {
+  background-color: var(--hover);
+}
+
+.soffy-command__open:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: -2px;
+}
+
+.soffy-command__caret {
+  flex: none;
+  color: var(--faint);
+  opacity: 0.45;
+  transition:
+    transform var(--motion-base) var(--ease-settle),
+    opacity var(--motion-fast) var(--ease-out);
+}
+
+.soffy-command__open[aria-expanded="true"] .soffy-command__caret {
+  transform: rotate(90deg);
+}
+
+.soffy-command-row:hover .soffy-command__caret,
+.soffy-command__open:focus-visible .soffy-command__caret,
+.soffy-command__caret[data-quiet="false"] {
+  opacity: 1;
 }
 
 .soffy-command__marker {
@@ -278,10 +322,21 @@ html[data-transparency="on"] .soffy-popover {
   width: 5px;
   height: 5px;
   border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--faint);
+  transition:
+    background-color var(--motion-base) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out);
 }
 
-.soffy-command__marker[data-running="true"] {
+.soffy-command__marker[data-long-running="true"] {
   background-color: var(--accent-strong);
+  box-shadow: none;
+}
+
+.soffy-command[data-live="true"] .soffy-command__marker {
+  background-color: var(--accent-strong);
+  box-shadow: none;
+  animation: soffy-live 2.4s var(--ease-out) infinite;
 }
 
 .soffy-command__label {
@@ -311,6 +366,36 @@ html[data-transparency="on"] .soffy-popover {
   flex: none;
   font-variant-numeric: tabular-nums;
   color: var(--paper);
+}
+
+.soffy-command__ports {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  align-items: center;
+}
+
+.soffy-port {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background-color: var(--fill);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper);
+  animation: soffy-port-in var(--motion-base) var(--ease-settle);
+  transition: background-color var(--motion-fast) var(--ease-out);
+}
+
+button.soffy-port:hover {
+  background-color: var(--line);
+}
+
+.soffy-port[data-passive="true"] {
+  color: var(--mist);
 }
 
 .soffy-command__control {
@@ -346,13 +431,131 @@ html[data-transparency="on"] .soffy-popover {
 }
 
 .soffy-command__detail {
-  padding: 1px 0 3px 13px;
+  padding: 1px 0 3px 31px;
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 10.5px;
   color: var(--mist);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.soffy-logs {
+  max-height: 0;
+  margin: 3px 0 5px -20px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    max-height var(--motion-slow) var(--ease-settle),
+    opacity var(--motion-base) var(--ease-out),
+    visibility 0s linear var(--motion-slow);
+}
+
+.soffy-logs[data-open="true"] {
+  max-height: 132px;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s, 0s, 0s;
+}
+
+.soffy-logs__panel {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background-color: var(--void);
+}
+
+.soffy-logs__list {
+  max-height: 112px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 8px 7px 10px;
+}
+
+.soffy-log {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--mist);
+  overflow-wrap: anywhere;
+}
+
+.soffy-log[data-stream="stderr"] {
+  color: var(--paper);
+}
+
+.soffy-log__time {
+  margin-right: 7px;
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+
+.soffy-logs__empty {
+  padding: 7px 10px;
+  font-size: 11px;
+  color: var(--mist);
+}
+
+.soffy-logs__empty[data-live="true"] {
+  animation: soffy-breathe 2.4s ease-in-out infinite;
+}
+
+.soffy-logs__list,
+.soffy-project-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.soffy-logs__list::-webkit-scrollbar,
+.soffy-project-list::-webkit-scrollbar {
+  width: 9px;
+}
+
+.soffy-logs__list::-webkit-scrollbar-track,
+.soffy-project-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.soffy-logs__list::-webkit-scrollbar-thumb,
+.soffy-project-list::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+  background-color: var(--line);
+}
+
+.soffy-logs__list::-webkit-scrollbar-thumb:hover,
+.soffy-project-list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--faint);
+}
+
+@keyframes soffy-live {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--accent-strong) 55%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--accent-strong) 0%, transparent);
+  }
+}
+
+@keyframes soffy-port-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes soffy-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
 }
 
 .soffy-scan__note {
@@ -425,6 +628,24 @@ html[data-transparency="on"] .soffy-popover {
 .soffy-error__dismiss:focus-visible {
   outline: 2px solid var(--accent-strong);
   outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soffy-command__caret,
+  .soffy-command__marker,
+  .soffy-command__open,
+  .soffy-port {
+    transition-duration: 1ms;
+  }
+
+  .soffy-logs {
+    transition: none;
+  }
+
+  .soffy-logs__empty[data-live="true"],
+  .soffy-command[data-live="true"] .soffy-command__marker {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-transparency: reduce) {

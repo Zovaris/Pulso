@@ -1,6 +1,6 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { isTauri } from "@/lib/tauri";
-import type { CommandScan, Execution, Project } from "@/lib/types";
+import type { CommandScan, Execution, LogLine, Project } from "@/lib/types";
 
 export function onProjectsChanged(
   handler: (projects: Project[]) => void,
@@ -21,6 +21,20 @@ export function onExecutionChanged(
   handler: (execution: Execution) => void,
 ): Promise<UnlistenFn> {
   return subscribe<Execution>("execution://state-changed", handler);
+}
+
+/** Output arrives in batches, so a chatty command cannot flood the channel. */
+export function onLogAppended(
+  handler: (executionId: number, lines: LogLine[]) => void,
+): Promise<UnlistenFn> {
+  return subscribe<{ executionId: number; lines: LogLine[] }>(
+    "execution://log-appended",
+    (payload) => handler(payload.executionId, payload.lines),
+  );
+}
+
+export function onPopoverShown(handler: () => void): Promise<UnlistenFn> {
+  return subscribe<unknown>("popover://shown", handler);
 }
 
 async function subscribe<T>(

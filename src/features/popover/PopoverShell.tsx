@@ -5,6 +5,7 @@ import { PopoverFooter } from "@/features/popover/components/PopoverFooter";
 import { PopoverHeader } from "@/features/popover/components/PopoverHeader";
 import { PopoverProjects } from "@/features/popover/components/PopoverProjects";
 import { usePopoverActions } from "@/features/popover/usePopoverActions";
+import { usePopoverEntrance } from "@/features/popover/usePopoverEntrance";
 
 export function PopoverShell() {
   const { t } = useI18n();
@@ -15,9 +16,13 @@ export function PopoverShell() {
         .length,
   );
   const actions = usePopoverActions();
+  const shell = usePopoverEntrance<HTMLDivElement>();
 
   return (
-    <div className="soffy-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper">
+    <div
+      ref={shell}
+      className="soffy-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper"
+    >
       <PopoverHeader title={t("appName")} runningCount={runningCount} />
       <PopoverProjects projects={projects} />
       <PopoverFooter {...actions} />

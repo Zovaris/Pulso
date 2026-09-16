@@ -60,6 +60,26 @@ export type ExecutionState =
   | "exited"
   | "failed";
 
+export type LogStream = "stdout" | "stderr";
+
+export type LogLine = {
+  seq: number;
+  at: number;
+  stream: LogStream;
+  text: string;
+};
+
+export type LogSnapshot = {
+  executionId: number;
+  lines: LogLine[];
+};
+
+export type DetectedPort = {
+  id: string;
+  port: number;
+  url: string | null;
+};
+
 export type Execution = {
   id: number;
   projectId: number;
@@ -76,6 +96,7 @@ export type Execution = {
   /** Why it failed, including the resolved PATH when the program was missing. */
   detail: string | null;
   restartedFrom: number | null;
+  ports: DetectedPort[];
 };
 
 export type BackendErrorKind =

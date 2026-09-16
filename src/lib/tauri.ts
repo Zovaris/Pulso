@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { playPopoverEntrance } from "@/lib/motion";
 
 export function isTauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
@@ -29,6 +30,7 @@ export async function showPopover(): Promise<void> {
     const win = getCurrentWindow();
     await win.show();
     await win.setFocus();
+    playPopoverEntrance();
   } catch {}
 }
 

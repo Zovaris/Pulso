@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { isTauri } from "@/lib/tauri";
-import type { Execution } from "@/lib/types";
+import type { Execution, LogSnapshot } from "@/lib/types";
 
 export function listExecutions(): Promise<Execution[]> {
   if (!isTauri()) return Promise.resolve([]);
@@ -16,4 +16,20 @@ export function startCommand(
 
 export function stopExecution(executionId: number): Promise<Execution> {
   return invoke("stop_execution", { executionId });
+}
+
+export function getLogSnapshot(
+  executionId: number,
+  afterSeq: number | null,
+): Promise<LogSnapshot> {
+  if (!isTauri()) return Promise.resolve({ executionId, lines: [] });
+  return invoke("get_log_snapshot", { executionId, afterSeq });
+}
+
+export function openDetectedUrl(
+  executionId: number,
+  portId: string,
+): Promise<void> {
+  if (!isTauri()) return Promise.resolve();
+  return invoke("open_detected_url", { executionId, portId });
 }

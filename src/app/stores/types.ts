@@ -4,6 +4,7 @@ import type {
   CommandScan,
   Execution,
   Locale,
+  LogLine,
   Project,
   Surface,
   ThemePref,
@@ -25,6 +26,9 @@ export type StoreState = {
 
   executions: Execution[];
   pendingCommandId: string | null;
+
+  logs: Record<number, LogLine[]>;
+  openLogKey: string | null;
 };
 
 export type StoreActions = {
@@ -50,6 +54,12 @@ export type StoreActions = {
   applyExecution: (execution: Execution) => void;
   startCommand: (projectId: number, commandId: string) => Promise<void>;
   stopExecution: (executionId: number) => Promise<void>;
+
+  applyLogs: (executionId: number, lines: LogLine[]) => void;
+  loadLogs: (executionId: number) => Promise<void>;
+  toggleLogs: (key: string, executionId: number | null) => void;
+  closeLogs: () => void;
+  openUrl: (executionId: number, portId: string) => Promise<void>;
 };
 
 export type AppStore = StoreState & StoreActions;

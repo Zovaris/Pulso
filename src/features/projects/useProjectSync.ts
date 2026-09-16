@@ -3,6 +3,7 @@ import { useStore } from "@/app/store";
 import {
   onCommandsChanged,
   onExecutionChanged,
+  onLogAppended,
   onProjectsChanged,
 } from "@/lib/events";
 
@@ -12,6 +13,7 @@ export function useProjectSync() {
   const applyScan = useStore((state) => state.applyScan);
   const loadExecutions = useStore((state) => state.loadExecutions);
   const applyExecution = useStore((state) => state.applyExecution);
+  const applyLogs = useStore((state) => state.applyLogs);
 
   useEffect(() => {
     void loadProjects();
@@ -21,6 +23,7 @@ export function useProjectSync() {
       onProjectsChanged(applyProjects),
       onCommandsChanged(applyScan),
       onExecutionChanged(applyExecution),
+      onLogAppended(applyLogs),
     ];
 
     return () => {
@@ -28,5 +31,12 @@ export function useProjectSync() {
         void subscription.then((unlisten) => unlisten());
       }
     };
-  }, [loadProjects, loadExecutions, applyProjects, applyScan, applyExecution]);
+  }, [
+    loadProjects,
+    loadExecutions,
+    applyProjects,
+    applyScan,
+    applyExecution,
+    applyLogs,
+  ]);
 }
