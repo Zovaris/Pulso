@@ -15,7 +15,11 @@ pub fn run() {
                 let handle = app.handle().clone();
                 win.on_window_event(move |event| {
                     if let tauri::WindowEvent::Focused(false) = event {
-                        app::windows::hide_popover(&handle);
+                        // The folder panel takes focus while it is open, and
+                        // closing the popover there would end the flow.
+                        if !app::picker::is_open() {
+                            app::windows::hide_popover(&handle);
+                        }
                     }
                 });
             }
@@ -25,6 +29,7 @@ pub fn run() {
             commands::quit_soffy,
             commands::open_main_window,
             commands::hide_popover,
+            commands::pick_project_folder,
             commands::save_appearance,
         ])
         .run(tauri::generate_context!())

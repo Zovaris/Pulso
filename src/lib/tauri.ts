@@ -23,9 +23,9 @@ export function hidePopover(): Promise<void> {
 }
 
 /**
- * The native folder panel takes focus, so the popover asks to come back.
- * Uses the window API directly: `core:window:allow-show` and
- * `allow-set-focus` are already granted, so no custom command is needed.
+ * Restores the popover's focus after the folder panel closes. Uses the window
+ * API directly: `core:window:allow-show` and `allow-set-focus` are already
+ * granted, so no custom command is needed.
  */
 export async function showPopover(): Promise<void> {
   if (!isTauri()) return;
@@ -37,10 +37,15 @@ export async function showPopover(): Promise<void> {
   } catch {}
 }
 
+/**
+ * Runs on the Rust side: the popover hides itself when it loses focus, and the
+ * panel takes that focus, so the command owns the whole interaction.
+ */
 export async function pickProjectFolder(title: string): Promise<string | null> {
   if (!isTauri()) return null;
-  const { open } = await import("@tauri-apps/plugin-dialog");
-  const selected = await open({ directory: true, multiple: false, title });
+  const selected = await invoke<string | null>("pick_project_folder", {
+    title,
+  });
 
-  return typeof selected === "string" ? selected : null;
+  return selected ?? null;
 }
