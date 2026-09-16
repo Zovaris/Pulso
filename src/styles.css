@@ -40,12 +40,17 @@ html {
   --mist: #a3a3a3;
   --faint: #8a8a8a;
   --paper: #ececec;
-  --accent: #d71921;
-  --accent-hover: #ea343c;
-  --accent-press: #b9151c;
+  --accent: #4e7657;
+  --accent-hover: #587f61;
+  --accent-press: #41664a;
+  --accent-strong: #80a989;
   --ok: #28c840;
   --hover: rgb(255 255 255 / 0.04);
   --fill: rgb(255 255 255 / 0.06);
+  --popover-base: #212121;
+  --popover-rim: rgb(255 255 255 / 0.08);
+  --motion-fast: 120ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   color-scheme: dark;
 }
 
@@ -60,12 +65,15 @@ html[data-theme="light"] {
   --mist: #5c5c5c;
   --faint: #6e6e6e;
   --paper: #161616;
-  --accent: #d71921;
-  --accent-hover: #c1161d;
-  --accent-press: #a51319;
+  --accent: #3d7049;
+  --accent-hover: #325f3d;
+  --accent-press: #284d32;
+  --accent-strong: #2f5b39;
   --ok: #188a2c;
   --hover: rgb(0 0 0 / 0.045);
   --fill: rgb(0 0 0 / 0.06);
+  --popover-base: #ffffff;
+  --popover-rim: rgb(0 0 0 / 0.08);
   color-scheme: light;
 }
 
@@ -109,6 +117,50 @@ button {
   color: inherit;
 }
 
+/* The popover window clears its native effects, so its surface carries the
+   contrast alone: 92% is the floor that keeps muted text above 4.5:1 over
+   whatever sits behind it. The main window can drop further because a macOS
+   material sits underneath it. */
+.soffy-popover {
+  background-color: var(--popover-base);
+  border: 1px solid var(--popover-rim);
+}
+
+html[data-transparency="on"] .soffy-popover {
+  background-color: color-mix(in srgb, var(--popover-base) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(30px);
+}
+
+/* A menu row: the host owns the row box, the package keeps the control.
+   The 10px inset lands the icon on the same 16px grid as the header and the
+   project list (6px footer padding + 10px). */
+.soffy-row.sph-button {
+  width: 100%;
+  justify-content: flex-start;
+  padding-inline: 10px;
+}
+
+.soffy-row .sph-button__label {
+  gap: 10px;
+}
+
+.soffy-row__icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.soffy-status {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background-color: var(--faint);
+}
+
+.soffy-status[data-active="true"] {
+  background-color: var(--accent-strong);
+}
+
 @media (prefers-reduced-transparency: reduce) {
   html[data-transparency="on"] {
     --void: var(--void-base);
@@ -116,5 +168,10 @@ button {
     --panel: var(--panel-base);
     --raised: var(--raised-base);
     --overlay: var(--overlay-base);
+  }
+
+  html[data-transparency="on"] .soffy-popover {
+    background-color: var(--popover-base);
+    backdrop-filter: none;
   }
 }

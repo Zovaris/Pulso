@@ -5,6 +5,7 @@
     "other": "{count} procesos activos"
   },
   "noneRunning": "Ningun proceso activo",
+  "noProjects": "Sin proyectos todavia",
   "favorites": "Favoritos",
   "emptyFavorites": "Fija hasta tres favoritos. Aparecen aqui.",
   "emptyProjects": "Agrega una carpeta para detectar sus comandos.",

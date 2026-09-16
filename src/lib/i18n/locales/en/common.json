@@ -5,6 +5,7 @@
     "other": "{count} processes running"
   },
   "noneRunning": "No processes running",
+  "noProjects": "No projects yet",
   "favorites": "Favorites",
   "emptyFavorites": "Pin up to three favorites. They appear here.",
   "emptyProjects": "Add a project folder to detect its commands.",

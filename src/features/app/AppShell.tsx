@@ -1,11 +1,14 @@
 import { FolderSimplePlus } from "@phosphor-icons/react";
-import { Button, Select, Toggle } from "@zovaris/sephiro";
+import { Select, Toggle } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
+import { ActionRow } from "@/components/shared/ActionRow";
+import { useAddProject } from "@/features/projects/useAddProject";
 import type { Locale, ThemePref } from "@/lib/types";
 
 export function AppShell() {
   const { t, locale, setLocale } = useI18n();
+  const addProject = useAddProject();
   const themePref = useStore((s) => s.themePref);
   const setThemePref = useStore((s) => s.setThemePref);
   const transparency = useStore((s) => s.transparency);
@@ -27,15 +30,13 @@ export function AppShell() {
           <p className="mb-3 px-1 text-[11px] font-medium text-faint">
             {t("projects")}
           </p>
-          <Button
-            type="button"
-            variant="quiet"
-            size="sm"
-            className="justify-start gap-2 text-left text-[12.5px] text-mist"
-          >
-            <FolderSimplePlus size={15} />
-            {t("addProject")}
-          </Button>
+          <ActionRow
+            icon={<FolderSimplePlus size={15} />}
+            label={t("addProject")}
+            onClick={() => {
+              void addProject();
+            }}
+          />
         </aside>
 
         <main className="overflow-auto px-8 py-8">

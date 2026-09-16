@@ -1,33 +1,37 @@
 import { useCallback } from "react";
-import { hidePopover, openMainWindow, quitSoffy } from "@/lib/tauri";
+import { useAddProject } from "@/features/projects/useAddProject";
+import {
+  hidePopover,
+  openMainWindow,
+  quitSoffy,
+  showPopover,
+} from "@/lib/tauri";
 
 export type PopoverActions = {
   addProject: () => void;
   openApp: () => void;
-  openSettings: () => void;
   quit: () => void;
 };
 
 /**
- * Acciones del pie del popover. `openApp` y `openSettings` son hoy la misma
- * acción porque todavía no existe una ruta de settings; ambas mostrarán la
- * ventana principal hasta que exista `app/router.ts`.
+ * The folder panel steals focus, which hides the popover, so the popover asks
+ * to be shown again once the panel closes, whether a folder was picked or not.
  */
 export function usePopoverActions(): PopoverActions {
+  const pickAndAddProject = useAddProject();
+
+  const addProject = useCallback(() => {
+    void pickAndAddProject().then(() => showPopover());
+  }, [pickAndAddProject]);
+
   const openApp = useCallback(() => {
     void openMainWindow();
     void hidePopover();
-  }, []);
-
-  const addProject = useCallback(() => {
-    // TODO: abrir el selector nativo de carpetas (plugin dialog) antes de
-    // mostrar la ventana principal.
-    void openMainWindow();
   }, []);
 
   const quit = useCallback(() => {
     void quitSoffy();
   }, []);
 
-  return { addProject, openApp, openSettings: openApp, quit };
+  return { addProject, openApp, quit };
 }
