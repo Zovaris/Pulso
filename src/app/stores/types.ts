@@ -9,6 +9,7 @@ import type {
   EditorTarget,
   EnvironmentReport,
   Execution,
+  HistoryEntry,
   Locale,
   LogLine,
   MetricsSample,
@@ -71,6 +72,10 @@ export type StoreState = {
   data: DataStatus | null;
   environment: EnvironmentReport | null;
   environmentFor: number | null;
+  history: HistoryEntry[];
+  historyProject: number | null;
+  historyLog: HistoryLog | null;
+  confirmingHistory: boolean;
   working: string | null;
   notice: string | null;
   seenFailuresAt: number;
@@ -139,6 +144,11 @@ export type StoreActions = {
   makeDiagnosticBundle: () => Promise<void>;
   loadEnvironment: (projectId: number) => Promise<void>;
   saveLog: (executionId: number, label: string) => Promise<void>;
+  loadHistory: (projectId: number) => Promise<void>;
+  toggleHistoryLog: (executionId: number) => Promise<void>;
+  closeHistoryLog: () => void;
+  askClearHistory: (asking: boolean) => void;
+  clearHistory: () => Promise<void>;
 
   select: (executionId: number | null) => void;
   selectProject: (projectId: number | null) => void;
@@ -152,6 +162,11 @@ export type StoreActions = {
   note: (text: string) => void;
   dismissNotice: () => void;
   markFailuresSeen: () => void;
+};
+
+export type HistoryLog = {
+  id: number;
+  lines: LogLine[];
 };
 
 export type AppStore = StoreState & StoreActions;

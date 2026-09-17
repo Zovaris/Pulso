@@ -118,6 +118,7 @@
   "stateStopping": "deteniendo",
   "stateExited": "terminado",
   "stateFailed": "fallo",
+  "stateInterrupted": "interrumpido",
 
   "favorite": "Favorito",
   "runWithArgs": "Ejecutar con argumentos",
@@ -169,8 +170,9 @@
   "missing": "ya no esta",
   "whatPopoverSees": "Qué ve la barra",
   "popoverRule": "Los favoritos primero, los ocultos fuera de la lista. La misma elección manda en el menú de la barra.",
-  "lastRuns": "Últimas ejecuciones",
+  "lastRuns": "Ejecuciones",
   "nothingRan": "Todavia no corre nada.",
+  "openStoredLog": "Ver la salida que se guardo de esta ejecución",
   "environment": "Entorno",
   "checkEnvironment": "Ver el PATH resuelto",
   "notFound": "no encontrado",
@@ -244,7 +246,20 @@
   "exportProjects": "Exportar",
   "importProjects": "Importar",
   "sessionLog": "Esta sesión",
-  "sessionLogHint": "Pulso no guarda historial entre sesiones: las ejecuciones terminadas y su salida viven en memoria hasta que las limpies.",
+  "sessionLogHint": "Las ejecuciones terminadas de esta ventana y su salida completa, en memoria.",
+  "executionHistory": "Historial guardado",
+  "executionHistoryHint": {
+    "one": "{count} ejecución, con las últimas 200 líneas de cada una.",
+    "other": "{count} ejecuciones, con las últimas 200 líneas de cada una."
+  },
+  "executionHistoryEmpty": "Todavia no hay ejecuciones guardadas.",
+  "clearHistory": "Borrar el historial…",
+  "historyCleared": {
+    "one": "Se borro {count} ejecución guardada.",
+    "other": "Se borraron {count} ejecuciones guardadas."
+  },
+  "confirmClearHistoryTitle": "¿Borrar el historial guardado?",
+  "confirmClearHistoryBody": "Se van las ejecuciones de las sesiones anteriores y la salida que guardan. Lo que sigue corriendo no se toca.",
   "makeBundle": "Paquete de diagnóstico…",
   "shortcutPalette": "Paleta de comandos",
   "shortcutSections": "Resumen, Proyectos, Procesos…",

@@ -948,9 +948,18 @@ html[data-theme="light"] .pulso-stream::-webkit-scrollbar-thumb {
   background-color: var(--line);
 }
 
+.pulso-dot[data-s="starting"] {
+  background-color: var(--accent-strong);
+}
+
 .pulso-dot[data-s="stopping"] {
   animation: pulso-breathe 1.4s var(--ease-out) infinite;
   background-color: var(--mist);
+}
+
+.pulso-dot[data-s="interrupted"] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .pulso-palette {

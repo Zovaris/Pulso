@@ -78,7 +78,8 @@ export type ExecutionState =
   | "running"
   | "stopping"
   | "exited"
-  | "failed";
+  | "failed"
+  | "interrupted";
 
 export type LogStream = "stdout" | "stderr";
 
@@ -134,11 +135,29 @@ export type EditorTarget = {
   path: string;
 };
 
+export type HistoryEntry = {
+  id: number;
+  projectId: number;
+  commandId: string;
+  label: string;
+  program: string;
+  args: string[];
+  cwd: string;
+  state: ExecutionState;
+  startedAt: number;
+  endedAt: number | null;
+  exitCode: number | null;
+  detail: string | null;
+  /** How many lines of its output survived the session. */
+  lines: number;
+};
+
 export type DataStatus = {
   folder: string;
   database: string;
   projects: number;
   missing: number;
+  runs: number;
 };
 
 export type PathEntry = {

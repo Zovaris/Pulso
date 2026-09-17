@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import { pushSample } from "@/features/desktop/metrics";
-import { commandKey } from "@/features/executions/execution";
+import { commandKey, isActiveState } from "@/features/executions/execution";
 import type { Execution, LogLine } from "@/lib/types";
 import { toBackendError } from "@/services/api/errors";
 import * as executionsApi from "@/services/api/executions";
@@ -74,11 +74,25 @@ export const createExecutionsSlice: StateCreator<
   logs: {},
   openLogKey: null,
 
-  applyExecution: (execution) =>
+  applyExecution: (execution) => {
+    const previous = get().executions.find(
+      (entry) => entry.id === execution.id,
+    );
+    const ended =
+      previous !== undefined &&
+      isActiveState(previous.state) &&
+      !isActiveState(execution.state);
+
     set((state) => ({
       executions: upsert(state.executions, execution),
       selectedExecutionId: state.selectedExecutionId ?? execution.id,
-    })),
+    }));
+
+    // The run was just written down, so the stored timeline is one step behind
+    // until it is read again.
+    const projectId = get().historyProject;
+    if (ended && projectId !== null) void get().loadHistory(projectId);
+  },
 
   applyMetrics: (samples) =>
     set((state) => {

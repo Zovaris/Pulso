@@ -118,6 +118,7 @@
   "stateStopping": "stopping",
   "stateExited": "finished",
   "stateFailed": "failed",
+  "stateInterrupted": "interrupted",
 
   "favorite": "Favourite",
   "runWithArgs": "Run with arguments",
@@ -169,8 +170,9 @@
   "missing": "gone",
   "whatPopoverSees": "What the menubar sees",
   "popoverRule": "Favourites first, hidden commands out of the list. The same choice drives the menubar menu.",
-  "lastRuns": "Recent runs",
+  "lastRuns": "Runs",
   "nothingRan": "Nothing has run yet.",
+  "openStoredLog": "Read the output this run saved",
   "environment": "Environment",
   "checkEnvironment": "Check the resolved PATH",
   "notFound": "not found",
@@ -244,7 +246,20 @@
   "exportProjects": "Export",
   "importProjects": "Import",
   "sessionLog": "This session",
-  "sessionLogHint": "Pulso keeps no history across sessions: finished runs and their output live in memory until you clear them.",
+  "sessionLogHint": "The finished runs of this window and their full output, in memory.",
+  "executionHistory": "Stored history",
+  "executionHistoryHint": {
+    "one": "{count} run, with the last 200 lines of each.",
+    "other": "{count} runs, with the last 200 lines of each."
+  },
+  "executionHistoryEmpty": "No runs stored yet.",
+  "clearHistory": "Clear history…",
+  "historyCleared": {
+    "one": "{count} stored run was cleared.",
+    "other": "{count} stored runs were cleared."
+  },
+  "confirmClearHistoryTitle": "Clear the stored history?",
+  "confirmClearHistoryBody": "Runs from earlier sessions go, along with the output they saved. Anything still running is left alone.",
   "makeBundle": "Diagnostic bundle…",
   "shortcutPalette": "Command palette",
   "shortcutSections": "Overview, Projects, Processes…",

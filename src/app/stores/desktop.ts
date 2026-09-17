@@ -1,5 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { CommandFilter } from "@/features/desktop/commands";
+import { HISTORY_RUNS } from "@/features/desktop/history";
 import {
   filterLines,
   type LogFilter,
@@ -12,6 +13,7 @@ import * as editorsApi from "@/services/api/editors";
 import * as environmentApi from "@/services/api/environment";
 import { toBackendError } from "@/services/api/errors";
 import * as executionsApi from "@/services/api/executions";
+import * as historyApi from "@/services/api/history";
 import type { AppStore } from "./types";
 
 export type DesktopSlice = Pick<
@@ -29,6 +31,10 @@ export type DesktopSlice = Pick<
   | "data"
   | "environment"
   | "environmentFor"
+  | "history"
+  | "historyProject"
+  | "historyLog"
+  | "confirmingHistory"
   | "working"
   | "notice"
   | "seenFailuresAt"
@@ -41,6 +47,11 @@ export type DesktopSlice = Pick<
   | "makeDiagnosticBundle"
   | "loadEnvironment"
   | "saveLog"
+  | "loadHistory"
+  | "toggleHistoryLog"
+  | "closeHistoryLog"
+  | "askClearHistory"
+  | "clearHistory"
   | "select"
   | "selectProject"
   | "setCommandFilter"
@@ -98,6 +109,10 @@ export const createDesktopSlice: StateCreator<
     data: null,
     environment: null,
     environmentFor: null,
+    history: [],
+    historyProject: null,
+    historyLog: null,
+    confirmingHistory: false,
     working: null,
     notice: null,
     seenFailuresAt: Date.now(),
@@ -185,6 +200,46 @@ export const createDesktopSlice: StateCreator<
         );
 
         if (path) note(path);
+      });
+    },
+
+    loadHistory: async (projectId) => {
+      await run("history", async () => {
+        const history = await historyApi.listExecutionHistory(
+          projectId,
+          HISTORY_RUNS,
+        );
+
+        set({ history, historyProject: projectId });
+      });
+    },
+
+    toggleHistoryLog: async (executionId) => {
+      if (get().historyLog?.id === executionId) {
+        set({ historyLog: null });
+        return;
+      }
+
+      await run("historyLog", async () => {
+        const snapshot = await historyApi.readExecutionLog(executionId);
+        set({ historyLog: { id: executionId, lines: snapshot.lines } });
+      });
+    },
+
+    closeHistoryLog: () => set({ historyLog: null }),
+
+    askClearHistory: (asking) => set({ confirmingHistory: asking }),
+
+    clearHistory: async () => {
+      await run("clearHistory", async () => {
+        const removed = await historyApi.clearExecutionHistory();
+        const projectId = get().historyProject;
+
+        set({ historyLog: null, confirmingHistory: false });
+        if (projectId !== null) await get().loadHistory(projectId);
+        await get().loadDataStatus();
+
+        get().note(get().t("historyCleared", { count: removed }));
       });
     },
 

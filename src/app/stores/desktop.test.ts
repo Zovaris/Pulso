@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useStore } from "@/app/store";
 import { HISTORY } from "@/features/desktop/metrics";
-import type { CommandScan, LogLine, MetricsSample } from "@/lib/types";
+import type {
+  CommandScan,
+  HistoryEntry,
+  LogLine,
+  MetricsSample,
+} from "@/lib/types";
 import * as dataApi from "@/services/api/data";
 import * as editorsApi from "@/services/api/editors";
 import * as executionsApi from "@/services/api/executions";
+import * as historyApi from "@/services/api/history";
 
 vi.mock("@/services/api/data", () => ({
   dataStatus: vi.fn(),
@@ -30,9 +36,16 @@ vi.mock("@/services/api/executions", () => ({
   saveLogText: vi.fn(),
 }));
 
+vi.mock("@/services/api/history", () => ({
+  listExecutionHistory: vi.fn(),
+  readExecutionLog: vi.fn(),
+  clearExecutionHistory: vi.fn(),
+}));
+
 const data = vi.mocked(dataApi);
 const editors = vi.mocked(editorsApi);
 const executions = vi.mocked(executionsApi);
+const history = vi.mocked(historyApi);
 
 function line(seq: number, text: string): LogLine {
   return { seq, at: 1_000 + seq, stream: "stdout", text };
@@ -44,6 +57,27 @@ function sample(
   memory = 1024,
 ): MetricsSample {
   return { executionId, cpu, memory, processes: 2 };
+}
+
+function storedRun(
+  id: number,
+  extra: Partial<HistoryEntry> = {},
+): HistoryEntry {
+  return {
+    id,
+    projectId: extra.projectId ?? 1,
+    commandId: extra.commandId ?? "package_json:dev",
+    label: extra.label ?? "dev",
+    program: "bun",
+    args: ["run", "dev"],
+    cwd: "/tmp",
+    state: extra.state ?? "exited",
+    startedAt: extra.startedAt ?? id * 1_000,
+    endedAt: extra.endedAt ?? id * 1_000 + 500,
+    exitCode: extra.exitCode ?? 0,
+    detail: null,
+    lines: extra.lines ?? 4,
+  };
 }
 
 function scan(flags: CommandScan["flags"]): CommandScan {
@@ -77,6 +111,10 @@ beforeEach(() => {
     data: null,
     environment: null,
     environmentFor: null,
+    history: [],
+    historyProject: null,
+    historyLog: null,
+    confirmingHistory: false,
     working: null,
     notice: null,
     editor: null,
@@ -274,6 +312,68 @@ describe("saveLog", () => {
     await useStore.getState().saveLog(4, "dev");
 
     expect(useStore.getState().notice).toBeNull();
+  });
+});
+
+describe("history actions", () => {
+  it("keeps the timeline and the project it answers for", async () => {
+    history.listExecutionHistory.mockResolvedValue([
+      storedRun(3),
+      storedRun(2),
+    ]);
+
+    await useStore.getState().loadHistory(7);
+
+    expect(history.listExecutionHistory).toHaveBeenCalledWith(
+      7,
+      expect.any(Number),
+    );
+    expect(useStore.getState().history).toHaveLength(2);
+    expect(useStore.getState().historyProject).toBe(7);
+  });
+
+  it("reads a run's saved output once, then folds it away", async () => {
+    history.readExecutionLog.mockResolvedValue({
+      executionId: 3,
+      lines: [line(1, "listening on 4321")],
+    });
+
+    await useStore.getState().toggleHistoryLog(3);
+
+    expect(useStore.getState().historyLog?.id).toBe(3);
+    expect(useStore.getState().historyLog?.lines[0].text).toBe(
+      "listening on 4321",
+    );
+
+    await useStore.getState().toggleHistoryLog(3);
+
+    expect(useStore.getState().historyLog).toBeNull();
+    expect(history.readExecutionLog).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears the file, refreshes what is on screen and says how much went", async () => {
+    history.clearExecutionHistory.mockResolvedValue(3);
+    history.listExecutionHistory.mockResolvedValue([]);
+    data.dataStatus.mockResolvedValue({
+      folder: "/tmp/pulso",
+      database: "/tmp/pulso/pulso.db",
+      projects: 1,
+      missing: 0,
+      runs: 0,
+    });
+    useStore.setState({
+      historyProject: 1,
+      historyLog: { id: 3, lines: [line(1, "gone")] },
+      confirmingHistory: true,
+    });
+
+    await useStore.getState().clearHistory();
+
+    expect(useStore.getState().history).toEqual([]);
+    expect(useStore.getState().historyLog).toBeNull();
+    expect(useStore.getState().confirmingHistory).toBe(false);
+    expect(useStore.getState().data?.runs).toBe(0);
+    expect(useStore.getState().notice).toContain("3");
   });
 });
 

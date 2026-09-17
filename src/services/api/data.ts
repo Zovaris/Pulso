@@ -9,6 +9,7 @@ export function dataStatus(): Promise<DataStatus> {
       database: "",
       projects: 0,
       missing: 0,
+      runs: 0,
     });
   }
   return invoke("data_status");
