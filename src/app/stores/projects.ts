@@ -9,12 +9,14 @@ export type ProjectsSlice = Pick<
   | "projects"
   | "scans"
   | "scanningProjectId"
+  | "rescanning"
   | "expandedProjectId"
   | "projectError"
   | "loadProjects"
   | "addProject"
   | "removeProject"
   | "loadCommands"
+  | "rescanProjects"
   | "toggleProject"
   | "applyProjects"
   | "applyScan"
@@ -41,6 +43,7 @@ export const createProjectsSlice: StateCreator<
   projects: [],
   scans: {},
   scanningProjectId: null,
+  rescanning: false,
   expandedProjectId: null,
   projectError: null,
 
@@ -112,6 +115,17 @@ export const createProjectsSlice: StateCreator<
             ? null
             : state.scanningProjectId,
       }));
+    }
+  },
+
+  rescanProjects: async () => {
+    set({ rescanning: true, projectError: null });
+    try {
+      await projectsApi.rescanProjects();
+    } catch (cause) {
+      set({ projectError: toBackendError(cause) });
+    } finally {
+      set({ rescanning: false });
     }
   },
 

@@ -17,6 +17,8 @@
     "one": "{count} comando",
     "other": "{count} comandos"
   },
+  "rescan": "Reescanear proyectos",
+  "rescanHint": "Vuelve a leer los archivos de cada proyecto.",
   "readingManifest": "Leyendo los archivos del proyecto…",
   "noManifest": "Soffy no encontro nada para ejecutar. Lee:",
   "noCommands": "Estos archivos no declaran comandos:",

@@ -80,6 +80,7 @@ pub fn run() {
             commands::projects::add_project,
             commands::projects::remove_project,
             commands::projects::list_commands,
+            commands::projects::rescan_projects,
             commands::executions::list_executions,
             commands::executions::start_command,
             commands::executions::stop_execution,

@@ -17,6 +17,8 @@
     "one": "{count} command",
     "other": "{count} commands"
   },
+  "rescan": "Rescan projects",
+  "rescanHint": "Reads every project file again.",
   "readingManifest": "Reading the project files…",
   "noManifest": "Soffy found nothing to run here. It reads:",
   "noCommands": "These files declare no commands:",

@@ -18,3 +18,8 @@ export function removeProject(projectId: number): Promise<void> {
 export function listCommands(projectId: number): Promise<CommandScan> {
   return invoke("list_commands", { projectId });
 }
+
+export function rescanProjects(): Promise<void> {
+  if (!isTauri()) return Promise.resolve();
+  return invoke("rescan_projects");
+}

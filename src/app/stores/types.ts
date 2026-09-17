@@ -21,6 +21,7 @@ export type StoreState = {
 
   scans: Record<string, CommandScan>;
   scanningProjectId: number | null;
+  rescanning: boolean;
 
   expandedProjectId: number | null;
   projectError: BackendError | null;
@@ -45,6 +46,7 @@ export type StoreActions = {
   addProject: (path: string) => Promise<Project | null>;
   removeProject: (projectId: number) => Promise<void>;
   loadCommands: (projectId: number) => Promise<void>;
+  rescanProjects: () => Promise<void>;
   toggleProject: (projectId: number) => void;
 
   applyProjects: (projects: Project[]) => void;

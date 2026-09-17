@@ -65,6 +65,13 @@ pub async fn remove_project(
 }
 
 #[tauri::command]
+pub async fn rescan_projects(app: AppHandle) -> Result<()> {
+    events::refresh(&app).await;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn list_commands(
     app: AppHandle,
     db: State<'_, Arc<Database>>,

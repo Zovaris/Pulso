@@ -15,6 +15,8 @@ export function PopoverShell() {
       state.executions.filter((execution) => isActiveState(execution.state))
         .length,
   );
+  const rescanning = useStore((state) => state.rescanning);
+  const rescanProjects = useStore((state) => state.rescanProjects);
   const actions = usePopoverActions();
   const shell = usePopoverEntrance<HTMLDivElement>();
 
@@ -23,7 +25,12 @@ export function PopoverShell() {
       ref={shell}
       className="soffy-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper"
     >
-      <PopoverHeader title={t("appName")} runningCount={runningCount} />
+      <PopoverHeader
+        title={t("appName")}
+        runningCount={runningCount}
+        rescanning={rescanning}
+        onRescan={() => void rescanProjects()}
+      />
       <PopoverProjects projects={projects} onAddProject={actions.addProject} />
       <PopoverFooter {...actions} showAddProject={projects.length > 0} />
     </div>

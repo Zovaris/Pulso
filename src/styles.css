@@ -174,6 +174,46 @@ html[data-transparency="on"] .soffy-popover {
   background-color: var(--accent-strong);
 }
 
+.soffy-rescan {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-block: -2px;
+  border-radius: 6px;
+  color: var(--faint);
+  transition:
+    color var(--motion-fast) var(--ease-out),
+    background-color var(--motion-fast) var(--ease-out);
+}
+
+.soffy-rescan:hover {
+  color: var(--paper);
+  background-color: var(--hover);
+}
+
+.soffy-rescan:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 1px;
+}
+
+.soffy-rescan:disabled {
+  cursor: default;
+  color: var(--mist);
+}
+
+.soffy-rescan[data-busy="true"] svg {
+  animation: soffy-turn 900ms linear infinite;
+}
+
+@keyframes soffy-turn {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 .soffy-project {
   position: relative;
   display: flex;
@@ -691,7 +731,8 @@ button.soffy-port:hover {
   }
 
   .soffy-logs__empty[data-live="true"],
-  .soffy-command[data-live="true"] .soffy-command__marker {
+  .soffy-command[data-live="true"] .soffy-command__marker,
+  .soffy-rescan[data-busy="true"] svg {
     animation: none;
   }
 }
