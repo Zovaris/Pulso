@@ -25,7 +25,7 @@ export function PopoverShell() {
   return (
     <div
       ref={shell}
-      className="soffy-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper"
+      className="pulso-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper"
     >
       <PopoverHeader
         title={t("appName")}

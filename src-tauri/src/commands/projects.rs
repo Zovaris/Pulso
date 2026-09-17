@@ -55,7 +55,7 @@ pub async fn remove_project(
     if !removed {
         return Err(BackendError::new(
             ErrorKind::NotFound,
-            "That project is no longer in Soffy.",
+            "That project is no longer in Pulso.",
         ));
     }
 
@@ -81,7 +81,7 @@ pub async fn list_commands(
         repositories::projects::by_id(conn, project_id)
     })
     .await?
-    .ok_or_else(|| BackendError::new(ErrorKind::NotFound, "That project is no longer in Soffy."))?;
+    .ok_or_else(|| BackendError::new(ErrorKind::NotFound, "That project is no longer in Pulso."))?;
 
     let path = project.path;
     let scan = off_thread(move || crate::detectors::scan(project_id, Path::new(&path))).await?;

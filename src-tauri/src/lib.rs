@@ -21,8 +21,9 @@ pub fn run() {
             let handle = app.handle().clone();
 
             let data_dir = handle.path().app_data_dir()?;
+            persistence::legacy::adopt_legacy_database(&data_dir)?;
             app.manage(Arc::new(persistence::Database::open(
-                &data_dir.join("soffy.db"),
+                &persistence::database_path(&data_dir),
             )?));
 
             let notifier = {
@@ -46,7 +47,7 @@ pub fn run() {
 
             app::tray::install(&handle)?;
 
-            if std::env::var("SOFFY_SHOW_MAIN").as_deref() == Ok("1") {
+            if std::env::var("PULSO_SHOW_MAIN").as_deref() == Ok("1") {
                 app::windows::show_main(&handle);
             }
 
@@ -74,7 +75,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::window::quit_soffy,
+            commands::window::quit_pulso,
             commands::window::open_main_window,
             commands::window::hide_popover,
             commands::window::pick_project_folder,

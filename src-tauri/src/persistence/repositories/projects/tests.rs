@@ -11,7 +11,7 @@ struct TempDatabase {
 impl TempDatabase {
     fn open(name: &str) -> Self {
         let path = std::env::temp_dir().join(format!(
-            "soffy-test-{name}-{}-{}.db",
+            "pulso-test-{name}-{}-{}.db",
             std::process::id(),
             now_ms()
         ));
@@ -54,7 +54,7 @@ fn a_folder_that_is_not_there_reads_as_missing() {
 
     let missing = temp
         .database
-        .with(|conn| ensure(conn, "/soffy/does/not/exist", "exist", 1))
+        .with(|conn| ensure(conn, "/pulso/does/not/exist", "exist", 1))
         .map(ProjectRow::into_project)
         .expect("storing is not validation");
 

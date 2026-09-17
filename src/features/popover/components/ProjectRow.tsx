@@ -33,25 +33,25 @@ export function ProjectRow({ project }: { project: Project }) {
   const message = scan ? scanMessage(scan) : null;
 
   return (
-    <div className="soffy-project-row">
-      <div className="soffy-project">
+    <div className="pulso-project-row">
+      <div className="pulso-project">
         <button
           type="button"
-          className="soffy-project__open"
+          className="pulso-project__open"
           aria-expanded={expanded}
           onClick={() => toggleProject(project.id)}
         >
-          <FolderSimpleIcon size={14} className="soffy-project__icon" />
-          <span className="soffy-project__text">
-            <span className="soffy-project__head">
+          <FolderSimpleIcon size={14} className="pulso-project__icon" />
+          <span className="pulso-project__text">
+            <span className="pulso-project__head">
               <span className="truncate text-[12.5px] font-medium">
                 {project.name}
               </span>
               {count > 0 ? (
-                <span className="soffy-project__count">{count}</span>
+                <span className="pulso-project__count">{count}</span>
               ) : null}
             </span>
-            <span className="soffy-project__path" title={project.path}>
+            <span className="pulso-project__path" title={project.path}>
               {project.availability === "missing"
                 ? t("projectMissing")
                 : project.path}
@@ -59,10 +59,10 @@ export function ProjectRow({ project }: { project: Project }) {
           </span>
         </button>
 
-        <CaretRightIcon size={12} className="soffy-project__chevron" />
+        <CaretRightIcon size={12} className="pulso-project__chevron" />
         <button
           type="button"
-          className="soffy-project__forget"
+          className="pulso-project__forget"
           aria-label={t("forgetProject")}
           title={t("forgetHint")}
           onClick={() => void removeProject(project.id)}
@@ -71,10 +71,10 @@ export function ProjectRow({ project }: { project: Project }) {
         </button>
       </div>
 
-      <div className="soffy-scan" ref={scanBox} inert={!expanded}>
-        <div className="soffy-scan__body">
+      <div className="pulso-scan" ref={scanBox} inert={!expanded}>
+        <div className="pulso-scan__body">
           {scanning && !scan ? (
-            <p className="soffy-scan__note">{t("readingManifest")}</p>
+            <p className="pulso-scan__note">{t("readingManifest")}</p>
           ) : null}
 
           {count > 0 ? (
@@ -82,9 +82,9 @@ export function ProjectRow({ project }: { project: Project }) {
               {groups.map((group) => (
                 <li key={group.source}>
                   {split ? (
-                    <p className="soffy-source">
-                      <span className="soffy-source__name">{group.label}</span>
-                      <span className="soffy-source__rule" />
+                    <p className="pulso-source">
+                      <span className="pulso-source__name">{group.label}</span>
+                      <span className="pulso-source__rule" />
                     </p>
                   ) : null}
                   <ul className="flex flex-col">
@@ -100,10 +100,10 @@ export function ProjectRow({ project }: { project: Project }) {
           ) : null}
 
           {message ? (
-            <p className="soffy-scan__note">
+            <p className="pulso-scan__note">
               {t(message.key)}
               {message.detail ? (
-                <span className="soffy-scan__detail">{message.detail}</span>
+                <span className="pulso-scan__detail">{message.detail}</span>
               ) : null}
             </p>
           ) : null}

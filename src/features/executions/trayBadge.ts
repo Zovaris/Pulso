@@ -1,4 +1,4 @@
-import trayMark from "../../../assets/brand/soffy-tray.png";
+import trayMark from "../../../assets/brand/pulso-tray.png";
 
 const HEIGHT = 36;
 const GAP = 3;

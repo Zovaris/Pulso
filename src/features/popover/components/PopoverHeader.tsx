@@ -23,14 +23,14 @@ export function PopoverHeader({
           {title}
         </h1>
         <p className="ml-auto flex items-center gap-1.5 text-[11.5px] text-mist">
-          <span className="soffy-status" data-active={runningCount > 0} />
+          <span className="pulso-status" data-active={runningCount > 0} />
           {runningCount === 0
             ? t("noneRunning")
             : t("runningCount", { count: runningCount })}
         </p>
         <button
           type="button"
-          className="soffy-rescan"
+          className="pulso-rescan"
           data-busy={rescanning}
           aria-label={t("rescan")}
           title={t("rescanHint")}

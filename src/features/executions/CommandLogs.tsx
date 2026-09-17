@@ -64,30 +64,30 @@ export function CommandLogs({
   };
 
   return (
-    <div className="soffy-logs" ref={box} inert={!open}>
-      <div className="soffy-logs__panel" ref={panel}>
+    <div className="pulso-logs" ref={box} inert={!open}>
+      <div className="pulso-logs__panel" ref={panel}>
         {lines.length > 0 ? (
           <ol
             ref={list}
-            className="soffy-logs__list"
+            className="pulso-logs__list"
             aria-label={t("outputOf", { label })}
             onScroll={onScroll}
           >
             {lines.map((line) => (
               <li
                 key={line.seq}
-                className="soffy-log"
+                className="pulso-log"
                 data-stream={line.stream}
               >
-                <time className="soffy-log__time">
+                <time className="pulso-log__time">
                   {formatLogTime(line.at)}
                 </time>
-                <span className="soffy-log__text">{line.text}</span>
+                <span className="pulso-log__text">{line.text}</span>
               </li>
             ))}
           </ol>
         ) : (
-          <p className="soffy-logs__empty" data-live={active}>
+          <p className="pulso-logs__empty" data-live={active}>
             {active ? t("waitingOutput") : t("noOutput")}
           </p>
         )}

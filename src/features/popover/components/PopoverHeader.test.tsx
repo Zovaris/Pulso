@@ -14,7 +14,7 @@ function header(
 
   render(
     <PopoverHeader
-      title="Soffy"
+      title="Pulso"
       runningCount={overrides.runningCount ?? 0}
       rescanning={overrides.rescanning ?? false}
       onRescan={onRescan}
@@ -30,7 +30,7 @@ describe("PopoverHeader", () => {
 
     expect(screen.getByText("2 processes running")).toBeTruthy();
     expect(
-      document.querySelector(".soffy-status")?.getAttribute("data-active"),
+      document.querySelector(".pulso-status")?.getAttribute("data-active"),
     ).toBe("true");
   });
 
@@ -39,7 +39,7 @@ describe("PopoverHeader", () => {
 
     expect(screen.getByText("No processes running")).toBeTruthy();
     expect(
-      document.querySelector(".soffy-status")?.getAttribute("data-active"),
+      document.querySelector(".pulso-status")?.getAttribute("data-active"),
     ).toBe("false");
   });
 

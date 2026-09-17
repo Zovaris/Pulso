@@ -36,27 +36,27 @@ export function CommandRow({
   const open = openLogKey === key;
 
   return (
-    <div className="soffy-command-row">
-      <div className="soffy-command" data-live={active}>
+    <div className="pulso-command-row">
+      <div className="pulso-command" data-live={active}>
         <button
           type="button"
-          className="soffy-command__open"
+          className="pulso-command__open"
           aria-expanded={open}
           onClick={() => toggleLogs(key, execution?.id ?? null)}
         >
           <CaretRightIcon
             size={10}
-            className="soffy-command__caret"
+            className="pulso-command__caret"
             data-quiet={execution === undefined}
           />
           <span
-            className="soffy-command__marker"
+            className="pulso-command__marker"
             data-long-running={command.longRunning}
             title={command.longRunning ? t("longRunningHint") : undefined}
           />
-          <span className="soffy-command__label">{command.label}</span>
+          <span className="pulso-command__label">{command.label}</span>
           <span
-            className="soffy-command__value"
+            className="pulso-command__value"
             data-active={active}
             title={active ? undefined : invocation}
           >
@@ -64,7 +64,7 @@ export function CommandRow({
           </span>
         </button>
 
-        <span className="soffy-command__ports">
+        <span className="pulso-command__ports">
           {active
             ? execution?.ports.map((port) => (
                 <PortBadge
@@ -81,7 +81,7 @@ export function CommandRow({
         {active ? (
           <button
             type="button"
-            className="soffy-command__control"
+            className="pulso-command__control"
             data-kind="stop"
             aria-label={t("stopCommand")}
             title={t("stopCommand")}
@@ -95,7 +95,7 @@ export function CommandRow({
         ) : (
           <button
             type="button"
-            className="soffy-command__control"
+            className="pulso-command__control"
             aria-label={t("runCommand")}
             title={t("runCommand")}
             disabled={pendingCommandId === command.id}
@@ -108,7 +108,7 @@ export function CommandRow({
 
       {execution?.state === "failed" && execution.detail ? (
         <p
-          className="soffy-command__detail line-clamp-2"
+          className="pulso-command__detail line-clamp-2"
           title={execution.detail}
         >
           {execution.detail}

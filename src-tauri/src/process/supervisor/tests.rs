@@ -68,7 +68,7 @@ async fn a_process_that_leaves_children_behind_is_stopped_as_a_group() {
 async fn a_command_that_cannot_be_found_fails_with_its_path() {
     let supervisor = supervisor();
     let failed = supervisor
-        .start(1, &command("ghost", "/soffy/nowhere/ghost", &[]), None)
+        .start(1, &command("ghost", "/pulso/nowhere/ghost", &[]), None)
         .await
         .expect("a failure is reported, not thrown");
 
@@ -76,7 +76,7 @@ async fn a_command_that_cannot_be_found_fails_with_its_path() {
     assert!(!failed.is_active());
 
     let detail = failed.detail.unwrap_or_default();
-    assert!(detail.contains("/soffy/nowhere/ghost"), "{detail}");
+    assert!(detail.contains("/pulso/nowhere/ghost"), "{detail}");
     assert!(detail.contains("PATH"), "{detail}");
 }
 

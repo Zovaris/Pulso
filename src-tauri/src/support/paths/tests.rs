@@ -2,7 +2,7 @@ use super::*;
 
 fn scratch(name: &str) -> PathBuf {
     std::env::temp_dir().join(format!(
-        "soffy-{name}-{}-{}",
+        "pulso-{name}-{}-{}",
         std::process::id(),
         crate::support::now_ms()
     ))

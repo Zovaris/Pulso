@@ -1,6 +1,6 @@
 import type { Locale } from "../types";
 
-export const LOCALE_KEY = "soffy:locale";
+export const LOCALE_KEY = "pulso:locale";
 
 export const SUPPORTED_LOCALES: readonly Locale[] = ["es", "en"];
 

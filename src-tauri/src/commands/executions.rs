@@ -75,7 +75,7 @@ async fn resolve_command(
         repositories::projects::by_id(conn, project_id)
     })
     .await?
-    .ok_or_else(|| BackendError::new(ErrorKind::NotFound, "That project is no longer in Soffy."))?;
+    .ok_or_else(|| BackendError::new(ErrorKind::NotFound, "That project is no longer in Pulso."))?;
 
     let path = project.path;
     let scan = off_thread(move || detectors::scan(project_id, Path::new(&path))).await?;

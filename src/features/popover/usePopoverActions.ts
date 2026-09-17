@@ -3,7 +3,7 @@ import { useAddProject } from "@/features/projects/useAddProject";
 import {
   hidePopover,
   openMainWindow,
-  quitSoffy,
+  quitPulso,
   showPopover,
 } from "@/lib/tauri";
 
@@ -26,7 +26,7 @@ export function usePopoverActions(): PopoverActions {
   }, []);
 
   const quit = useCallback(() => {
-    void quitSoffy();
+    void quitPulso();
   }, []);
 
   return { addProject, openApp, quit };

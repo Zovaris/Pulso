@@ -3,7 +3,7 @@ use crate::persistence::storage_error;
 
 fn temp_path(name: &str) -> std::path::PathBuf {
     std::env::temp_dir().join(format!(
-        "soffy-{name}-{}-{}.db",
+        "pulso-{name}-{}-{}.db",
         std::process::id(),
         crate::support::now_ms()
     ))

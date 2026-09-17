@@ -22,17 +22,17 @@ export function ErrorNote({
   const technical = error.kind === "storage" || error.kind === "internal";
 
   return (
-    <p role="alert" className="soffy-error">
-      <WarningCircleIcon size={13} className="soffy-error__icon" />
-      <span className="soffy-error__text">
+    <p role="alert" className="pulso-error">
+      <WarningCircleIcon size={13} className="pulso-error__icon" />
+      <span className="pulso-error__text">
         {t(MESSAGES[error.kind])}
         {technical ? (
-          <span className="soffy-error__detail">{error.message}</span>
+          <span className="pulso-error__detail">{error.message}</span>
         ) : null}
       </span>
       <button
         type="button"
-        className="soffy-error__dismiss"
+        className="pulso-error__dismiss"
         aria-label={t("dismiss")}
         onClick={onDismiss}
       >

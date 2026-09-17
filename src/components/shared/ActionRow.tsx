@@ -13,10 +13,10 @@ export function ActionRow({ icon, label, onClick, emphasis }: ActionRowProps) {
     <Button
       variant="quiet"
       size="sm"
-      className={emphasis ? `soffy-row soffy-row--${emphasis}` : "soffy-row"}
+      className={emphasis ? `pulso-row pulso-row--${emphasis}` : "pulso-row"}
       onClick={onClick}
     >
-      <span className="soffy-row__icon">{icon}</span>
+      <span className="pulso-row__icon">{icon}</span>
       {label}
     </Button>
   );

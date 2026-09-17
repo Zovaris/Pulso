@@ -45,7 +45,7 @@ fn the_whole_scan_keeps_the_running_commands_first() {
 }
 
 #[test]
-fn a_folder_with_nothing_to_read_names_what_soffy_looks_for() {
+fn a_folder_with_nothing_to_read_names_what_pulso_looks_for() {
     let scan = scan(2, &fixture("empty-project"));
 
     assert_eq!(scan.status, ScanStatus::NoManifest);
@@ -84,7 +84,7 @@ fn a_broken_manifest_is_reported_even_when_another_one_works() {
 
 #[test]
 fn a_folder_that_is_gone_is_unavailable() {
-    let scan = scan(1, Path::new("/soffy/does/not/exist"));
+    let scan = scan(1, Path::new("/pulso/does/not/exist"));
 
     assert_eq!(scan.status, ScanStatus::Unavailable);
 }

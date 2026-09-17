@@ -48,7 +48,7 @@ describe("ProjectRow", () => {
 
     expect(screen.getByText("package.json")).toBeTruthy();
     expect(screen.getByText("Cargo.toml")).toBeTruthy();
-    expect(container.querySelectorAll(".soffy-source")).toHaveLength(2);
+    expect(container.querySelectorAll(".pulso-source")).toHaveLength(2);
   });
 
   it("stays quiet when one file declares everything", () => {
@@ -63,7 +63,7 @@ describe("ProjectRow", () => {
 
     const { container } = render(<ProjectRow project={project} />);
 
-    expect(container.querySelectorAll(".soffy-source")).toHaveLength(0);
+    expect(container.querySelectorAll(".pulso-source")).toHaveLength(0);
     expect(screen.getByText("dev")).toBeTruthy();
     expect(screen.getByText("build")).toBeTruthy();
   });

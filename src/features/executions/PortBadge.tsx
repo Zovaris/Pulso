@@ -14,7 +14,7 @@ export function PortBadge({
   if (!port.url) {
     return (
       <span
-        className="soffy-port"
+        className="pulso-port"
         data-passive="true"
         title={t("portNoUrl", { port: String(port.port) })}
       >
@@ -26,7 +26,7 @@ export function PortBadge({
   return (
     <button
       type="button"
-      className="soffy-port"
+      className="pulso-port"
       title={t("openPort", { url: port.url })}
       aria-label={t("openPort", { url: port.url })}
       onClick={onOpen}

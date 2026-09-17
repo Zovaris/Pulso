@@ -5,12 +5,12 @@ export function isTauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
 }
 
-export function quitSoffy(): Promise<void> {
+export function quitPulso(): Promise<void> {
   if (!isTauri()) {
     window.close();
     return Promise.resolve();
   }
-  return invoke("quit_soffy");
+  return invoke("quit_pulso");
 }
 
 export function openMainWindow(): Promise<void> {

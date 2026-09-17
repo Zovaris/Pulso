@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img">
-  <title>Soffy</title>
+  <title>Pulso</title>
   <path fill="#D71921" d="M 3.74 13.56 Q 1.92 12.00 3.74 10.44 L 9.30 5.67 Q 11.12 4.11 11.12 6.51 L 11.12 17.49 Q 11.12 19.89 9.30 18.33 Z"/>
   <path fill="#E23B42" d="M 12.88 6.51 Q 12.88 4.11 14.70 5.67 L 20.26 10.44 Q 22.08 12.00 20.26 13.56 L 14.70 18.33 Q 12.88 19.89 12.88 17.49 Z"/>
 </svg>

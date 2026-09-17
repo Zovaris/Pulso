@@ -1,5 +1,5 @@
 {
-  "name": "soffy",
+  "name": "pulso",
   "private": true,
   "version": "0.1.0",
   "packageManager": "bun@1.4.2",
@@ -10,7 +10,7 @@
     "desktop": "tauri dev",
     "preview": "vite preview",
     "tauri": "tauri",
-    "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/soffy-icon.svg",
+    "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/pulso-icon.svg",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "biome check .",

@@ -94,13 +94,13 @@ pub async fn get_preferences(db: State<'_, Arc<Database>>) -> Result<Option<Pref
     let theme = ThemePref::parse(&theme).ok_or_else(|| {
         BackendError::new(
             ErrorKind::Storage,
-            "The stored theme is not one Soffy knows.",
+            "The stored theme is not one Pulso knows.",
         )
     })?;
     let locale = Locale::parse(&locale).ok_or_else(|| {
         BackendError::new(
             ErrorKind::Storage,
-            "The stored language is not one Soffy knows.",
+            "The stored language is not one Pulso knows.",
         )
     })?;
 

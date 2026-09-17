@@ -3,7 +3,7 @@ import { t, translate } from "@/lib/i18n";
 
 describe("translate", () => {
   it("reads plain keys", () => {
-    expect(t("en", "appName")).toBe("Soffy");
+    expect(t("en", "appName")).toBe("Pulso");
     expect(t("es", "addProject")).toBe("Agregar proyecto");
   });
 

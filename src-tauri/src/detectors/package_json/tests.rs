@@ -143,6 +143,6 @@ fn a_broken_manifest_reports_the_parse_failure() {
 
 #[test]
 fn a_folder_that_is_gone_is_unavailable() {
-    let scan = scan(1, std::path::Path::new("/soffy/does/not/exist"));
+    let scan = scan(1, std::path::Path::new("/pulso/does/not/exist"));
     assert_eq!(scan.status, ScanStatus::Unavailable);
 }

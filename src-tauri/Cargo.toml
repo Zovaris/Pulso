@@ -1,12 +1,12 @@
 [package]
-name = "soffy"
+name = "pulso"
 version = "0.1.0"
 description = "Menubar app for project commands"
 authors = ["sthbryan"]
 edition = "2021"
 
 [lib]
-name = "soffy_lib"
+name = "pulso_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

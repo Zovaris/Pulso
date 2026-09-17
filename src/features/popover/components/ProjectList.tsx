@@ -20,8 +20,8 @@ export function ProjectList({ projects }: { projects: Project[] }) {
   );
 
   return (
-    <div className="soffy-scroll" data-edge={edges}>
-      <ul ref={attach} className="soffy-project-list flex flex-col">
+    <div className="pulso-scroll" data-edge={edges}>
+      <ul ref={attach} className="pulso-project-list flex flex-col">
         {projects.map((project) => (
           <li key={project.id} className="py-0.5">
             <ProjectRow project={project} />

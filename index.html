@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/mark.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Soffy</title>
+    <title>Pulso</title>
     <script>
       (() => {
         var pref = "system";
@@ -16,11 +16,11 @@
           params = new URLSearchParams(location.search);
           pref =
             params.get("theme") ||
-            localStorage.getItem("soffy:theme") ||
+            localStorage.getItem("pulso:theme") ||
             "system";
           glass =
             params.get("glass") === "1" ||
-            localStorage.getItem("soffy:transparency") === "1";
+            localStorage.getItem("pulso:transparency") === "1";
           resolved =
             pref === "system"
               ? matchMedia("(prefers-color-scheme: dark)").matches

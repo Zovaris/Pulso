@@ -297,7 +297,7 @@ impl ProcessSupervisor {
         snapshot_of(&self.executions, execution_id).ok_or_else(|| {
             BackendError::new(
                 ErrorKind::NotFound,
-                "That execution is not in Soffy anymore.",
+                "That execution is not in Pulso anymore.",
             )
         })
     }
@@ -314,7 +314,7 @@ impl ProcessSupervisor {
             .ok_or_else(|| {
                 BackendError::new(
                     ErrorKind::NotFound,
-                    "That execution is not in Soffy anymore.",
+                    "That execution is not in Pulso anymore.",
                 )
             })
     }
@@ -365,7 +365,7 @@ impl ProcessSupervisor {
             let managed = executions.get_mut(&execution_id).ok_or_else(|| {
                 BackendError::new(
                     ErrorKind::NotFound,
-                    "That execution is not in Soffy anymore.",
+                    "That execution is not in Pulso anymore.",
                 )
             })?;
 

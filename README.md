@@ -1,7 +1,7 @@
-<h1 align="center">Soffy</h1>
+<h1 align="center">Pulso</h1>
 
 <p align="center">
-  <img src="./assets/brand/soffy-icon.svg" alt="Soffy" width="112" height="112" />
+  <img src="./assets/brand/pulso-icon.svg" alt="Pulso" width="112" height="112" />
 </p>
 
 <p align="center">
@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  Add a folder. Soffy finds the scripts.<br />
+  Add a folder. Pulso finds the scripts.<br />
   Start, stop, and restart with a click.<br />
   See status, logs, and the port it opened.
 </p>
 
 ---
 
-Soffy lives in the macOS menu bar. Favorites sit in the popover. Everything else lives in a small window. Close the popover and the process keeps running. Quit Soffy and it shuts down what it started.
+Pulso lives in the macOS menu bar. Favorites sit in the popover. Everything else lives in a small window. Close the popover and the process keeps running. Quit Pulso and it shuts down what it started.
 
 No account. No cloud. No team. It only manages processes it launched.
 
@@ -25,7 +25,7 @@ No account. No cloud. No team. It only manages processes it launched.
 ## What it actually does
 
 **Detects the commands you already have**  
-Drop in a project folder. Soffy reads `package.json` first, then Make, Just, Task, Cargo, Compose, and the rest as detectors land. Custom commands sit next to the detected ones.
+Drop in a project folder. Pulso reads `package.json` first, then Make, Just, Task, Cargo, Compose, and the rest as detectors land. Custom commands sit next to the detected ones.
 
 **Play, stop, restart**  
 One click starts a command. Stop signals the whole process group, not just the parent PID. Restart is stop then start. The popover shows running time and state.
@@ -34,7 +34,7 @@ One click starts a command. Stop signals the whole process group, not just the p
 stdout and stderr stream into a window. Search, copy, clear. Autoscroll pauses when you scroll up.
 
 **Ports you can open**  
-Soffy watches logs for URLs and confirms listening sockets on the process tree. Open the one that is actually yours.
+Pulso watches logs for URLs and confirms listening sockets on the process tree. Open the one that is actually yours.
 
 **Favorites in the bar, the rest in the app**  
 The menu bar stays a glance: a few pinned commands and whatever is running. The window holds every project.
@@ -51,7 +51,7 @@ The menu bar stays a glance: a few pinned commands and whatever is running. The 
 
 ## Not this
 
-Soffy is not a full terminal, a remote runner, or a cloud dashboard. It does not SSH, schedule jobs, or sync across machines. Windows and Linux come after macOS.
+Pulso is not a full terminal, a remote runner, or a cloud dashboard. It does not SSH, schedule jobs, or sync across machines. Windows and Linux come after macOS.
 
 ---
 

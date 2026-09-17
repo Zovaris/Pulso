@@ -40,13 +40,13 @@ fn the_commented_flavour_parses_too() {
 
 #[test]
 fn comments_go_away_and_strings_are_left_alone() {
-    let raw = "{\n  // a line comment\n  \"imports\": {\n    \"x\": \"https://esm.sh/x\" /* block */\n  },\n  \"scoped\": \"soffy://with//slashes\"\n}\n";
+    let raw = "{\n  // a line comment\n  \"imports\": {\n    \"x\": \"https://esm.sh/x\" /* block */\n  },\n  \"scoped\": \"pulso://with//slashes\"\n}\n";
 
     let clean = without_comments(raw);
     let value: Value = serde_json::from_str(&clean).expect("the cleaned text should parse");
 
     assert_eq!(value["imports"]["x"], "https://esm.sh/x");
-    assert_eq!(value["scoped"], "soffy://with//slashes");
+    assert_eq!(value["scoped"], "pulso://with//slashes");
 }
 
 #[test]

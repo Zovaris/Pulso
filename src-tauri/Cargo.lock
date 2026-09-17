@@ -2771,6 +2771,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pulso"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tokio",
+ "toml 1.1.6+spec-1.1.0",
+ "yaml-rust2",
+]
+
+[[package]]
 name = "pxfm"
 version = "0.1.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3311,23 +3328,6 @@ checksum = "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
 dependencies = [
  "libc",
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "soffy"
-version = "0.1.0"
-dependencies = [
- "libc",
- "rusqlite",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tokio",
- "toml 1.1.6+spec-1.1.0",
- "yaml-rust2",
 ]
 
 [[package]]

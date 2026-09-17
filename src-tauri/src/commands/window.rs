@@ -7,7 +7,7 @@ use crate::process::supervisor::ProcessSupervisor;
 use crate::support::error::{BackendError, Result};
 
 #[tauri::command]
-pub async fn quit_soffy(
+pub async fn quit_pulso(
     app: AppHandle,
     supervisor: State<'_, Arc<ProcessSupervisor>>,
 ) -> Result<()> {
@@ -29,7 +29,7 @@ pub fn open_main_window(app: AppHandle) -> Result<()> {
     }
 
     Err(BackendError::internal(
-        "The main window is not there any more; restart Soffy.",
+        "The main window is not there any more; restart Pulso.",
     ))
 }
 

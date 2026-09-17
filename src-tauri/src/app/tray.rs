@@ -12,8 +12,8 @@ use crate::process::supervisor::ProcessSupervisor;
 
 use super::windows;
 
-const TRAY_PNG: &[u8] = include_bytes!("../../../assets/brand/soffy-tray.png");
-const TRAY_ID: &str = "soffy";
+const TRAY_PNG: &[u8] = include_bytes!("../../../assets/brand/pulso-tray.png");
+const TRAY_ID: &str = "pulso";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Shown {
@@ -103,7 +103,7 @@ pub fn label(running: usize, locale: Locale) -> String {
         (Locale::Es, n) => format!("{n} procesos activos"),
     };
 
-    format!("Soffy — {sentence}")
+    format!("Pulso — {sentence}")
 }
 
 fn running_count(app: &AppHandle) -> usize {

@@ -2,8 +2,8 @@ import type { ThemePref } from "./types";
 
 export type ResolvedTheme = "dark" | "light";
 
-const THEME_KEY = "soffy:theme";
-const GLASS_KEY = "soffy:transparency";
+const THEME_KEY = "pulso:theme";
+const GLASS_KEY = "pulso:transparency";
 
 export function readStoredTheme(): ThemePref {
   try {

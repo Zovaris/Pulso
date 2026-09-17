@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Capability for Soffy windows",
+  "description": "Capability for Pulso windows",
   "windows": ["main", "popover"],
   "permissions": [
     "core:default",

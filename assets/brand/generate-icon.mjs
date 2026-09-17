@@ -142,7 +142,7 @@ const appSvg = `<?xml version="1.0" encoding="UTF-8"?>
 
 const markSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img">
-  <title>Soffy</title>
+  <title>Pulso</title>
   <path fill="${ACCENT}" d="${roundPoly(markL, 2.4)}"/>
   <path fill="${ACCENT_LIGHT}" d="${roundPoly(markR, 2.4)}"/>
 </svg>
@@ -156,11 +156,11 @@ const traySvg = `<?xml version="1.0" encoding="UTF-8"?>
 `;
 
 const dir = dirname(fileURLToPath(import.meta.url));
-writeFileSync(join(dir, "soffy-icon.svg"), appSvg);
-writeFileSync(join(dir, "soffy-mark.svg"), markSvg);
-writeFileSync(join(dir, "soffy-tray.svg"), traySvg);
-writeFileSync(join(dir, "soffy-tray.png"), trayPng(64, [tray64L, tray64R]));
-console.log(`wrote ${join(dir, "soffy-icon.svg")}`);
+writeFileSync(join(dir, "pulso-icon.svg"), appSvg);
+writeFileSync(join(dir, "pulso-mark.svg"), markSvg);
+writeFileSync(join(dir, "pulso-tray.svg"), traySvg);
+writeFileSync(join(dir, "pulso-tray.png"), trayPng(64, [tray64L, tray64R]));
+console.log(`wrote ${join(dir, "pulso-icon.svg")}`);
 
 function crc32(buf) {
   let c = ~0;
