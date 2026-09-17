@@ -17,10 +17,6 @@ export function Titlebar() {
       data-tauri-drag-region
       className="flex h-[46px] flex-none items-center gap-3 border-b border-line bg-night pr-3 pl-[80px]"
     >
-      <p className="pointer-events-none flex-none text-[12.5px] font-semibold tracking-[-0.01em]">
-        {t("appName")}
-      </p>
-
       <button
         type="button"
         onClick={openPalette}
