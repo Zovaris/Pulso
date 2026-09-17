@@ -116,6 +116,20 @@ fn sound_pref(stored: Option<&str>) -> bool {
     stored != Some("0")
 }
 
+pub fn sound_cues(app: &AppHandle) -> bool {
+    let Some(database) = app.try_state::<Arc<Database>>() else {
+        return true;
+    };
+
+    sound_pref(
+        database
+            .with(|conn| repositories::settings::get(conn, SOUND_KEY))
+            .ok()
+            .flatten()
+            .as_deref(),
+    )
+}
+
 pub fn stored_locale(app: &AppHandle) -> Locale {
     let Some(database) = app.try_state::<Arc<Database>>() else {
         return Locale::En;

@@ -30,6 +30,7 @@ pub fn run() {
                 Arc::new(move |execution: &domain::execution::Execution| {
                     events::execution_changed(&handle, execution);
                     app::tray::sync(&handle);
+                    app::cues::observe(&handle, execution);
                 })
             };
             let log_notifier = {
