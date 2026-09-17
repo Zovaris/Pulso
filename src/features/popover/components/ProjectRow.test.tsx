@@ -26,7 +26,13 @@ function command(id: string, source: string, label: string): DetectedCommand {
 }
 
 function scan(commands: DetectedCommand[]): CommandScan {
-  return { projectId: 1, commands, status: "detected", detail: null };
+  return {
+    projectId: 1,
+    commands,
+    status: "detected",
+    detail: null,
+    flags: {},
+  };
 }
 
 beforeEach(() => {

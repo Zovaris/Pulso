@@ -9,6 +9,8 @@ vi.mock("@/services/api/projects", () => ({
   removeProject: vi.fn(),
   listCommands: vi.fn(),
   rescanProjects: vi.fn(),
+  rescanProject: vi.fn(),
+  setCommandFlag: vi.fn(),
 }));
 
 const api = vi.mocked(projectsApi);
@@ -30,6 +32,7 @@ const scan: CommandScan = {
   commands: [command],
   status: "detected",
   detail: null,
+  flags: {},
 };
 
 beforeEach(() => {
@@ -40,6 +43,71 @@ beforeEach(() => {
     rescanning: false,
     expandedProjectId: null,
     projectError: null,
+  });
+});
+
+describe("setCommandFlag", () => {
+  it("writes one flag and keeps the whole map the backend hands back", async () => {
+    useStore.setState({ scans: { "1": scan } });
+    api.setCommandFlag.mockResolvedValue({
+      "cargo_toml:test": { favorite: true, hidden: false },
+    });
+
+    await useStore
+      .getState()
+      .setCommandFlag(1, "cargo_toml:test", { favorite: true });
+
+    expect(api.setCommandFlag).toHaveBeenCalledWith(1, "cargo_toml:test", {
+      favorite: true,
+      hidden: false,
+    });
+    expect(
+      useStore.getState().scans["1"].flags["cargo_toml:test"].favorite,
+    ).toBe(true);
+  });
+
+  it("does not bother the backend when nothing would change", async () => {
+    useStore.setState({ scans: { "1": scan } });
+
+    await useStore
+      .getState()
+      .setCommandFlag(1, "cargo_toml:test", { favorite: false });
+
+    expect(api.setCommandFlag).not.toHaveBeenCalled();
+  });
+
+  it("reports a write the backend refused", async () => {
+    useStore.setState({ scans: { "1": scan } });
+    api.setCommandFlag.mockRejectedValue({
+      kind: "storage",
+      message: "the database said no",
+      path: null,
+    });
+
+    await useStore
+      .getState()
+      .setCommandFlag(1, "cargo_toml:test", { hidden: true });
+
+    expect(useStore.getState().projectError?.message).toBe(
+      "the database said no",
+    );
+  });
+});
+
+describe("rescanProject", () => {
+  it("replaces the scan of that project only", async () => {
+    api.rescanProject.mockResolvedValue({
+      ...scan,
+      commands: [
+        command,
+        { ...command, id: "cargo_toml:build", label: "build" },
+      ],
+    });
+
+    await useStore.getState().rescanProject(1);
+
+    expect(useStore.getState().scans["1"].commands).toHaveLength(2);
+    expect(useStore.getState().scanningProjectId).toBeNull();
   });
 });
 

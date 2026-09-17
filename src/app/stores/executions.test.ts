@@ -83,14 +83,14 @@ describe("applyLogs", () => {
   });
 
   it("keeps the buffer bounded and drops the oldest lines", () => {
-    const flood = Array.from({ length: 450 }, (_, index) => line(index + 1));
+    const flood = Array.from({ length: 4200 }, (_, index) => line(index + 1));
 
     useStore.getState().applyLogs(7, flood);
 
     const kept = useStore.getState().logs[7];
-    expect(kept).toHaveLength(400);
-    expect(kept[0].seq).toBe(51);
-    expect(kept[kept.length - 1].seq).toBe(450);
+    expect(kept).toHaveLength(4000);
+    expect(kept[0].seq).toBe(201);
+    expect(kept[kept.length - 1].seq).toBe(4200);
   });
 });
 
@@ -101,7 +101,7 @@ describe("loadLogs", () => {
 
     await useStore.getState().loadLogs(7);
 
-    expect(api.getLogSnapshot).toHaveBeenCalledWith(7, 5);
+    expect(api.getLogSnapshot).toHaveBeenCalledWith(7, 5, 4000);
     expect(useStore.getState().logs[7].map((item) => item.seq)).toEqual([
       1, 5, 6,
     ]);
@@ -138,7 +138,7 @@ describe("toggleLogs", () => {
 
     useStore.getState().toggleLogs("1:package.json:dev", 7);
     expect(useStore.getState().openLogKey).toBe("1:package.json:dev");
-    expect(api.getLogSnapshot).toHaveBeenCalledWith(7, null);
+    expect(api.getLogSnapshot).toHaveBeenCalledWith(7, null, 4000);
 
     useStore.getState().toggleLogs("1:package.json:dev", 7);
     expect(useStore.getState().openLogKey).toBeNull();
@@ -163,7 +163,7 @@ describe("startCommand", () => {
     expect(state.executions.map((item) => item.id)).toEqual([4]);
     expect(state.openLogKey).toBe("1:package.json:dev");
     expect(state.pendingCommandId).toBeNull();
-    expect(api.getLogSnapshot).toHaveBeenCalledWith(4, null);
+    expect(api.getLogSnapshot).toHaveBeenCalledWith(4, null, 4000);
   });
 
   it("clears the pending mark and reports the failure", async () => {

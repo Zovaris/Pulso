@@ -1,5 +1,6 @@
 import type { StateCreator } from "zustand";
-import type { Project } from "@/lib/types";
+import { flagsFor } from "@/features/desktop/commands";
+import type { CommandFlags, Project } from "@/lib/types";
 import { toBackendError } from "@/services/api/errors";
 import * as projectsApi from "@/services/api/projects";
 import type { AppStore } from "./types";
@@ -17,9 +18,12 @@ export type ProjectsSlice = Pick<
   | "removeProject"
   | "loadCommands"
   | "rescanProjects"
+  | "rescanProject"
   | "toggleProject"
   | "applyProjects"
   | "applyScan"
+  | "applyFlags"
+  | "setCommandFlag"
   | "dismissProjectError"
 >;
 
@@ -56,12 +60,49 @@ export const createProjectsSlice: StateCreator<
   expandedProjectId: null,
   projectError: null,
 
-  applyProjects: (projects) => set({ projects }),
+  applyProjects: (projects) =>
+    set((state) => ({
+      projects,
+      selectedProjectId: projects.some(
+        (project) => project.id === state.selectedProjectId,
+      )
+        ? state.selectedProjectId
+        : (projects[0]?.id ?? null),
+    })),
 
   applyScan: (scan) =>
     set((state) => ({
       scans: { ...state.scans, [key(scan.projectId)]: scan },
     })),
+
+  applyFlags: (projectId, flags) =>
+    set((state) => {
+      const scan = state.scans[key(projectId)];
+      if (!scan) return {};
+
+      return {
+        scans: { ...state.scans, [key(projectId)]: { ...scan, flags } },
+      };
+    }),
+
+  setCommandFlag: async (projectId, commandId, patch) => {
+    const current = flagsFor(get().scans[key(projectId)]?.flags, commandId);
+    const next: CommandFlags = { ...current, ...patch };
+    if (next.favorite === current.favorite && next.hidden === current.hidden) {
+      return;
+    }
+
+    try {
+      const flags = await projectsApi.setCommandFlag(
+        projectId,
+        commandId,
+        next,
+      );
+      get().applyFlags(projectId, flags);
+    } catch (cause) {
+      set({ projectError: toBackendError(cause) });
+    }
+  },
 
   loadProjects: async () => {
     try {
@@ -77,6 +118,7 @@ export const createProjectsSlice: StateCreator<
       set((state) => ({
         projects: upsert(state.projects, project),
         expandedProjectId: project.id,
+        selectedProjectId: project.id,
         projectError: null,
       }));
       void get().loadCommands(project.id);
@@ -94,15 +136,21 @@ export const createProjectsSlice: StateCreator<
         const scans = { ...state.scans };
         delete scans[key(projectId)];
 
+        const projects = state.projects.filter(
+          (project) => project.id !== projectId,
+        );
+
         return {
-          projects: state.projects.filter(
-            (project) => project.id !== projectId,
-          ),
+          projects,
           scans,
           expandedProjectId:
             state.expandedProjectId === projectId
               ? null
               : state.expandedProjectId,
+          selectedProjectId:
+            state.selectedProjectId === projectId
+              ? (projects[0]?.id ?? null)
+              : state.selectedProjectId,
           projectError: null,
         };
       });
@@ -138,6 +186,25 @@ export const createProjectsSlice: StateCreator<
     } finally {
       await holdFeedback(started);
       set({ rescanning: false });
+    }
+  },
+
+  rescanProject: async (projectId) => {
+    set({ scanningProjectId: projectId, projectError: null });
+    const started = Date.now();
+
+    try {
+      get().applyScan(await projectsApi.rescanProject(projectId));
+    } catch (cause) {
+      set({ projectError: toBackendError(cause) });
+    } finally {
+      await holdFeedback(started);
+      set((state) => ({
+        scanningProjectId:
+          state.scanningProjectId === projectId
+            ? null
+            : state.scanningProjectId,
+      }));
     }
   },
 

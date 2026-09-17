@@ -7,7 +7,17 @@ export type Preferences = {
   transparency: boolean;
   locale: Locale;
   sound: boolean;
+  /** The editor `⌘O` opens, or null for whichever one Pulso found first. */
+  editor: string | null;
+  openAtLogin: boolean;
+  keepRunning: boolean;
+  confirmStop: boolean;
+  notifyOnFailure: boolean;
+  logLines: number;
 };
+
+/** The log caps Ajustes offers, and the only values the backend accepts. */
+export const LOG_LINE_CHOICES = [500, 1000, 2000, 4000, 10000] as const;
 
 export type Availability = "available" | "missing";
 
@@ -47,12 +57,20 @@ export type ScanStatus =
   | "unreadable"
   | "unavailable";
 
+/** What the user decided about a command. Shared with the menubar. */
+export type CommandFlags = {
+  favorite: boolean;
+  hidden: boolean;
+};
+
+export const NO_FLAGS: CommandFlags = { favorite: false, hidden: false };
+
 export type CommandScan = {
   projectId: number;
   commands: DetectedCommand[];
   status: ScanStatus;
-
   detail: string | null;
+  flags: Record<string, CommandFlags>;
 };
 
 export type ExecutionState =
@@ -99,6 +117,45 @@ export type Execution = {
   detail: string | null;
   restartedFrom: number | null;
   ports: DetectedPort[];
+};
+
+/** What one live execution costs, pushed every two seconds from Rust. */
+export type MetricsSample = {
+  executionId: number;
+  cpu: number;
+  memory: number;
+  processes: number;
+};
+
+export type EditorTarget = {
+  id: string;
+  name: string;
+  bundleId: string;
+  path: string;
+};
+
+export type DataStatus = {
+  folder: string;
+  database: string;
+  projects: number;
+  missing: number;
+};
+
+export type PathEntry = {
+  dir: string;
+  exists: boolean;
+};
+
+export type ProgramLookup = {
+  name: string;
+  path: string | null;
+};
+
+export type EnvironmentReport = {
+  shell: string;
+  path: string;
+  entries: PathEntry[];
+  programs: ProgramLookup[];
 };
 
 export type BackendErrorKind =

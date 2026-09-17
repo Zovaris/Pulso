@@ -3,7 +3,7 @@ import { scanMessage } from "@/features/projects/scanMessage";
 import type { CommandScan, ScanStatus } from "@/lib/types";
 
 function scan(status: ScanStatus, detail: string | null = null): CommandScan {
-  return { projectId: 1, commands: [], status, detail };
+  return { projectId: 1, commands: [], status, detail, flags: {} };
 }
 
 describe("scanMessage", () => {

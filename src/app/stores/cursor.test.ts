@@ -53,6 +53,7 @@ const scan: CommandScan = {
   commands: [dev],
   status: "detected",
   detail: null,
+  flags: {},
 };
 
 const running: Execution = {
@@ -184,7 +185,7 @@ describe("activateCursor", () => {
 
     useStore.getState().activateCursor();
 
-    expect(api.startCommand).toHaveBeenCalledWith(1, "dev");
+    expect(api.startCommand).toHaveBeenCalledWith(1, "dev", null);
   });
 
   it("stops it again once it is running", () => {

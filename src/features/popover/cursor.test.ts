@@ -40,6 +40,7 @@ const scan: CommandScan = {
   ],
   status: "detected",
   detail: null,
+  flags: {},
 };
 
 describe("cursorRows", () => {

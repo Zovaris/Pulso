@@ -1,9 +1,11 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { isTauri } from "@/lib/tauri";
 import type {
+  CommandFlags,
   CommandScan,
   Execution,
   LogLine,
+  MetricsSample,
   Preferences,
   Project,
 } from "@/lib/types";
@@ -20,6 +22,26 @@ export function onCommandsChanged(
   handler: (scan: CommandScan) => void,
 ): Promise<UnlistenFn> {
   return subscribe<CommandScan>("project://commands-changed", handler);
+}
+
+/** Toggling a favourite in either window reaches the other one. */
+export function onCommandFlagsChanged(
+  handler: (projectId: number, flags: Record<string, CommandFlags>) => void,
+): Promise<UnlistenFn> {
+  return subscribe<{ projectId: number; flags: Record<string, CommandFlags> }>(
+    "project://flags-changed",
+    (payload) => handler(payload.projectId, payload.flags),
+  );
+}
+
+/** One reading per live process group, every two seconds. */
+export function onExecutionMetrics(
+  handler: (samples: MetricsSample[]) => void,
+): Promise<UnlistenFn> {
+  return subscribe<{ samples: MetricsSample[] }>(
+    "execution://metrics",
+    (payload) => handler(payload.samples),
+  );
 }
 
 /** Every state change of an execution, including the terminal one. */

@@ -36,6 +36,7 @@ const scan: CommandScan = {
   commands: [dev],
   status: "detected",
   detail: null,
+  flags: {},
 };
 
 function Harness() {

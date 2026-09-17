@@ -1,4 +1,5 @@
 import type { StateCreator } from "zustand";
+import { pushSample } from "@/features/desktop/metrics";
 import { commandKey } from "@/features/executions/execution";
 import type { Execution, LogLine } from "@/lib/types";
 import { toBackendError } from "@/services/api/errors";
@@ -9,12 +10,17 @@ export type ExecutionsSlice = Pick<
   AppStore,
   | "executions"
   | "pendingCommandId"
+  | "metrics"
+  | "histories"
   | "logs"
   | "openLogKey"
   | "loadExecutions"
   | "applyExecution"
+  | "applyMetrics"
   | "startCommand"
   | "stopExecution"
+  | "restartExecution"
+  | "clearFinished"
   | "applyLogs"
   | "loadLogs"
   | "toggleLogs"
@@ -22,7 +28,7 @@ export type ExecutionsSlice = Pick<
   | "openUrl"
 >;
 
-const KEPT_LINES = 400;
+const KEPT_LINES = 4000;
 
 function upsert(executions: Execution[], execution: Execution): Execution[] {
   const index = executions.findIndex(
@@ -63,11 +69,42 @@ export const createExecutionsSlice: StateCreator<
 > = (set, get) => ({
   executions: [],
   pendingCommandId: null,
+  metrics: {},
+  histories: {},
   logs: {},
   openLogKey: null,
 
   applyExecution: (execution) =>
-    set((state) => ({ executions: upsert(state.executions, execution) })),
+    set((state) => ({
+      executions: upsert(state.executions, execution),
+      selectedExecutionId: state.selectedExecutionId ?? execution.id,
+    })),
+
+  applyMetrics: (samples) =>
+    set((state) => {
+      const metrics = { ...state.metrics };
+      const histories = { ...state.histories };
+
+      for (const sample of samples) {
+        metrics[sample.executionId] = sample;
+        histories[sample.executionId] = pushSample(
+          histories[sample.executionId] ?? [],
+          sample.cpu,
+        );
+      }
+
+      // A reading that stopped arriving means the process is gone, so the
+      // numbers must go with it rather than freeze at the last value.
+      const live = new Set(samples.map((sample) => sample.executionId));
+      for (const id of Object.keys(metrics)) {
+        if (live.has(Number(id))) continue;
+
+        delete metrics[Number(id)];
+        delete histories[Number(id)];
+      }
+
+      return { metrics, histories };
+    }),
 
   loadExecutions: async () => {
     try {
@@ -77,13 +114,19 @@ export const createExecutionsSlice: StateCreator<
     }
   },
 
-  startCommand: async (projectId, commandId) => {
+  startCommand: async (projectId, commandId, args = null) => {
     set({ pendingCommandId: commandId, projectError: null });
     try {
-      const execution = await executionsApi.startCommand(projectId, commandId);
+      const execution = await executionsApi.startCommand(
+        projectId,
+        commandId,
+        args,
+      );
       set((state) => ({
         executions: upsert(state.executions, execution),
         openLogKey: commandKey(projectId, commandId),
+        selectedExecutionId: execution.id,
+        argsFor: null,
       }));
       void get().loadLogs(execution.id);
     } catch (cause) {
@@ -104,6 +147,38 @@ export const createExecutionsSlice: StateCreator<
     }
   },
 
+  /**
+   * Stop, then start again from the declaration. The manifest is the source of
+   * truth here: one-off arguments belong to the run that asked for them.
+   */
+  restartExecution: async (executionId) => {
+    const execution = get().executions.find(
+      (entry) => entry.id === executionId,
+    );
+    if (!execution) return;
+
+    const { projectId, commandId } = execution;
+
+    await get().stopExecution(executionId);
+    await get().startCommand(projectId, commandId);
+  },
+
+  clearFinished: async () => {
+    try {
+      const executions = await executionsApi.clearFinished();
+      set((state) => ({
+        executions,
+        selectedExecutionId: executions.some(
+          (entry) => entry.id === state.selectedExecutionId,
+        )
+          ? state.selectedExecutionId
+          : (executions[0]?.id ?? null),
+      }));
+    } catch (cause) {
+      set({ projectError: toBackendError(cause) });
+    }
+  },
+
   applyLogs: (executionId, lines) =>
     set((state) => ({
       logs: {
@@ -119,6 +194,7 @@ export const createExecutionsSlice: StateCreator<
       const snapshot = await executionsApi.getLogSnapshot(
         executionId,
         afterSeq,
+        KEPT_LINES,
       );
       get().applyLogs(executionId, snapshot.lines);
     } catch (cause) {

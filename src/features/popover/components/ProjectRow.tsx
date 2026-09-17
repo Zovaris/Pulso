@@ -8,6 +8,7 @@ import { useI18n } from "@/app/hooks/useI18n";
 import { useIntoView } from "@/app/hooks/useIntoView";
 import { useReveal } from "@/app/hooks/useReveal";
 import { useStore } from "@/app/store";
+import { visibleCommands } from "@/features/desktop/commands";
 import { groupBySource } from "@/features/popover/commandGroups";
 import { CommandRow } from "@/features/popover/components/CommandRow";
 import { projectRowKey } from "@/features/popover/cursor";
@@ -33,8 +34,10 @@ export function ProjectRow({ project }: { project: Project }) {
     easing: REVEAL_EASE,
   });
 
-  const count = scan?.commands.length ?? 0;
-  const groups = scan ? groupBySource(scan.commands) : [];
+  // The menubar shows what the user kept: favourites first, hidden ones gone.
+  const visible = scan ? visibleCommands(scan) : [];
+  const count = visible.length;
+  const groups = groupBySource(visible);
   const split = groups.length > 1;
   const message = scan ? scanMessage(scan) : null;
 

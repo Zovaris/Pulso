@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useStore } from "@/app/store";
 import {
+  onCommandFlagsChanged,
   onCommandsChanged,
   onExecutionChanged,
   onLogAppended,
@@ -11,6 +12,7 @@ export function useProjectSync() {
   const loadProjects = useStore((state) => state.loadProjects);
   const applyProjects = useStore((state) => state.applyProjects);
   const applyScan = useStore((state) => state.applyScan);
+  const applyFlags = useStore((state) => state.applyFlags);
   const loadExecutions = useStore((state) => state.loadExecutions);
   const applyExecution = useStore((state) => state.applyExecution);
   const applyLogs = useStore((state) => state.applyLogs);
@@ -22,6 +24,7 @@ export function useProjectSync() {
     const subscriptions = [
       onProjectsChanged(applyProjects),
       onCommandsChanged(applyScan),
+      onCommandFlagsChanged(applyFlags),
       onExecutionChanged(applyExecution),
       onLogAppended(applyLogs),
     ];
@@ -36,6 +39,7 @@ export function useProjectSync() {
     loadExecutions,
     applyProjects,
     applyScan,
+    applyFlags,
     applyExecution,
     applyLogs,
   ]);

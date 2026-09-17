@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { isTauri } from "@/lib/tauri";
-import type { CommandScan, Project } from "@/lib/types";
+import type { CommandFlags, CommandScan, Project } from "@/lib/types";
 
 export function listProjects(): Promise<Project[]> {
   if (!isTauri()) return Promise.resolve([]);
@@ -22,4 +22,24 @@ export function listCommands(projectId: number): Promise<CommandScan> {
 export function rescanProjects(): Promise<void> {
   if (!isTauri()) return Promise.resolve();
   return invoke("rescan_projects");
+}
+
+export function rescanProject(projectId: number): Promise<CommandScan> {
+  return invoke("rescan_project", { projectId });
+}
+
+/** Writes one command's flags and hands back every flag that project has. */
+export function setCommandFlag(
+  projectId: number,
+  commandId: string,
+  flags: CommandFlags,
+): Promise<Record<string, CommandFlags>> {
+  if (!isTauri()) return Promise.resolve({});
+
+  return invoke("set_command_flag", {
+    projectId,
+    commandId,
+    favorite: flags.favorite,
+    hidden: flags.hidden,
+  });
 }
