@@ -31,11 +31,35 @@ pub enum ExecutionState {
     Stopping,
     Exited,
     Failed,
+    Interrupted,
 }
 
 impl ExecutionState {
     pub fn is_active(self) -> bool {
         matches!(self, Self::Starting | Self::Running | Self::Stopping)
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Starting => "starting",
+            Self::Running => "running",
+            Self::Stopping => "stopping",
+            Self::Exited => "exited",
+            Self::Failed => "failed",
+            Self::Interrupted => "interrupted",
+        }
+    }
+
+    pub fn parse(text: &str) -> Option<Self> {
+        match text {
+            "starting" => Some(Self::Starting),
+            "running" => Some(Self::Running),
+            "stopping" => Some(Self::Stopping),
+            "exited" => Some(Self::Exited),
+            "failed" => Some(Self::Failed),
+            "interrupted" => Some(Self::Interrupted),
+            _ => None,
+        }
     }
 }
 

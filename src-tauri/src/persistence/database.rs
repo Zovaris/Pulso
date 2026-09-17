@@ -8,6 +8,7 @@ use crate::support::error::{BackendError, ErrorKind, Result};
 const MIGRATIONS: &[&str] = &[
     include_str!("../../migrations/0001_projects.sql"),
     include_str!("../../migrations/0002_command_flags.sql"),
+    include_str!("../../migrations/0003_execution_history.sql"),
 ];
 
 pub struct Database {

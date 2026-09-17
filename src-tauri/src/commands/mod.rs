@@ -2,6 +2,7 @@ pub mod data;
 pub mod editors;
 pub mod environment;
 pub mod executions;
+pub mod history;
 pub mod projects;
 pub mod settings;
 pub mod tray;

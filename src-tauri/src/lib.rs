@@ -22,9 +22,11 @@ pub fn run() {
             let handle = app.handle().clone();
 
             let data_dir = handle.path().app_data_dir()?;
-            app.manage(Arc::new(persistence::Database::open(
-                &data_dir.join("pulso.db"),
-            )?));
+            let db = Arc::new(persistence::Database::open(&data_dir.join("pulso.db"))?);
+            app.manage(Arc::clone(&db));
+
+            let history = Arc::new(app::history::ExecutionHistory::new(Arc::clone(&db)));
+            history.close_orphans();
 
             let notifier = {
                 let handle = handle.clone();
@@ -46,6 +48,15 @@ pub fn run() {
                 log_notifier,
             ));
             supervisor.set_log_lines(commands::settings::log_lines(&handle));
+            supervisor.on_finished({
+                let history = Arc::clone(&history);
+                Arc::new(
+                    move |execution: &domain::execution::Execution,
+                          tail: &[domain::log::LogLine]| {
+                        history.observe(execution, tail)
+                    },
+                )
+            });
             process::metrics::spawn(Arc::clone(&supervisor), {
                 let handle = handle.clone();
                 Arc::new(move |samples: &[domain::metrics::MetricSample]| {
@@ -106,6 +117,9 @@ pub fn run() {
             commands::executions::get_log_snapshot,
             commands::executions::open_detected_url,
             commands::executions::save_log_text,
+            commands::history::list_execution_history,
+            commands::history::read_execution_log,
+            commands::history::clear_execution_history,
             commands::environment::environment_report,
             commands::data::data_status,
             commands::data::reveal_data_folder,

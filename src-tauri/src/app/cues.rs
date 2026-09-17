@@ -54,7 +54,7 @@ fn cue_for(previous: Option<ExecutionState>, next: ExecutionState) -> Option<Cue
         ExecutionState::Exited => {
             (previous != Some(ExecutionState::Stopping)).then_some(Cue::Success)
         }
-        ExecutionState::Running | ExecutionState::Stopping => None,
+        ExecutionState::Running | ExecutionState::Stopping | ExecutionState::Interrupted => None,
     }
 }
 

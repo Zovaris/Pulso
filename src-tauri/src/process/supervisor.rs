@@ -28,10 +28,12 @@ const KEPT_FINISHED: usize = 50;
 
 pub type ExecutionNotifier = Arc<dyn Fn(&Execution) + Send + Sync + 'static>;
 pub type LogNotifier = Arc<dyn Fn(i64, &[LogLine]) + Send + Sync + 'static>;
+pub type FinishedNotifier = Arc<dyn Fn(&Execution, &[LogLine]) + Send + Sync + 'static>;
 
 pub struct ProcessSupervisor {
     notifier: ExecutionNotifier,
     log_notifier: LogNotifier,
+    finished: Mutex<Option<FinishedNotifier>>,
     environment: ShellEnvironment,
     executions: Arc<Mutex<HashMap<i64, Managed>>>,
     next_id: AtomicI64,
@@ -51,10 +53,17 @@ impl ProcessSupervisor {
         Self {
             notifier,
             log_notifier,
+            finished: Mutex::new(None),
             environment: ShellEnvironment::new(),
             executions: Arc::new(Mutex::new(HashMap::new())),
             next_id: AtomicI64::new(1),
             log_lines: Arc::new(AtomicUsize::new(log_buffer::DEFAULT_LINES)),
+        }
+    }
+
+    pub fn on_finished(&self, handler: FinishedNotifier) {
+        if let Ok(mut finished) = self.finished.lock() {
+            *finished = Some(handler);
         }
     }
 
@@ -183,7 +192,7 @@ impl ProcessSupervisor {
                     execution: execution.clone(),
                 });
                 self.notify(&execution);
-                self.watch(child, id);
+                self.watch(child, id, Arc::clone(&logs), self.finished_handler());
                 self.flush_logs(id, logs, readers);
 
                 Ok(execution)
@@ -199,6 +208,7 @@ impl ProcessSupervisor {
                     execution: execution.clone(),
                 });
                 self.notify(&execution);
+                self.finish_history(&execution, &[]);
 
                 Ok(execution)
             }
@@ -308,7 +318,13 @@ impl ProcessSupervisor {
             })
     }
 
-    fn watch(&self, mut child: tokio::process::Child, execution_id: i64) {
+    fn watch(
+        &self,
+        mut child: tokio::process::Child,
+        execution_id: i64,
+        logs: Arc<LogBuffer>,
+        finished: Option<FinishedNotifier>,
+    ) {
         let executions = Arc::clone(&self.executions);
         let notifier = Arc::clone(&self.notifier);
 
@@ -316,8 +332,22 @@ impl ProcessSupervisor {
             let exit_code = child.wait().await.ok().and_then(|status| status.code());
             if let Some(snapshot) = finish(&executions, execution_id, exit_code) {
                 notifier(&snapshot);
+
+                if let Some(finished) = finished {
+                    finished(&snapshot, &logs.tail(usize::MAX));
+                }
             }
         });
+    }
+
+    fn finished_handler(&self) -> Option<FinishedNotifier> {
+        self.finished.lock().ok().and_then(|held| held.clone())
+    }
+
+    fn finish_history(&self, execution: &Execution, tail: &[LogLine]) {
+        if let Some(finished) = self.finished_handler() {
+            finished(execution, tail);
+        }
     }
 
     fn flush_logs(&self, execution_id: i64, logs: Arc<LogBuffer>, readers: Arc<AtomicUsize>) {

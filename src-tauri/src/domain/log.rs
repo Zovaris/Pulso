@@ -16,6 +16,23 @@ pub enum LogStream {
     Stderr,
 }
 
+impl LogStream {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Stdout => "stdout",
+            Self::Stderr => "stderr",
+        }
+    }
+
+    pub fn parse(text: &str) -> Option<Self> {
+        match text {
+            "stdout" => Some(Self::Stdout),
+            "stderr" => Some(Self::Stderr),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LogSnapshot {

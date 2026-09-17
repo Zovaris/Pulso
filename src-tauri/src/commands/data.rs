@@ -22,6 +22,7 @@ pub struct DataStatus {
     pub database: String,
     pub projects: usize,
     pub missing: usize,
+    pub runs: usize,
 }
 
 pub fn data_dir(app: &AppHandle) -> Result<PathBuf> {
@@ -34,6 +35,7 @@ pub fn data_dir(app: &AppHandle) -> Result<PathBuf> {
 pub async fn data_status(app: AppHandle, db: State<'_, Arc<Database>>) -> Result<DataStatus> {
     let folder = data_dir(&app)?;
     let projects = in_database(&db, repositories::projects::list).await?;
+    let runs = in_database(&db, repositories::executions::count).await?;
     let missing = projects
         .iter()
         .filter(|project| project.availability == crate::domain::project::Availability::Missing)
@@ -44,6 +46,7 @@ pub async fn data_status(app: AppHandle, db: State<'_, Arc<Database>>) -> Result
         folder: folder.to_string_lossy().into_owned(),
         projects: projects.len(),
         missing,
+        runs,
     })
 }
 
