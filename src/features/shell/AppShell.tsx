@@ -67,6 +67,26 @@ function StopConfirmation() {
   );
 }
 
+function ClearHistoryConfirmation() {
+  const { t } = useI18n();
+  const confirming = useStore((state) => state.confirmingHistory);
+  const askClearHistory = useStore((state) => state.askClearHistory);
+  const clearHistory = useStore((state) => state.clearHistory);
+
+  if (!confirming) return null;
+
+  return (
+    <ConfirmDialog
+      title={t("confirmClearHistoryTitle")}
+      body={t("confirmClearHistoryBody")}
+      confirmLabel={t("clearHistory")}
+      cancelLabel={t("cancel")}
+      onCancel={() => askClearHistory(false)}
+      onConfirm={() => void clearHistory()}
+    />
+  );
+}
+
 export function AppShell() {
   const section = useStore((state) => state.section);
   useShellKeyboard();
@@ -88,6 +108,7 @@ export function AppShell() {
       <StatusBar />
       <CommandPalette />
       <StopConfirmation />
+      <ClearHistoryConfirmation />
       <Notice />
     </div>
   );

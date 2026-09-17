@@ -1,9 +1,17 @@
 import { ArrowSquareOutIcon, FolderOpenIcon } from "@phosphor-icons/react";
+import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { sourcesOf } from "@/features/desktop/commands";
+import {
+  type RunBadge,
+  runBadge,
+  runDuration,
+  runStamp,
+  timeline,
+} from "@/features/desktop/history";
 import { formatCpu, formatMemory } from "@/features/desktop/metrics";
-import { exitBadge, recentRuns } from "@/features/desktop/session";
+import { exitBadge } from "@/features/desktop/session";
 import {
   formatDuration,
   formatLogTime,
@@ -218,17 +226,102 @@ export function ProcessInspector() {
   );
 }
 
+function badgeClass(tone: RunBadge["tone"]): string {
+  const shared = "w-[18px] flex-none text-right tabular-nums";
+
+  if (tone === "bad") return `${shared} text-alarm`;
+  if (tone === "ok") return `${shared} text-ok`;
+
+  return `${shared} text-faint`;
+}
+
+function ProjectTimeline({ projectId }: { projectId: number }) {
+  const { t, locale } = useI18n();
+  const executions = useStore((state) => state.executions);
+  const history = useStore((state) => state.history);
+  const historyProject = useStore((state) => state.historyProject);
+  const historyLog = useStore((state) => state.historyLog);
+  const loadHistory = useStore((state) => state.loadHistory);
+  const toggleHistoryLog = useStore((state) => state.toggleHistoryLog);
+
+  useEffect(() => {
+    void loadHistory(projectId);
+  }, [loadHistory, projectId]);
+
+  const runs = timeline(
+    executions,
+    historyProject === projectId ? history : [],
+    projectId,
+  );
+
+  if (runs.length === 0) {
+    return <p className="text-[11.5px] text-faint">{t("nothingRan")}</p>;
+  }
+
+  const now = Date.now();
+
+  return (
+    <div className="flex flex-col">
+      {runs.map((run) => {
+        const badge = runBadge(run);
+        const stored = run.source === "history" && run.lines > 0;
+
+        return (
+          <div key={run.key}>
+            <button
+              type="button"
+              disabled={!stored}
+              title={stored ? t("openStoredLog") : (run.detail ?? undefined)}
+              onClick={() => void toggleHistoryLog(run.id)}
+              className={`flex w-full items-center gap-2 rounded-[7px] px-1.5 py-1 text-left transition-colors duration-[120ms] ${
+                stored ? "cursor-pointer hover:bg-hover" : "cursor-default"
+              }`}
+            >
+              <i className="pulso-dot" data-s={run.state} />
+              <span className="min-w-0 flex-1 truncate text-[11.5px]">
+                {run.label}
+              </span>
+              <span className="flex-none text-[10.5px] text-faint tabular-nums">
+                {runStamp(run.startedAt, now, locale)}
+              </span>
+              <span className="w-[38px] flex-none text-right text-[10.5px] text-faint tabular-nums">
+                {runDuration(run, now)}
+              </span>
+              <span className={badgeClass(badge.tone)}>{badge.text}</span>
+            </button>
+
+            {historyLog?.id === run.id ? (
+              <div className="pulso-stream mb-1.5 max-h-[176px] overflow-auto rounded-[7px] border border-hairline py-1">
+                {historyLog.lines.map((line) => (
+                  <p
+                    key={line.seq}
+                    className="pulso-stream__line flex gap-2 px-2 py-[1px] font-mono text-[10.5px] leading-4"
+                    data-stream={line.stream}
+                  >
+                    <time className="flex-none text-faint tabular-nums">
+                      {formatLogTime(line.at)}
+                    </time>
+                    <span className="min-w-0 break-all">{line.text}</span>
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function ProjectInspector({ project }: { project: Project }) {
   const { t } = useI18n();
   const scan = useStore((state) => state.scans[String(project.id)]);
-  const executions = useStore((state) => state.executions);
   const scanning = useStore((state) => state.scanningProjectId === project.id);
   const environment = useStore((state) =>
     state.environmentFor === project.id ? state.environment : null,
   );
   const message = scan ? scanMessage(scan) : null;
   const sources = scan ? sourcesOf(scan) : [];
-  const runs = recentRuns(executions, project.id);
   const missing =
     environment?.programs.filter((program) => program.path === null) ?? [];
 
@@ -287,15 +380,7 @@ export function ProjectInspector({ project }: { project: Project }) {
       </Section>
 
       <Section title={t("lastRuns")}>
-        {runs.length === 0 ? (
-          <p className="text-[11.5px] text-faint">{t("nothingRan")}</p>
-        ) : (
-          <div className="flex flex-col gap-1">
-            {runs.map((run) => (
-              <Kv key={run.id} name={run.label} value={exitBadge(run).text} />
-            ))}
-          </div>
-        )}
+        <ProjectTimeline projectId={project.id} />
       </Section>
 
       <Section title={t("environment")}>

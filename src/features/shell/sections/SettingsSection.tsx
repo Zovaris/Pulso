@@ -99,6 +99,7 @@ export function SettingsSection() {
   const revealDataFolder = useStore((state) => state.revealDataFolder);
   const makeDiagnosticBundle = useStore((state) => state.makeDiagnosticBundle);
   const clearFinished = useStore((state) => state.clearFinished);
+  const askClearHistory = useStore((state) => state.askClearHistory);
 
   useEffect(() => {
     void loadDataStatus();
@@ -315,6 +316,23 @@ export function SettingsSection() {
                   onClick={() => void makeDiagnosticBundle()}
                 />
               </>
+            }
+          />
+          <Row
+            label={t("executionHistory")}
+            hint={
+              data === null
+                ? t("readingShort")
+                : data.runs === 0
+                  ? t("executionHistoryEmpty")
+                  : t("executionHistoryHint", { count: data.runs })
+            }
+            control={
+              <Action
+                label={t("clearHistory")}
+                disabled={working !== null || (data?.runs ?? 0) === 0}
+                onClick={() => askClearHistory(true)}
+              />
             }
           />
         </Group>
