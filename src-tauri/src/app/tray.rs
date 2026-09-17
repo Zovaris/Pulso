@@ -10,7 +10,7 @@ use crate::commands::settings::{stored_locale, Locale};
 use crate::events;
 use crate::process::supervisor::ProcessSupervisor;
 
-use super::windows;
+use super::{slide, windows};
 
 const TRAY_PNG: &[u8] = include_bytes!("../../../assets/brand/pulso-tray.png");
 const TRAY_ID: &str = "pulso";
@@ -127,7 +127,9 @@ fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {
         return;
     }
 
-    windows::position_popover(&win, x, y, width, height);
+    let settled = windows::popover_origin(&win, x, y, width, height);
+    let start = windows::slid(&win, settled, slide::DISTANCE);
+    let _ = win.set_position(start);
     events::popover_prepare(app);
 
     let app = app.clone();
@@ -138,6 +140,9 @@ fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {
             let _ = win.set_focus();
         }
         events::popover_shown(&app);
+        if let Some(win) = windows::popover(&app) {
+            windows::slide_window(&win, start, settled, slide::ENTER).await;
+        }
         events::refresh(&app).await;
     });
 }

@@ -4,8 +4,11 @@ use tauri::{AppHandle, Manager, PhysicalPosition, WebviewWindow};
 
 use crate::events;
 
+use super::slide;
+
 const FRAME: Duration = Duration::from_millis(16);
-const CLOSE: Duration = Duration::from_millis(130);
+
+static SLIDES: slide::Generation = slide::Generation::new();
 
 pub fn popover(app: &AppHandle) -> Option<WebviewWindow> {
     app.get_webview_window("popover")
@@ -26,7 +29,18 @@ pub fn close_popover(app: &AppHandle) {
 
     let app = app.clone();
     tauri::async_runtime::spawn(async move {
-        tokio::time::sleep(CLOSE).await;
+        if let Some(win) = popover(&app) {
+            let Ok(from) = win.outer_position() else {
+                hide_popover(&app);
+                return;
+            };
+            let to = slid(&win, from, slide::DISTANCE);
+
+            if !slide_window(&win, from, to, slide::EXIT).await {
+                return;
+            }
+        }
+
         hide_popover(&app);
     });
 }
@@ -56,14 +70,54 @@ pub fn show_main(app: &AppHandle) -> bool {
     true
 }
 
-pub fn position_popover(win: &WebviewWindow, x: i32, y: i32, width: u32, height: u32) {
+pub fn popover_origin(
+    win: &WebviewWindow,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> PhysicalPosition<i32> {
     let scale = win.scale_factor().unwrap_or(1.0);
     let size = win.outer_size().ok();
     let win_w = size.map(|s| f64::from(s.width)).unwrap_or(380.0 * scale);
     let left = f64::from(x) + f64::from(width) / 2.0 - win_w / 2.0;
     let top = f64::from(y) + f64::from(height) + 4.0 * scale;
-    let _ = win.set_position(PhysicalPosition::new(
-        left.round() as i32,
-        top.round() as i32,
-    ));
+
+    PhysicalPosition::new(left.round() as i32, top.round() as i32)
+}
+
+pub fn slid(
+    win: &WebviewWindow,
+    origin: PhysicalPosition<i32>,
+    distance: f64,
+) -> PhysicalPosition<i32> {
+    let scale = win.scale_factor().unwrap_or(1.0);
+
+    PhysicalPosition::new(origin.x, origin.y - (distance * scale).round() as i32)
+}
+
+pub async fn slide_window(
+    win: &WebviewWindow,
+    from: PhysicalPosition<i32>,
+    to: PhysicalPosition<i32>,
+    duration: Duration,
+) -> bool {
+    let generation = SLIDES.begin();
+
+    for progress in slide::progressions(duration, slide::STEP) {
+        if !SLIDES.is_current(generation) {
+            return false;
+        }
+
+        tokio::time::sleep(slide::STEP).await;
+
+        let x = f64::from(from.x) + f64::from(to.x - from.x) * progress;
+        let y = f64::from(from.y) + f64::from(to.y - from.y) * progress;
+
+        let _ = win.set_position(PhysicalPosition::new(x.round() as i32, y.round() as i32));
+    }
+
+    let _ = win.set_position(to);
+
+    true
 }
