@@ -1,0 +1,10 @@
+{
+  "name": "example/php-project",
+  "type": "project",
+  "scripts": {
+    "test": "phpunit",
+    "lint": "phpcs --standard=PSR12 src",
+    "checks": ["@lint", "@test"],
+    "migrate": "php bin/console doctrine:migrations:migrate -n"
+  }
+}

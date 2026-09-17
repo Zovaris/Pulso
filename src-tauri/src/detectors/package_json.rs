@@ -2,8 +2,9 @@ use std::path::Path;
 
 use serde_json::Value;
 
+use super::naming;
 use super::{CommandDetector, DetectError};
-use crate::domain::command::{CommandCategory, DetectedCommand};
+use crate::domain::command::DetectedCommand;
 use crate::support::paths;
 
 pub const ID: &str = "package_json";
@@ -59,18 +60,12 @@ fn detect(
             cwd: cwd.clone(),
             source: source.clone(),
             detector: detector.id().to_string(),
-            category: categorize(name),
-            long_running: is_long_running(name),
+            category: naming::categorize(name),
+            long_running: naming::is_long_running(name),
         })
         .collect();
 
-    commands.sort_by(|left, right| {
-        left.category
-            .rank()
-            .cmp(&right.category.rank())
-            .then(right.long_running.cmp(&left.long_running))
-            .then_with(|| left.label.cmp(&right.label))
-    });
+    naming::sort_commands(&mut commands);
 
     Ok(commands)
 }
@@ -103,111 +98,6 @@ fn package_manager(manifest: &Value, project_dir: &Path) -> String {
     }
 
     "npm".to_string()
-}
-
-fn tokens(script: &str) -> Vec<String> {
-    script
-        .split(|character: char| !character.is_alphanumeric())
-        .filter(|token| !token.is_empty())
-        .map(|token| token.to_ascii_lowercase())
-        .collect()
-}
-
-fn categorize(script: &str) -> CommandCategory {
-    let tokens = tokens(script);
-    let any = |words: &[&str]| tokens.iter().any(|token| words.contains(&token.as_str()));
-
-    if any(&[
-        "db",
-        "database",
-        "migrate",
-        "migration",
-        "migrations",
-        "seed",
-        "prisma",
-        "drizzle",
-        "knex",
-        "typeorm",
-        "psql",
-    ]) {
-        return CommandCategory::Database;
-    }
-    if any(&[
-        "test",
-        "tests",
-        "spec",
-        "e2e",
-        "coverage",
-        "vitest",
-        "jest",
-        "playwright",
-        "cypress",
-    ]) {
-        return CommandCategory::Test;
-    }
-    if any(&[
-        "lint",
-        "format",
-        "fmt",
-        "check",
-        "typecheck",
-        "types",
-        "biome",
-        "eslint",
-        "prettier",
-        "stylelint",
-    ]) {
-        return CommandCategory::Lint;
-    }
-    if any(&["build", "compile", "bundle", "dist", "release", "transpile"]) {
-        return CommandCategory::Build;
-    }
-    if any(&[
-        "dev",
-        "develop",
-        "start",
-        "serve",
-        "server",
-        "watch",
-        "preview",
-        "storybook",
-    ]) {
-        return CommandCategory::Dev;
-    }
-    if any(&[
-        "docker",
-        "compose",
-        "deploy",
-        "infra",
-        "terraform",
-        "k8s",
-        "kubectl",
-        "fly",
-        "vercel",
-        "aws",
-    ]) {
-        return CommandCategory::Infrastructure;
-    }
-
-    CommandCategory::Other
-}
-
-fn is_long_running(script: &str) -> bool {
-    const PERSISTENT: [&str; 9] = [
-        "dev",
-        "develop",
-        "start",
-        "serve",
-        "server",
-        "watch",
-        "preview",
-        "storybook",
-        "tail",
-    ];
-
-    tokens(script)
-        .iter()
-        .any(|token| PERSISTENT.contains(&token.as_str()))
 }
 
 #[cfg(test)]

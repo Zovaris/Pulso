@@ -1,0 +1,5 @@
+{
+  "name": "half-broken-project",
+  "scripts": {
+    "dev": "vite",
+  }

@@ -1,0 +1,27 @@
+set shell := ["bash", "-c"]
+set dotenv-load := false
+
+alias b := build
+export TOKEN := "dev-only"
+
+# start the dev server
+dev:
+	bun run dev
+
+build: dev
+	bun run build
+
+test filter="":
+	bun test {{filter}}
+
+test-all *args:
+	bun test {{args}}
+
+release version:
+	git tag {{version}}
+
+promote target tag:
+	./promote.sh {{target}} {{tag}}
+
+_deploy:
+	kubectl apply -f k8s/

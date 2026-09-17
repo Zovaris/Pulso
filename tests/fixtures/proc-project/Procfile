@@ -1,0 +1,6 @@
+# the dynos this app needs
+
+web: bun run dev
+worker: bun run jobs:start
+release: bun run db:migrate
+assets: esbuild app.js --bundle --outfile=dist/app.js

@@ -1,0 +1,11 @@
+{
+  // the tasks a deno project declares
+  "tasks": {
+    "dev": "deno run -A --watch main.ts",
+    "check": "deno check main.ts",
+    "test": "deno test -A"
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.220.0/"
+  }
+}
