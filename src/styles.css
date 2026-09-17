@@ -808,3 +808,175 @@ button.pulso-port:hover {
   color: var(--paper);
   opacity: 1;
 }
+
+.pulso-window {
+  container-type: inline-size;
+}
+
+.pulso-inspector {
+  display: none;
+}
+
+@container (min-width: 1120px) {
+  .pulso-inspector {
+    display: flex;
+  }
+}
+
+.pulso-pane::-webkit-scrollbar,
+.pulso-stream::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.pulso-pane::-webkit-scrollbar-track,
+.pulso-stream::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pulso-pane::-webkit-scrollbar-thumb,
+.pulso-stream::-webkit-scrollbar-thumb {
+  background-color: rgb(255 255 255 / 0.13);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: 99px;
+}
+
+.pulso-pane::-webkit-scrollbar-thumb:hover,
+.pulso-stream::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(255 255 255 / 0.22);
+}
+
+html[data-theme="light"] .pulso-pane::-webkit-scrollbar-thumb,
+html[data-theme="light"] .pulso-stream::-webkit-scrollbar-thumb {
+  background-color: rgb(0 0 0 / 0.18);
+}
+
+.pulso-row {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+}
+
+.pulso-row-proc {
+  grid-template-columns: 158px minmax(0, 1fr) 176px 64px 58px;
+}
+
+.pulso-row-cmd {
+  grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1.05fr) 88px 60px;
+}
+
+.pulso-row-log {
+  grid-template-columns: 60px 8px minmax(0, 1fr);
+}
+
+.pulso-row-head {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.pulso-cmd:hover,
+.pulso-proc:hover {
+  background-color: var(--hover);
+}
+
+.pulso-proc[data-selected="true"],
+.pulso-cmd[data-selected="true"] {
+  background-color: var(--fill);
+}
+
+.pulso-cmd[data-hidden="true"] .pulso-cmd__name,
+.pulso-cmd[data-hidden="true"] .pulso-cmd__invocation {
+  opacity: 0.5;
+}
+
+.pulso-meter {
+  background-color: var(--fill);
+  border-radius: 99px;
+  height: 3px;
+  overflow: hidden;
+}
+
+.pulso-meter > i {
+  background-color: var(--accent-strong);
+  display: block;
+  height: 100%;
+}
+
+.pulso-meter[data-tone="alarm"] > i {
+  background-color: var(--alarm);
+}
+
+.pulso-app {
+  border-radius: 4px;
+  display: block;
+  height: 16px;
+  object-fit: contain;
+  width: 16px;
+}
+
+.pulso-app-fallback {
+  align-items: center;
+  background-color: var(--raised);
+  border-radius: 4px;
+  color: var(--mist);
+  display: flex;
+  font-size: 8px;
+  font-weight: 600;
+  height: 16px;
+  justify-content: center;
+  letter-spacing: -0.02em;
+  width: 16px;
+}
+
+.pulso-dot {
+  border-radius: 99px;
+  flex: none;
+  height: 7px;
+  width: 7px;
+}
+
+.pulso-dot[data-s="running"] {
+  background-color: var(--accent-strong);
+}
+
+.pulso-dot[data-s="failed"] {
+  background-color: var(--alarm);
+}
+
+.pulso-dot[data-s="exited"] {
+  background-color: var(--line);
+}
+
+.pulso-dot[data-s="stopping"] {
+  animation: pulso-breathe 1.4s var(--ease-out) infinite;
+  background-color: var(--mist);
+}
+
+.pulso-palette {
+  background-color: color-mix(in srgb, var(--void) 62%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.pulso-palette__panel {
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.45);
+}
+
+html[data-theme="light"] .pulso-palette__panel {
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.18);
+}
+
+.pulso-stream__line[data-stream="stderr"] {
+  color: var(--alarm);
+}
+
+.pulso-stream__line mark {
+  background-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulso-dot[data-s="stopping"] {
+    animation: none;
+  }
+}

@@ -44,4 +44,71 @@ describe("useShellKeyboard", () => {
 
     expect(useStore.getState().section).toBe("overview");
   });
+
+  it("opens and closes the palette with the command key", () => {
+    render(<Harness />);
+
+    press("k", { metaKey: true });
+    expect(useStore.getState().paletteOpen).toBe(true);
+
+    press("k", { metaKey: true });
+    expect(useStore.getState().paletteOpen).toBe(false);
+  });
+
+  it("closes the palette with escape", () => {
+    render(<Harness />);
+
+    press("k", { metaKey: true });
+    press("Escape");
+
+    expect(useStore.getState().paletteOpen).toBe(false);
+  });
+
+  it("rescans the projects with the command key", () => {
+    render(<Harness />);
+
+    let rescanned = false;
+    useStore.setState({
+      rescanProjects: () => {
+        rescanned = true;
+        return Promise.resolve();
+      },
+    });
+
+    press("r", { metaKey: true });
+
+    expect(rescanned).toBe(true);
+  });
+
+  it("opens the selected project with the command key", () => {
+    render(<Harness />);
+
+    const opened: (number | string | null)[] = [];
+    useStore.setState({
+      projects: [
+        { id: 4, name: "Apex", path: "/tmp/apex", availability: "available" },
+      ],
+      selectedProjectId: 4,
+      editor: "cursor",
+      openProjectIn: (projectId, editorId) => {
+        opened.push(projectId, editorId);
+        return Promise.resolve();
+      },
+    });
+
+    press("o", { metaKey: true });
+
+    expect(opened).toEqual([4, "cursor"]);
+  });
+
+  it("leaves a plain slash to the field it was typed into", () => {
+    render(<Harness />);
+
+    const input = document.createElement("input");
+    document.body.append(input);
+    fireEvent.keyDown(input, { key: "/" });
+
+    expect(useStore.getState().paletteOpen).toBe(false);
+    input.remove();
+  });
 });

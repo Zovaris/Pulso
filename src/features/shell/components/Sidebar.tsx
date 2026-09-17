@@ -8,7 +8,8 @@ import {
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import type { SectionId } from "@/app/stores/types";
-import { isActiveState } from "@/features/executions/execution";
+import { formatMemory, totalMemory } from "@/features/desktop/metrics";
+import { failures, liveExecutions } from "@/features/desktop/session";
 import { SECTIONS } from "@/features/shell/sections";
 
 const ICONS: Record<SectionId, typeof SquaresFourIcon> = {
@@ -23,16 +24,20 @@ export function Sidebar() {
   const { t } = useI18n();
   const section = useStore((state) => state.section);
   const setSection = useStore((state) => state.setSection);
-  const projectCount = useStore((state) => state.projects.length);
-  const liveCount = useStore(
-    (state) =>
-      state.executions.filter((execution) => isActiveState(execution.state))
-        .length,
-  );
+  const projects = useStore((state) => state.projects);
+  const executions = useStore((state) => state.executions);
+  const metrics = useStore((state) => state.metrics);
+  const seenAt = useStore((state) => state.seenFailuresAt);
+
+  const live = liveExecutions(executions);
+  const unseen = failures(executions).filter(
+    (execution) => (execution.endedAt ?? 0) > seenAt,
+  ).length;
+  const memory = formatMemory(totalMemory(Object.values(metrics)));
 
   const counts: Partial<Record<SectionId, number>> = {
-    projects: projectCount,
-    processes: liveCount,
+    projects: projects.length,
+    processes: live.length,
   };
 
   return (
@@ -41,10 +46,10 @@ export function Sidebar() {
         <p className="text-[12.5px] font-semibold tracking-[-0.01em]">
           {t("appName")}
         </p>
-        <p className="mt-1 text-[11px] text-mist">
-          {liveCount === 0
+        <p className="mt-1 text-[11px] text-faint">
+          {live.length === 0
             ? t("noneRunning")
-            : t("runningCount", { count: liveCount })}
+            : t("runningMemory", { count: live.length, memory })}
         </p>
       </div>
 
@@ -52,6 +57,7 @@ export function Sidebar() {
         const Icon = ICONS[item.id];
         const active = item.id === section;
         const count = counts[item.id];
+        const flagged = item.id === "processes" && unseen > 0;
 
         return (
           <button
@@ -67,7 +73,14 @@ export function Sidebar() {
           >
             <Icon size={14} className="flex-none" />
             {t(item.labelKey)}
-            {count ? (
+            {flagged ? (
+              <span
+                className="pulso-dot ml-auto"
+                data-s="failed"
+                title={t("failuresWaiting", { count: unseen })}
+              />
+            ) : null}
+            {count && !flagged ? (
               <span className="ml-auto text-[11px] text-faint tabular-nums">
                 {count}
               </span>
