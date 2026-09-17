@@ -58,6 +58,30 @@ impl ShellEnvironment {
     }
 }
 
+/// Where a program really resolves, walking the `PATH` in order. A program with
+/// a slash in it is taken as a path and not searched for.
+pub fn which(program: &str, path: &str) -> Option<String> {
+    if program.contains('/') {
+        let candidate = Path::new(program);
+
+        return is_executable(candidate).then(|| program.to_string());
+    }
+
+    path.split(':')
+        .filter(|dir| !dir.is_empty())
+        .map(|dir| Path::new(dir).join(program))
+        .find(|candidate| is_executable(candidate))
+        .map(|candidate| candidate.to_string_lossy().into_owned())
+}
+
+fn is_executable(path: &Path) -> bool {
+    let Ok(raw) = std::ffi::CString::new(path.as_os_str().as_encoded_bytes()) else {
+        return false;
+    };
+
+    unsafe { libc::access(raw.as_ptr(), libc::X_OK) == 0 }
+}
+
 fn resolve(dir: &Path) -> Option<HashMap<String, String>> {
     let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".to_string());
     let mut command = Command::new(shell);

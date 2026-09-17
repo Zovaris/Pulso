@@ -62,6 +62,16 @@ impl ProcessSupervisor {
         self.log_lines.store(lines.max(1), Ordering::Relaxed);
     }
 
+    pub fn log_lines(&self) -> usize {
+        self.log_lines.load(Ordering::Relaxed)
+    }
+
+    /// The environment a command in that folder would run with, which is the
+    /// thing to look at when a program cannot be found.
+    pub fn environment(&self, dir: &Path) -> HashMap<String, String> {
+        self.environment.for_dir(dir)
+    }
+
     /// Drops every execution that already finished. Live ones stay, because
     /// clearing the list must never be a way to lose a running process.
     pub fn clear_finished(&self) -> usize {

@@ -17,6 +17,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -31,6 +32,7 @@ pub fn run() {
                     events::execution_changed(&handle, execution);
                     app::tray::sync(&handle);
                     app::cues::observe(&handle, execution);
+                    app::notify::observe(&handle, execution);
                 })
             };
             let log_notifier = {
@@ -103,6 +105,13 @@ pub fn run() {
             commands::executions::stop_execution,
             commands::executions::get_log_snapshot,
             commands::executions::open_detected_url,
+            commands::executions::save_log_text,
+            commands::environment::environment_report,
+            commands::data::data_status,
+            commands::data::reveal_data_folder,
+            commands::data::export_projects,
+            commands::data::import_projects,
+            commands::data::diagnostic_bundle,
             commands::settings::get_preferences,
             commands::settings::save_preferences,
         ])

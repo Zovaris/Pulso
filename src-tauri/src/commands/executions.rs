@@ -14,7 +14,8 @@ use crate::support::error::{BackendError, ErrorKind, Result};
 
 use super::{in_database, off_thread};
 
-const TAIL: usize = 200;
+const TAIL: usize = 400;
+const CEILING: usize = 20_000;
 
 #[tauri::command]
 pub async fn list_executions(
@@ -29,10 +30,36 @@ pub async fn start_command(
     supervisor: State<'_, Arc<ProcessSupervisor>>,
     project_id: i64,
     command_id: String,
+    args: Option<Vec<String>>,
 ) -> Result<Execution> {
-    let command = resolve_command(&db, project_id, &command_id).await?;
+    let mut command = resolve_command(&db, project_id, &command_id).await?;
+
+    // Running once with extra arguments is a different thing from editing the
+    // manifest, so the override never leaves this call.
+    if let Some(args) = args {
+        let args: Vec<String> = args
+            .into_iter()
+            .map(|argument| argument.trim().to_string())
+            .filter(|argument| !argument.is_empty())
+            .collect();
+
+        command.args = args;
+    }
 
     supervisor.start(project_id, &command, None).await
+}
+
+#[tauri::command]
+pub async fn save_log_text(app: AppHandle, text: String, name: String) -> Result<Option<String>> {
+    let Some(path) = crate::app::picker::save_file(&app, name).await else {
+        return Ok(None);
+    };
+
+    let target = Path::new(&path);
+    std::fs::write(target, text)
+        .map_err(|error| BackendError::internal(format!("The log could not be saved: {error}")))?;
+
+    Ok(Some(path))
 }
 
 #[tauri::command]
@@ -57,8 +84,9 @@ pub async fn get_log_snapshot(
     supervisor: State<'_, Arc<ProcessSupervisor>>,
     execution_id: i64,
     after_seq: Option<u64>,
+    limit: Option<usize>,
 ) -> Result<LogSnapshot> {
-    supervisor.logs(execution_id, after_seq, TAIL)
+    supervisor.logs(execution_id, after_seq, limit.unwrap_or(TAIL).min(CEILING))
 }
 
 #[tauri::command]

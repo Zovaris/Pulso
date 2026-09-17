@@ -1,4 +1,6 @@
+pub mod data;
 pub mod editors;
+pub mod environment;
 pub mod executions;
 pub mod projects;
 pub mod settings;

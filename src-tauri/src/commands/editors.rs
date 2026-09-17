@@ -1,4 +1,3 @@
-use std::process::{Command, Stdio};
 use std::sync::Arc;
 
 use serde::Serialize;
@@ -93,12 +92,13 @@ pub async fn open_project(
     .await?;
 
     let Some(target) = chosen else {
-        reveal(&project.path)?;
+        apps::open_with(None, &project.path)?;
         return Ok(None);
     };
 
     let revealed = target.id == apps::FINDER.id;
-    launch(target, &project.path)?;
+    let bundle = (!revealed).then_some(target.bundle_id);
+    apps::open_with(bundle, &project.path)?;
 
     if !revealed {
         remember(&app, &db, target).await?;
@@ -121,33 +121,6 @@ async fn remember(app: &AppHandle, db: &State<'_, Arc<Database>>, target: KnownA
     let current = in_database(db, settings::read_preferences).await?;
     if let Some(current) = current {
         events::preferences_changed(app, &current);
-    }
-
-    Ok(())
-}
-
-fn launch(target: KnownApp, path: &str) -> Result<()> {
-    let args = apps::open_args(Some(target.bundle_id), path);
-
-    run(&args)
-}
-
-fn reveal(path: &str) -> Result<()> {
-    run(&apps::open_args(None, path))
-}
-
-fn run(args: &[String]) -> Result<()> {
-    let status = Command::new("/usr/bin/open")
-        .args(args)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .map_err(|error| {
-            BackendError::internal(format!("The folder could not be handed over: {error}"))
-        })?;
-
-    if !status.success() {
-        return Err(BackendError::internal("macOS refused to open that folder."));
     }
 
     Ok(())

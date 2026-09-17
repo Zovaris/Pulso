@@ -214,6 +214,12 @@ pub fn keep_running(app: &AppHandle) -> bool {
         .unwrap_or(true)
 }
 
+pub fn notify_on_failure(app: &AppHandle) -> bool {
+    read(app, NOTIFY_ON_FAILURE_KEY)
+        .map(|value| bool_pref(value.as_deref(), true))
+        .unwrap_or(true)
+}
+
 pub fn stored_editor(app: &AppHandle) -> Option<String> {
     read(app, EDITOR_KEY)
         .flatten()

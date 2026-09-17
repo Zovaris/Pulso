@@ -8,6 +8,8 @@ use objc2_foundation::{NSDictionary, NSSize, NSString};
 
 use objc2::runtime::AnyObject;
 
+use crate::support::error::{BackendError, Result};
+
 /// One application Pulso can hand a project folder to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct KnownApp {
@@ -137,6 +139,26 @@ pub fn choose(requested: Option<&str>, installed: &[String]) -> Option<KnownApp>
                 .find(|app| is_installed(app.id, installed))
                 .copied()
         })
+}
+
+const OPENER: &str = "/usr/bin/open";
+
+/// Hands a folder to an app, or to Finder when there is no app to hand it to.
+pub fn open_with(bundle_id: Option<&str>, path: &str) -> Result<()> {
+    let status = std::process::Command::new(OPENER)
+        .args(open_args(bundle_id, path))
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .map_err(|error| {
+            BackendError::internal(format!("The folder could not be handed over: {error}"))
+        })?;
+
+    if !status.success() {
+        return Err(BackendError::internal("macOS refused to open that folder."));
+    }
+
+    Ok(())
 }
 
 /// What `open` needs to launch an app by identifier, or to reveal a folder when

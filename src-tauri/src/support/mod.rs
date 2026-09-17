@@ -1,3 +1,4 @@
+pub mod archive;
 pub mod base64;
 pub mod error;
 pub mod paths;

@@ -27,6 +27,8 @@ objc2 = "0.6.4"
 objc2-app-kit = "0.3.2"
 objc2-foundation = "0.3.2"
 sysinfo = "0.39.6"
+tauri-plugin-notification = "2.4.0"
+zip = { version = "8.6.0", default-features = false }
 
 [dev-dependencies]
 tauri = { version = "2", features = ["test"] }
