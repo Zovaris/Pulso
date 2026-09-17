@@ -71,7 +71,7 @@ export async function applyWindowChrome(
       }
       try {
         await win.setEffects({
-          effects: [Effect.Popover],
+          effects: resolved === "dark" ? [Effect.HudWindow] : [Effect.Popover],
           state: EffectState.Active,
         });
       } catch {

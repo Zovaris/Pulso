@@ -48,7 +48,7 @@ html {
   --hover: rgb(255 255 255 / 0.04);
   --fill: rgb(255 255 255 / 0.06);
   --popover-base: #212121;
-  --popover-rim: rgb(255 255 255 / 0.08);
+  --popover-rim: #333333;
   --motion-fast: 120ms;
   --motion-base: 180ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -75,7 +75,7 @@ html[data-theme="light"] {
   --hover: rgb(0 0 0 / 0.045);
   --fill: rgb(0 0 0 / 0.06);
   --popover-base: #ffffff;
-  --popover-rim: rgb(0 0 0 / 0.08);
+  --popover-rim: #ebebeb;
   color-scheme: light;
 }
 
