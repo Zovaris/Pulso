@@ -6,7 +6,6 @@ import { PopoverFooter } from "@/features/popover/components/PopoverFooter";
 import { PopoverHeader } from "@/features/popover/components/PopoverHeader";
 import { PopoverProjects } from "@/features/popover/components/PopoverProjects";
 import { usePopoverActions } from "@/features/popover/usePopoverActions";
-import { usePopoverEntrance } from "@/features/popover/usePopoverEntrance";
 import { usePopoverKeyboard } from "@/features/popover/usePopoverKeyboard";
 
 export function PopoverShell() {
@@ -23,14 +22,10 @@ export function PopoverShell() {
   const sound = useStore((state) => state.sound);
   const setSound = useStore((state) => state.setSound);
   const actions = usePopoverActions();
-  const shell = usePopoverEntrance<HTMLDivElement>();
   usePopoverKeyboard();
 
   return (
-    <div
-      ref={shell}
-      className="pulso-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper"
-    >
+    <div className="pulso-popover flex h-full flex-col overflow-hidden rounded-xl text-paper">
       <PopoverHeader
         title={t("appName")}
         runningCount={runningCount}

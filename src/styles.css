@@ -135,10 +135,6 @@ button:not(:disabled) {
   border: 1px solid var(--popover-line);
 }
 
-.pulso-popover[data-frame="true"] {
-  opacity: 0;
-}
-
 .pulso-row.sph-button {
   width: 100%;
   justify-content: flex-start;
