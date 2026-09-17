@@ -15,7 +15,9 @@ pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
 pub const EXECUTION_CHANGED: &str = "execution://state-changed";
 pub const LOG_APPENDED: &str = "execution://log-appended";
+pub const POPOVER_PREPARE: &str = "popover://prepare";
 pub const POPOVER_SHOWN: &str = "popover://shown";
+pub const POPOVER_CLOSING: &str = "popover://closing";
 pub const PREFERENCES_CHANGED: &str = "settings://changed";
 
 #[derive(Debug, Clone, Serialize)]
@@ -36,8 +38,16 @@ pub fn preferences_changed(app: &AppHandle, preferences: &Preferences) {
     let _ = app.emit(PREFERENCES_CHANGED, preferences);
 }
 
+pub fn popover_prepare(app: &AppHandle) {
+    let _ = app.emit(POPOVER_PREPARE, ());
+}
+
 pub fn popover_shown(app: &AppHandle) {
     let _ = app.emit(POPOVER_SHOWN, ());
+}
+
+pub fn popover_closing(app: &AppHandle) {
+    let _ = app.emit(POPOVER_CLOSING, ());
 }
 
 pub fn execution_changed(app: &AppHandle, execution: &Execution) {

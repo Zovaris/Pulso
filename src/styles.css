@@ -126,6 +126,12 @@ button:not(:disabled) {
 .soffy-popover {
   background-color: var(--popover-base);
   border: 1px solid var(--popover-rim);
+  transform-origin: 50% 0;
+}
+
+.soffy-popover[data-frame="true"] {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.985);
 }
 
 html[data-transparency="on"] .soffy-popover {

@@ -60,6 +60,19 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+pub fn set_badge(app: &AppHandle, png: Option<&[u8]>) -> tauri::Result<()> {
+    let Some(tray) = app.tray_by_id(TRAY_ID) else {
+        return Ok(());
+    };
+
+    let icon = match png {
+        Some(bytes) => Image::from_bytes(bytes)?,
+        None => Image::from_bytes(TRAY_PNG).expect("tray png"),
+    };
+
+    tray.set_icon_with_as_template(Some(icon), true)
+}
+
 pub fn sync(app: &AppHandle) {
     let Some(tray) = app.tray_by_id(TRAY_ID) else {
         return;
@@ -77,8 +90,6 @@ pub fn sync(app: &AppHandle) {
     *shown = Some(Shown { running, locale });
     drop(shown);
 
-    let title = (running > 0).then(|| running.to_string());
-    let _ = tray.set_title(title);
     let _ = tray.set_tooltip(Some(label(running, locale)));
 }
 
@@ -112,16 +123,23 @@ fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {
         return;
     };
     if win.is_visible().unwrap_or(false) {
-        let _ = win.hide();
+        windows::close_popover(app);
         return;
     }
+
     windows::position_popover(&win, x, y, width, height);
-    let _ = win.show();
-    let _ = win.set_focus();
-    events::popover_shown(app);
+    events::popover_prepare(app);
 
     let app = app.clone();
-    tauri::async_runtime::spawn(async move { events::refresh(&app).await });
+    tauri::async_runtime::spawn(async move {
+        windows::await_first_frame().await;
+        if let Some(win) = windows::popover(&app) {
+            let _ = win.show();
+            let _ = win.set_focus();
+        }
+        events::popover_shown(&app);
+        events::refresh(&app).await;
+    });
 }
 
 #[cfg(test)]

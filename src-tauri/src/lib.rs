@@ -65,7 +65,7 @@ pub fn run() {
                 win.on_window_event(move |event| {
                     if let tauri::WindowEvent::Focused(false) = event {
                         if !app::picker::is_open() {
-                            app::windows::hide_popover(&handle);
+                            app::windows::close_popover(&handle);
                         }
                     }
                 });
@@ -83,6 +83,7 @@ pub fn run() {
             commands::projects::remove_project,
             commands::projects::list_commands,
             commands::projects::rescan_projects,
+            commands::tray::set_tray_badge,
             commands::executions::list_executions,
             commands::executions::start_command,
             commands::executions::stop_execution,

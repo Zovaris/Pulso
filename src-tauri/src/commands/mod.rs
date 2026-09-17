@@ -1,6 +1,7 @@
 pub mod executions;
 pub mod projects;
 pub mod settings;
+pub mod tray;
 pub mod window;
 
 use std::sync::Arc;

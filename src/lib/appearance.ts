@@ -65,18 +65,7 @@ export async function applyWindowChrome(
     if (win.label === "popover") {
       await clearWebviewBackground();
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
-      if (!transparency) {
-        await win.clearEffects();
-        return;
-      }
-      try {
-        await win.setEffects({
-          effects: resolved === "dark" ? [Effect.HudWindow] : [Effect.Popover],
-          state: EffectState.Active,
-        });
-      } catch {
-        await win.clearEffects();
-      }
+      await win.clearEffects();
       return;
     }
     if (transparency) {

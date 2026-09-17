@@ -1,4 +1,11 @@
+use std::time::Duration;
+
 use tauri::{AppHandle, Manager, PhysicalPosition, WebviewWindow};
+
+use crate::events;
+
+const FRAME: Duration = Duration::from_millis(16);
+const CLOSE: Duration = Duration::from_millis(130);
 
 pub fn popover(app: &AppHandle) -> Option<WebviewWindow> {
     app.get_webview_window("popover")
@@ -12,6 +19,20 @@ pub fn hide_popover(app: &AppHandle) {
     if let Some(win) = popover(app) {
         let _ = win.hide();
     }
+}
+
+pub fn close_popover(app: &AppHandle) {
+    events::popover_closing(app);
+
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(CLOSE).await;
+        hide_popover(&app);
+    });
+}
+
+pub async fn await_first_frame() {
+    tokio::time::sleep(FRAME).await;
 }
 
 pub fn hide_main(app: &AppHandle) {

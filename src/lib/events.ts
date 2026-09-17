@@ -39,8 +39,16 @@ export function onLogAppended(
   );
 }
 
+export function onPopoverPrepare(handler: () => void): Promise<UnlistenFn> {
+  return subscribe<unknown>("popover://prepare", handler);
+}
+
 export function onPopoverShown(handler: () => void): Promise<UnlistenFn> {
   return subscribe<unknown>("popover://shown", handler);
+}
+
+export function onPopoverClosing(handler: () => void): Promise<UnlistenFn> {
+  return subscribe<unknown>("popover://closing", handler);
 }
 
 /** Theme, transparency and language, so both windows cannot drift apart. */
