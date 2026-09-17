@@ -7,6 +7,7 @@ import {
 import { useI18n } from "@/app/hooks/useI18n";
 import { useReveal } from "@/app/hooks/useReveal";
 import { useStore } from "@/app/store";
+import { groupBySource } from "@/features/popover/commandGroups";
 import { CommandRow } from "@/features/popover/components/CommandRow";
 import { scanMessage } from "@/features/projects/scanMessage";
 import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
@@ -27,6 +28,8 @@ export function ProjectRow({ project }: { project: Project }) {
   });
 
   const count = scan?.commands.length ?? 0;
+  const groups = scan ? groupBySource(scan.commands) : [];
+  const split = groups.length > 1;
   const message = scan ? scanMessage(scan) : null;
 
   return (
@@ -76,9 +79,21 @@ export function ProjectRow({ project }: { project: Project }) {
 
           {count > 0 ? (
             <ul ref={commands} className="flex flex-col">
-              {scan?.commands.map((command) => (
-                <li key={command.id}>
-                  <CommandRow projectId={project.id} command={command} />
+              {groups.map((group) => (
+                <li key={group.source}>
+                  {split ? (
+                    <p className="soffy-source">
+                      <span className="soffy-source__name">{group.label}</span>
+                      <span className="soffy-source__rule" />
+                    </p>
+                  ) : null}
+                  <ul className="flex flex-col">
+                    {group.commands.map((command) => (
+                      <li key={command.id}>
+                        <CommandRow projectId={project.id} command={command} />
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ))}
             </ul>
