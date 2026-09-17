@@ -13,6 +13,8 @@
     "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/pulso-icon.svg",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:hooks": "sh .githooks/commit-msg.test.sh",
+    "prepare": "git config core.hooksPath .githooks",
     "check": "biome check .",
     "format": "biome format --write . && biome check --write --only=assist/source/organizeImports .",
     "format:check": "biome format . && biome check --only=assist/source/organizeImports ."

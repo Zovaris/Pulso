@@ -1,10 +1,12 @@
 #!/bin/sh
 #
-# Rejects a commit message that carries a co-author trailer, that has a body
-# under the title, or that runs past two hundred characters.
+# Wants one line, at most two hundred characters, no co-author trailer.
+#
+# Merges, reverts and autosquash commits get their message from git itself, so
+# the line and length rules do not apply to them; only the trailers do.
 #
 # Active once the repository points at this folder:
-#   git config core.hooksPath .githooks
+#   git config core.hooksPath .githooks      (or run: bun install)
 
 message_file=${1:-}
 [ -n "$message_file" ] || exit 0
@@ -25,13 +27,12 @@ printf '%s\n' "$content" | grep -qi 'generated with codebuff' &&
 first_line=$(printf '%s\n' "$content" | head -n 1)
 
 case $first_line in
-Merge* | Revert* | fixup!* | squash!*) ;;
-*)
-  lines=$(printf '%s\n' "$content" | wc -l | tr -d ' ')
-  [ "$lines" -le 1 ] ||
-    reject "a title and nothing else. This message has $lines lines of content."
-  ;;
+Merge* | Revert* | fixup!* | squash!*) exit 0 ;;
 esac
+
+lines=$(printf '%s\n' "$content" | wc -l | tr -d ' ')
+[ "$lines" -le 1 ] ||
+  reject "a title and nothing else. This message has $lines lines of content."
 
 length=$(printf '%s' "$content" | tr -d '\n' | LC_ALL=en_US.UTF-8 wc -m | tr -d ' ')
 [ "$length" -le 200 ] ||
