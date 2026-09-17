@@ -1,0 +1,38 @@
+#!/bin/sh
+#
+# Rejects a commit message that carries a co-author trailer, that has a body
+# under the title, or that runs past two hundred characters.
+#
+# Active once the repository points at this folder:
+#   git config core.hooksPath .githooks
+
+message_file=${1:-}
+[ -n "$message_file" ] || exit 0
+
+content=$(sed -e '/^#/d' -e '/^[[:space:]]*$/d' "$message_file")
+
+reject() {
+  printf '\n  commit rejected: %s\n\n' "$1" >&2
+  exit 1
+}
+
+printf '%s\n' "$content" | grep -qiE '^co-authored-by:' &&
+  reject "no co-author trailer. Drop the Co-Authored-By line."
+
+printf '%s\n' "$content" | grep -qi 'generated with codebuff' &&
+  reject "no generated-by footer. Drop that line."
+
+first_line=$(printf '%s\n' "$content" | head -n 1)
+
+case $first_line in
+Merge* | Revert* | fixup!* | squash!*) ;;
+*)
+  lines=$(printf '%s\n' "$content" | wc -l | tr -d ' ')
+  [ "$lines" -le 1 ] ||
+    reject "a title and nothing else. This message has $lines lines of content."
+  ;;
+esac
+
+length=$(printf '%s' "$content" | tr -d '\n' | LC_ALL=en_US.UTF-8 wc -m | tr -d ' ')
+[ "$length" -le 200 ] ||
+  reject "the message is $length characters, past the ceiling of 200."
