@@ -23,7 +23,10 @@ export function PopoverShell() {
   const sound = useStore((state) => state.sound);
   const setSound = useStore((state) => state.setSound);
   const actions = usePopoverActions();
-  const shell = usePopoverEntrance<HTMLDivElement>();
+  const { shell, content } = usePopoverEntrance<
+    HTMLDivElement,
+    HTMLDivElement
+  >();
   usePopoverKeyboard();
 
   return (
@@ -31,16 +34,24 @@ export function PopoverShell() {
       ref={shell}
       className="pulso-popover flex h-full flex-col overflow-hidden rounded-[12px] text-paper"
     >
-      <PopoverHeader
-        title={t("appName")}
-        runningCount={runningCount}
-        rescanning={rescanning}
-        sound={sound}
-        onRescan={() => void rescanProjects()}
-        onToggleSound={() => setSound(!sound)}
-      />
-      <PopoverProjects projects={projects} onAddProject={actions.addProject} />
-      <PopoverFooter {...actions} showAddProject={projects.length > 0} />
+      <div
+        ref={content}
+        className="pulso-popover-content flex h-full min-h-0 flex-1 flex-col"
+      >
+        <PopoverHeader
+          title={t("appName")}
+          runningCount={runningCount}
+          rescanning={rescanning}
+          sound={sound}
+          onRescan={() => void rescanProjects()}
+          onToggleSound={() => setSound(!sound)}
+        />
+        <PopoverProjects
+          projects={projects}
+          onAddProject={actions.addProject}
+        />
+        <PopoverFooter {...actions} showAddProject={projects.length > 0} />
+      </div>
     </div>
   );
 }

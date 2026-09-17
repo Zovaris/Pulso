@@ -4,6 +4,7 @@ export type ResolvedTheme = "dark" | "light";
 
 const THEME_KEY = "pulso:theme";
 const GLASS_KEY = "pulso:transparency";
+const POPOVER_RADIUS = 12;
 
 export function readStoredTheme(): ThemePref {
   try {
@@ -70,7 +71,17 @@ export async function applyWindowChrome(
     if (win.label === "popover") {
       await clearWebviewBackground();
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
-      await win.clearEffects();
+
+      if (transparency) {
+        await win.setEffects({
+          effects: material,
+          state: EffectState.Active,
+          radius: POPOVER_RADIUS,
+        });
+      } else {
+        await win.clearEffects();
+      }
+
       return;
     }
     if (transparency) {
