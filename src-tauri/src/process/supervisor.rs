@@ -207,8 +207,8 @@ impl ProcessSupervisor {
                     logs: Arc::new(LogBuffer::new(Arc::clone(&self.log_lines))),
                     execution: execution.clone(),
                 });
-                self.notify(&execution);
                 self.finish_history(&execution, &[]);
+                self.notify(&execution);
 
                 Ok(execution)
             }
@@ -331,11 +331,11 @@ impl ProcessSupervisor {
         tokio::spawn(async move {
             let exit_code = child.wait().await.ok().and_then(|status| status.code());
             if let Some(snapshot) = finish(&executions, execution_id, exit_code) {
-                notifier(&snapshot);
-
                 if let Some(finished) = finished {
                     finished(&snapshot, &logs.tail(usize::MAX));
                 }
+
+                notifier(&snapshot);
             }
         });
     }
