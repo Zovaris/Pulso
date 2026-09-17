@@ -1,22 +1,35 @@
+use std::sync::{Arc, Mutex};
+
 use tauri::{
     image::Image,
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, PhysicalPosition, PhysicalSize,
+    AppHandle, Manager, PhysicalPosition, PhysicalSize,
 };
 
+use crate::commands::settings::{stored_locale, Locale};
 use crate::events;
+use crate::process::supervisor::ProcessSupervisor;
 
 use super::windows;
 
 const TRAY_PNG: &[u8] = include_bytes!("../../../assets/brand/soffy-tray.png");
+const TRAY_ID: &str = "soffy";
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Shown {
+    running: usize,
+    locale: Locale,
+}
+
+static SHOWN: Mutex<Option<Shown>> = Mutex::new(None);
 
 pub fn install(app: &AppHandle) -> tauri::Result<()> {
     let icon = Image::from_bytes(TRAY_PNG).expect("tray png");
 
-    let _tray = TrayIconBuilder::with_id("soffy")
+    let _tray = TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
         .icon_as_template(true)
-        .tooltip("Soffy")
+        .tooltip(label(0, Locale::En))
         .on_tray_icon_event(|tray, event| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
@@ -42,7 +55,56 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
         })
         .build(app)?;
 
+    sync(app);
+
     Ok(())
+}
+
+pub fn sync(app: &AppHandle) {
+    let Some(tray) = app.tray_by_id(TRAY_ID) else {
+        return;
+    };
+
+    let running = running_count(app);
+    let locale = stored_locale(app);
+
+    let Ok(mut shown) = SHOWN.lock() else {
+        return;
+    };
+    if *shown == Some(Shown { running, locale }) {
+        return;
+    }
+    *shown = Some(Shown { running, locale });
+    drop(shown);
+
+    let title = (running > 0).then(|| running.to_string());
+    let _ = tray.set_title(title);
+    let _ = tray.set_tooltip(Some(label(running, locale)));
+}
+
+pub fn label(running: usize, locale: Locale) -> String {
+    let sentence = match (locale, running) {
+        (Locale::En, 0) => "no processes running".to_string(),
+        (Locale::En, 1) => "one process running".to_string(),
+        (Locale::En, n) => format!("{n} processes running"),
+        (Locale::Es, 0) => "sin procesos activos".to_string(),
+        (Locale::Es, 1) => "un proceso activo".to_string(),
+        (Locale::Es, n) => format!("{n} procesos activos"),
+    };
+
+    format!("Soffy — {sentence}")
+}
+
+fn running_count(app: &AppHandle) -> usize {
+    let Some(supervisor) = app.try_state::<Arc<ProcessSupervisor>>() else {
+        return 0;
+    };
+
+    supervisor
+        .list()
+        .iter()
+        .filter(|execution| execution.is_active())
+        .count()
 }
 
 fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {
@@ -61,3 +123,6 @@ fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {
     let app = app.clone();
     tauri::async_runtime::spawn(async move { events::refresh(&app).await });
 }
+
+#[cfg(test)]
+mod tests;

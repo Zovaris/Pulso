@@ -28,7 +28,8 @@ pub fn run() {
             let notifier = {
                 let handle = handle.clone();
                 Arc::new(move |execution: &domain::execution::Execution| {
-                    events::execution_changed(&handle, execution)
+                    events::execution_changed(&handle, execution);
+                    app::tray::sync(&handle);
                 })
             };
             let log_notifier = {

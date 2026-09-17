@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager, State};
 
 use crate::events;
 use crate::persistence::{repositories, Database};
@@ -48,7 +48,7 @@ pub enum Locale {
 }
 
 impl Locale {
-    fn parse(value: &str) -> Option<Self> {
+    pub fn parse(value: &str) -> Option<Self> {
         match value {
             "es" => Some(Self::Es),
             "en" => Some(Self::En),
@@ -108,6 +108,20 @@ pub async fn get_preferences(db: State<'_, Arc<Database>>) -> Result<Option<Pref
     }))
 }
 
+pub fn stored_locale(app: &AppHandle) -> Locale {
+    let Some(database) = app.try_state::<Arc<Database>>() else {
+        return Locale::En;
+    };
+
+    database
+        .with(|conn| repositories::settings::get(conn, LOCALE_KEY))
+        .ok()
+        .flatten()
+        .as_deref()
+        .and_then(Locale::parse)
+        .unwrap_or(Locale::En)
+}
+
 #[tauri::command]
 pub async fn save_preferences(
     app: AppHandle,
@@ -140,6 +154,7 @@ pub async fn save_preferences(
     .await?;
 
     events::preferences_changed(&app, &preferences);
+    crate::app::tray::sync(&app);
 
     Ok(())
 }
