@@ -220,6 +220,27 @@ html[data-transparency="on"] .soffy-popover {
   }
 }
 
+.soffy-source {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 6px 4px;
+  color: var(--faint);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+}
+
+.soffy-source:first-child {
+  margin-top: 2px;
+}
+
+.soffy-source__rule {
+  flex: 1;
+  height: 1px;
+  background-color: var(--line);
+}
+
 .soffy-project {
   position: relative;
   display: flex;
@@ -605,13 +626,11 @@ button.soffy-port:hover {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--faint) transparent;
 }
 
 .soffy-logs__list::-webkit-scrollbar,
 .soffy-project-list::-webkit-scrollbar {
-  width: 9px;
+  width: 8px;
 }
 
 .soffy-logs__list::-webkit-scrollbar-track,
@@ -621,7 +640,7 @@ button.soffy-port:hover {
 
 .soffy-logs__list::-webkit-scrollbar-thumb,
 .soffy-project-list::-webkit-scrollbar-thumb {
-  border: 3px solid transparent;
+  border: 2px solid transparent;
   border-radius: 999px;
   background-clip: content-box;
   background-color: var(--faint);
