@@ -217,7 +217,7 @@
   "language": "Language",
   "languageHint": "Applies to both windows and the menu bar.",
   "transparency": "Transparency",
-  "transparencyHint": "Material behind the panel.",
+  "transparencyHint": "macOS material behind the main window. The corner panel stays opaque, which is what its text needs.",
   "soundCues": "Sound cues",
   "soundCuesHint": "Tink to start, Glass to finish well, Basso to fail.",
   "muteSound": "Mute sound cues",

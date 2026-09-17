@@ -51,7 +51,6 @@ html {
   --fill: rgb(255 255 255 / 0.06);
   --popover-base: #212121;
   --popover-rim: #333333;
-  --popover-surface: var(--popover-base);
   --motion-fast: 120ms;
   --motion-base: 180ms;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -89,7 +88,6 @@ html[data-transparency="on"] {
   --panel: color-mix(in srgb, var(--panel-base) 70%, transparent);
   --raised: color-mix(in srgb, var(--raised-base) 74%, transparent);
   --overlay: color-mix(in srgb, var(--overlay-base) 82%, transparent);
-  --popover-surface: color-mix(in srgb, var(--popover-base) 75%, transparent);
 }
 
 html,
@@ -129,7 +127,7 @@ button:not(:disabled) {
 }
 
 .pulso-popover {
-  background-color: var(--popover-surface);
+  background-color: var(--popover-base);
   border: 1px solid var(--popover-rim);
   transform-origin: 50% 0;
 }
@@ -617,12 +615,12 @@ button.pulso-port:hover {
 
 .pulso-scroll::before {
   top: 0;
-  background: linear-gradient(to bottom, var(--popover-surface), transparent);
+  background: linear-gradient(to bottom, var(--popover-base), transparent);
 }
 
 .pulso-scroll::after {
   bottom: 0;
-  background: linear-gradient(to top, var(--popover-surface), transparent);
+  background: linear-gradient(to top, var(--popover-base), transparent);
 }
 
 .pulso-scroll[data-edge="bottom"]::after,
@@ -780,7 +778,6 @@ button.pulso-port:hover {
     --panel: var(--panel-base);
     --raised: var(--raised-base);
     --overlay: var(--overlay-base);
-    --popover-surface: var(--popover-base);
   }
 }
 
