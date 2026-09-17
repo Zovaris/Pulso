@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+  database:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: dev
+  cache:
+    image: redis:7
+
+volumes:
+  data:

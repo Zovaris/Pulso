@@ -1,0 +1,20 @@
+version: "3"
+
+vars:
+  BIN: ./bin/app
+
+tasks:
+  dev:
+    desc: start the dev server
+    cmds:
+      - go run ./cmd/server
+  test:
+    cmds:
+      - go test ./...
+  build: go build -o {{.BIN}} ./cmd/app
+  migrate:
+    cmds:
+      - ./bin/migrate up
+  _internal:
+    cmds:
+      - echo private

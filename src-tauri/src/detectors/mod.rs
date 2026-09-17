@@ -1,3 +1,5 @@
+pub mod cargo_toml;
+pub mod compose;
 pub mod composer_json;
 pub mod deno_json;
 pub mod justfile;
@@ -5,8 +7,11 @@ pub mod makefile;
 pub mod naming;
 pub mod package_json;
 pub mod procfile;
+pub mod taskfile;
 
 use std::path::{Path, PathBuf};
+
+use yaml_rust2::Yaml;
 
 use crate::domain::command::{CommandScan, DetectedCommand, ScanStatus};
 
@@ -23,13 +28,16 @@ pub trait CommandDetector {
     fn detect(&self, project_dir: &Path) -> std::result::Result<Vec<DetectedCommand>, DetectError>;
 }
 
-pub fn detectors() -> [&'static dyn CommandDetector; 6] {
+pub fn detectors() -> [&'static dyn CommandDetector; 9] {
     [
         &package_json::PackageJsonDetector,
         &deno_json::DenoJsonDetector,
         &composer_json::ComposerJsonDetector,
         &makefile::MakefileDetector,
         &justfile::JustfileDetector,
+        &taskfile::TaskfileDetector,
+        &compose::ComposeDetector,
+        &cargo_toml::CargoTomlDetector,
         &procfile::ProcfileDetector,
     ]
 }
@@ -39,6 +47,18 @@ pub fn manifest(project_dir: &Path, names: &[&str]) -> Option<PathBuf> {
         .iter()
         .map(|name| project_dir.join(name))
         .find(|candidate| candidate.is_file())
+}
+
+pub fn declared_keys<'a>(document: &'a [Yaml], key: &str) -> Vec<&'a str> {
+    let Some(section) = document.first().and_then(|root| root[key].as_hash()) else {
+        return Vec::new();
+    };
+
+    section
+        .keys()
+        .filter_map(Yaml::as_str)
+        .filter(|name| !name.starts_with('_'))
+        .collect()
 }
 
 pub fn scan(project_id: i64, project_dir: &Path) -> CommandScan {

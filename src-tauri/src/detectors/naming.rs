@@ -26,7 +26,7 @@ const TEST: [&str; 9] = [
     "cypress",
 ];
 
-const LINT: [&str; 10] = [
+const LINT: [&str; 11] = [
     "lint",
     "format",
     "fmt",
@@ -34,6 +34,7 @@ const LINT: [&str; 10] = [
     "typecheck",
     "types",
     "biome",
+    "clippy",
     "eslint",
     "prettier",
     "stylelint",
@@ -41,7 +42,7 @@ const LINT: [&str; 10] = [
 
 const BUILD: [&str; 6] = ["build", "compile", "bundle", "dist", "release", "transpile"];
 
-const DEV: [&str; 9] = [
+const DEV: [&str; 10] = [
     "dev",
     "develop",
     "start",
@@ -51,6 +52,7 @@ const DEV: [&str; 9] = [
     "preview",
     "storybook",
     "web",
+    "run",
 ];
 
 const INFRASTRUCTURE: [&str; 9] = [
@@ -65,7 +67,7 @@ const INFRASTRUCTURE: [&str; 9] = [
     "vercel",
 ];
 
-const PERSISTENT: [&str; 10] = [
+const PERSISTENT: [&str; 11] = [
     "dev",
     "develop",
     "start",
@@ -76,6 +78,7 @@ const PERSISTENT: [&str; 10] = [
     "storybook",
     "tail",
     "web",
+    "logs",
 ];
 
 fn tokens(name: &str) -> Vec<String> {
@@ -147,8 +150,22 @@ mod tests {
         assert!(is_long_running("dev"));
         assert!(is_long_running("watch:css"));
         assert!(is_long_running("web"));
+        assert!(is_long_running("logs"));
         assert!(!is_long_running("test:e2e"));
         assert!(!is_long_running("build"));
+    }
+
+    #[test]
+    fn running_a_project_is_not_the_same_as_serving_it() {
+        assert_eq!(categorize("run"), CommandCategory::Dev);
+        assert!(!is_long_running("run"));
+        assert!(is_long_running("run:server"));
+    }
+
+    #[test]
+    fn the_tool_verbs_of_a_toolchain_land_where_a_user_expects_them() {
+        assert_eq!(categorize("clippy"), CommandCategory::Lint);
+        assert_eq!(categorize("fmt"), CommandCategory::Lint);
     }
 
     #[test]
