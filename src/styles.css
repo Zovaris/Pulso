@@ -139,14 +139,6 @@ button:not(:disabled) {
   opacity: 0;
 }
 
-.pulso-popover-content {
-  transform-origin: 50% 0;
-}
-
-.pulso-popover-content[data-frame="true"] {
-  transform: translateY(-6px) scale(0.985);
-}
-
 .pulso-row.sph-button {
   width: 100%;
   justify-content: flex-start;
