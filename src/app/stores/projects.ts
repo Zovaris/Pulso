@@ -23,7 +23,16 @@ export type ProjectsSlice = Pick<
   | "dismissProjectError"
 >;
 
+const RESCAN_FEEDBACK = 480;
+
 const key = (projectId: number) => String(projectId);
+
+async function holdFeedback(started: number) {
+  const left = RESCAN_FEEDBACK - (Date.now() - started);
+  if (left <= 0) return;
+
+  await new Promise((resolve) => window.setTimeout(resolve, left));
+}
 
 function upsert(projects: Project[], project: Project): Project[] {
   const index = projects.findIndex((existing) => existing.id === project.id);
@@ -120,11 +129,14 @@ export const createProjectsSlice: StateCreator<
 
   rescanProjects: async () => {
     set({ rescanning: true, projectError: null });
+    const started = Date.now();
+
     try {
       await projectsApi.rescanProjects();
     } catch (cause) {
       set({ projectError: toBackendError(cause) });
     } finally {
+      await holdFeedback(started);
       set({ rescanning: false });
     }
   },

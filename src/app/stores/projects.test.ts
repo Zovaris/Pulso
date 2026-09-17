@@ -44,7 +44,8 @@ beforeEach(() => {
 });
 
 describe("rescanProjects", () => {
-  it("is busy only while the backend is reading", async () => {
+  it("holds the busy state long enough to be seen", async () => {
+    vi.useFakeTimers();
     let finish = () => {};
     api.rescanProjects.mockImplementation(
       () =>
@@ -57,9 +58,28 @@ describe("rescanProjects", () => {
     expect(useStore.getState().rescanning).toBe(true);
 
     finish();
+    await Promise.resolve();
+    expect(useStore.getState().rescanning).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(480);
     await inFlight;
 
     expect(useStore.getState().rescanning).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("stays busy only as long as it has to", async () => {
+    vi.useFakeTimers();
+    api.rescanProjects.mockImplementation(async () => {
+      await new Promise((resolve) => window.setTimeout(resolve, 900));
+    });
+
+    const inFlight = useStore.getState().rescanProjects();
+    await vi.advanceTimersByTimeAsync(900);
+    await inFlight;
+
+    expect(useStore.getState().rescanning).toBe(false);
+    vi.useRealTimers();
   });
 
   it("takes the scans the backend pushes while it works", async () => {
