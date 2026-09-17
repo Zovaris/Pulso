@@ -10,6 +10,10 @@ export type LogFilter = {
 
 export const NO_FILTER: LogFilter = { query: "", stream: "all" };
 
+/** One array, shared, for the runs that have no output yet: a selector that
+ * builds a fresh `[]` is a selector the store reads as a change every time. */
+export const NO_LINES: LogLine[] = [];
+
 export function filterLines(lines: LogLine[], filter: LogFilter): LogLine[] {
   const query = filter.query.trim().toLowerCase();
 

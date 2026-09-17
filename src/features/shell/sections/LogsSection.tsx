@@ -12,6 +12,7 @@ import {
   filterLines,
   logText,
   matchCount,
+  NO_LINES,
   type StreamFilter,
 } from "@/features/desktop/logs";
 import { formatLogTime } from "@/features/executions/execution";
@@ -34,7 +35,7 @@ function Stream({
   query: string;
 }) {
   const { t } = useI18n();
-  const lines = useStore((state) => state.logs[executionId] ?? []);
+  const lines = useStore((state) => state.logs[executionId] ?? NO_LINES);
   const autoscroll = useStore((state) => state.logAutoscroll);
   const setAutoscroll = useStore((state) => state.setLogAutoscroll);
   const box = useRef<HTMLDivElement>(null);

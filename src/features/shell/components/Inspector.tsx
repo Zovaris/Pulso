@@ -10,6 +10,7 @@ import {
   runStamp,
   timeline,
 } from "@/features/desktop/history";
+import { NO_LINES } from "@/features/desktop/logs";
 import { formatCpu, formatMemory } from "@/features/desktop/metrics";
 import { exitBadge } from "@/features/desktop/session";
 import {
@@ -107,8 +108,8 @@ export function ProcessInspector() {
   const metrics = useStore((state) =>
     execution ? state.metrics[execution.id] : undefined,
   );
-  const lines = useStore((state) =>
-    execution ? (state.logs[execution.id] ?? []) : [],
+  const lines = useStore(
+    (state) => (execution ? state.logs[execution.id] : undefined) ?? NO_LINES,
   );
   const openLogs = useStore((state) => state.setSection);
   const selectedProjectId = useStore((state) => state.selectedProjectId);
