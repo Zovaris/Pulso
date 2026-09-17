@@ -2,7 +2,7 @@ import path from "node:path";
 import process from "node:process";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -17,6 +17,12 @@ export default defineConfig({
   build: {
     sourcemap: false,
     minify: "esbuild",
+  },
+  test: {
+    environment: "jsdom",
+    include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["src/test/setup.ts"],
+    restoreMocks: true,
   },
   server: {
     port: 1420,
