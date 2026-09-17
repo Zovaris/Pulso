@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/pulso-icon.svg",
+    "release": "bun scripts/release.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "validate:commit": "node scripts/validate-commit-message.mjs",
