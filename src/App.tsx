@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { AppShell } from "@/features/app/AppShell";
 import { usePreferencesSync } from "@/features/app/usePreferencesSync";
 import { PopoverShell } from "@/features/popover/PopoverShell";
 import { useProjectSync } from "@/features/projects/useProjectSync";
+import { AppShell } from "@/features/shell/AppShell";
 import {
   applyDocumentAppearance,
   applyWindowChrome,

@@ -18,6 +18,7 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-press: var(--accent-press);
   --color-ok: var(--ok);
+  --color-alarm: var(--alarm);
   --color-hover: var(--hover);
   --color-fill: var(--fill);
 }
@@ -45,6 +46,7 @@ html {
   --accent-press: #41664a;
   --accent-strong: #80a989;
   --ok: #28c840;
+  --alarm: #b4584d;
   --hover: rgb(255 255 255 / 0.04);
   --fill: rgb(255 255 255 / 0.06);
   --popover-base: #212121;
@@ -72,6 +74,7 @@ html[data-theme="light"] {
   --accent-press: #284d32;
   --accent-strong: #2f5b39;
   --ok: #188a2c;
+  --alarm: #a3453a;
   --hover: rgb(0 0 0 / 0.045);
   --fill: rgb(0 0 0 / 0.06);
   --popover-base: #ffffff;

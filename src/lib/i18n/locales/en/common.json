@@ -53,5 +53,27 @@
   "muteSound": "Mute sound cues",
   "unmuteSound": "Unmute sound cues",
   "muteHint": "Stops the cue that plays when a command starts, finishes or fails.",
-  "unmuteHint": "Plays a cue when a command starts, finishes or fails."
+  "unmuteHint": "Plays a cue when a command starts, finishes or fails.",
+  "sectionOverview": "Overview",
+  "sectionProjects": "Projects",
+  "sectionProcesses": "Processes",
+  "sectionLogs": "Logs",
+  "sectionSettings": "Settings",
+  "sectionHint": "⌘1…⌘5 switch sections",
+  "overviewLede": "What Pulso knows about your projects right now.",
+  "projectsLede": "Every folder Pulso watches, and what it reads in each one.",
+  "settingsLede": "The same switches as the popover, in a window with room for more.",
+  "tileCommands": "Commands found",
+  "tileRunning": "Running",
+  "comingMetrics": "Live CPU and memory arrive with the process monitor.",
+  "processesNote": "Every process Pulso started will live here, with uptime, CPU, memory and port.",
+  "logsNote": "Full logs, searchable and without the popover's line cap.",
+  "projectCount": {
+    "one": "{count} project",
+    "other": "{count} projects"
+  },
+  "themeHint": "Dark, light, or whatever the system is using.",
+  "languageHint": "Applies to both windows and the menu bar.",
+  "transparencyHint": "Material behind the panel.",
+  "soundCuesHint": "A cue when a command starts, finishes or fails."
 }

@@ -53,5 +53,27 @@
   "muteSound": "Silenciar los avisos",
   "unmuteSound": "Activar los avisos",
   "muteHint": "Deja de sonar al arrancar, terminar o fallar un comando.",
-  "unmuteHint": "Suena al arrancar, terminar o fallar un comando."
+  "unmuteHint": "Suena al arrancar, terminar o fallar un comando.",
+  "sectionOverview": "Resumen",
+  "sectionProjects": "Proyectos",
+  "sectionProcesses": "Procesos",
+  "sectionLogs": "Logs",
+  "sectionSettings": "Ajustes",
+  "sectionHint": "⌘1…⌘5 cambia de sección",
+  "overviewLede": "Lo que Pulso sabe de tus proyectos ahora mismo.",
+  "projectsLede": "Cada carpeta que Pulso vigila, y lo que lee en cada una.",
+  "settingsLede": "Los mismos interruptores del popover, en una ventana con espacio para más.",
+  "tileCommands": "Comandos encontrados",
+  "tileRunning": "Corriendo",
+  "comingMetrics": "El consumo de CPU y memoria llega con el monitor de procesos.",
+  "processesNote": "Aquí vivirá cada proceso que Pulso arrancó, con uptime, CPU, memoria y puerto.",
+  "logsNote": "Los logs completos, con búsqueda y sin el recorte del popover.",
+  "projectCount": {
+    "one": "{count} proyecto",
+    "other": "{count} proyectos"
+  },
+  "themeHint": "Oscuro, claro o el del sistema.",
+  "languageHint": "Se aplica a las dos ventanas y a la barra.",
+  "transparencyHint": "Material detrás del panel.",
+  "soundCuesHint": "Un aviso al arrancar, terminar o fallar un comando."
 }
