@@ -16,6 +16,7 @@ export type StoreState = {
   locale: Locale;
   themePref: ThemePref;
   transparency: boolean;
+  sound: boolean;
 
   projects: Project[];
 
@@ -37,6 +38,7 @@ export type StoreActions = {
   setLocale: (locale: Locale) => void;
   setThemePref: (pref: ThemePref) => void;
   setTransparency: (value: boolean) => void;
+  setSound: (value: boolean) => void;
 
   hydratePreferences: () => Promise<void>;
   applyPreferences: (preferences: Preferences) => void;

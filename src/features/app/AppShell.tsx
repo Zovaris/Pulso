@@ -45,6 +45,8 @@ export function AppShell() {
   const setThemePref = useStore((state) => state.setThemePref);
   const transparency = useStore((state) => state.transparency);
   const setTransparency = useStore((state) => state.setTransparency);
+  const sound = useStore((state) => state.sound);
+  const setSound = useStore((state) => state.setSound);
 
   return (
     <div className="flex h-full flex-col bg-void text-paper">
@@ -127,6 +129,12 @@ export function AppShell() {
                   checked={transparency}
                   onCheckedChange={setTransparency}
                   label={t("transparency")}
+                  size="sm"
+                />
+                <Toggle
+                  checked={sound}
+                  onCheckedChange={setSound}
+                  label={t("soundCues")}
                   size="sm"
                 />
               </div>

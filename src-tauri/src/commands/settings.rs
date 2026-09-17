@@ -12,6 +12,7 @@ use super::in_database;
 const THEME_KEY: &str = "ui.theme";
 const TRANSPARENCY_KEY: &str = "ui.transparency";
 const LOCALE_KEY: &str = "ui.locale";
+const SOUND_KEY: &str = "ui.sound";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -70,6 +71,7 @@ pub struct Preferences {
     pub theme: ThemePref,
     pub transparency: bool,
     pub locale: Locale,
+    pub sound: bool,
 }
 
 #[tauri::command]
@@ -79,11 +81,12 @@ pub async fn get_preferences(db: State<'_, Arc<Database>>) -> Result<Option<Pref
             repositories::settings::get(conn, THEME_KEY)?,
             repositories::settings::get(conn, TRANSPARENCY_KEY)?,
             repositories::settings::get(conn, LOCALE_KEY)?,
+            repositories::settings::get(conn, SOUND_KEY)?,
         ))
     })
     .await?;
 
-    let (theme, transparency, locale) = stored;
+    let (theme, transparency, locale, sound) = stored;
     let (Some(theme), Some(locale)) = (theme, locale) else {
         return Ok(None);
     };
@@ -105,7 +108,12 @@ pub async fn get_preferences(db: State<'_, Arc<Database>>) -> Result<Option<Pref
         theme,
         transparency: transparency.as_deref() == Some("1"),
         locale,
+        sound: sound_pref(sound.as_deref()),
     }))
+}
+
+fn sound_pref(stored: Option<&str>) -> bool {
+    stored != Some("0")
 }
 
 pub fn stored_locale(app: &AppHandle) -> Locale {
@@ -129,6 +137,7 @@ pub async fn save_preferences(
     theme: String,
     transparency: bool,
     locale: String,
+    sound: bool,
 ) -> Result<()> {
     let theme = ThemePref::parse(&theme).ok_or_else(|| {
         BackendError::new(ErrorKind::InvalidInput, format!("{theme} is not a theme."))
@@ -144,12 +153,14 @@ pub async fn save_preferences(
         theme,
         transparency,
         locale,
+        sound,
     };
 
     in_database(&db, move |conn| {
         repositories::settings::set(conn, THEME_KEY, theme.as_str())?;
         repositories::settings::set(conn, TRANSPARENCY_KEY, if transparency { "1" } else { "0" })?;
-        repositories::settings::set(conn, LOCALE_KEY, locale.as_str())
+        repositories::settings::set(conn, LOCALE_KEY, locale.as_str())?;
+        repositories::settings::set(conn, SOUND_KEY, if sound { "1" } else { "0" })
     })
     .await?;
 

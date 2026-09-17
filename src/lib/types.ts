@@ -6,6 +6,7 @@ export type Preferences = {
   theme: ThemePref;
   transparency: boolean;
   locale: Locale;
+  sound: boolean;
 };
 
 export type Availability = "available" | "missing";

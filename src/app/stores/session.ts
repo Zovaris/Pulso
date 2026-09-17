@@ -22,9 +22,11 @@ export type SessionSlice = Pick<
   | "locale"
   | "themePref"
   | "transparency"
+  | "sound"
   | "setLocale"
   | "setThemePref"
   | "setTransparency"
+  | "setSound"
   | "applyPreferences"
   | "hydratePreferences"
   | "t"
@@ -67,6 +69,7 @@ export const createSessionSlice: StateCreator<
       theme: state.themePref,
       transparency: state.transparency,
       locale: state.locale,
+      sound: state.sound,
     };
   };
 
@@ -83,6 +86,7 @@ export const createSessionSlice: StateCreator<
       themePref: preferences.theme,
       transparency: preferences.transparency,
       locale: preferences.locale,
+      sound: preferences.sound,
     });
   };
 
@@ -91,6 +95,7 @@ export const createSessionSlice: StateCreator<
     locale: initialLocale,
     themePref: initialTheme,
     transparency: initialGlass,
+    sound: true,
 
     setLocale: (locale: Locale) => {
       const next = { ...chosen(), locale };
@@ -110,6 +115,12 @@ export const createSessionSlice: StateCreator<
       persist(next);
     },
 
+    setSound: (value: boolean) => {
+      const next = { ...chosen(), sound: value };
+      apply(next);
+      persist(next);
+    },
+
     applyPreferences: apply,
 
     hydratePreferences: async () => {
@@ -123,7 +134,8 @@ export const createSessionSlice: StateCreator<
       if (
         stored.theme === current.theme &&
         stored.transparency === current.transparency &&
-        stored.locale === current.locale
+        stored.locale === current.locale &&
+        stored.sound === current.sound
       ) {
         return;
       }

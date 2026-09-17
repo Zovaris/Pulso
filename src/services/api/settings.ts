@@ -13,5 +13,6 @@ export function persistPreferences(preferences: Preferences): Promise<void> {
     theme: preferences.theme,
     transparency: preferences.transparency,
     locale: preferences.locale,
+    sound: preferences.sound,
   });
 }
