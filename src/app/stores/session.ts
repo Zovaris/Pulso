@@ -19,6 +19,8 @@ import type { AppStore } from "./types";
 export type SessionSlice = Pick<
   AppStore,
   | "surface"
+  | "section"
+  | "setSection"
   | "locale"
   | "themePref"
   | "transparency"
@@ -96,6 +98,9 @@ export const createSessionSlice: StateCreator<
     themePref: initialTheme,
     transparency: initialGlass,
     sound: true,
+    section: "overview",
+
+    setSection: (section) => set({ section }),
 
     setLocale: (locale: Locale) => {
       const next = { ...chosen(), locale };

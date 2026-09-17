@@ -11,8 +11,16 @@ import type {
   ThemePref,
 } from "@/lib/types";
 
+export type SectionId =
+  | "overview"
+  | "projects"
+  | "processes"
+  | "logs"
+  | "settings";
+
 export type StoreState = {
   surface: Surface;
+  section: SectionId;
   locale: Locale;
   themePref: ThemePref;
   transparency: boolean;
@@ -37,6 +45,7 @@ export type StoreState = {
 };
 
 export type StoreActions = {
+  setSection: (section: SectionId) => void;
   setLocale: (locale: Locale) => void;
   setThemePref: (pref: ThemePref) => void;
   setTransparency: (value: boolean) => void;
