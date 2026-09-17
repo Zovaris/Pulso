@@ -47,6 +47,8 @@ export function applyDocumentAppearance(
   } catch {}
 }
 
+const POPOVER_RADIUS = 12;
+
 export async function applyWindowChrome(
   resolved: ResolvedTheme,
   transparency: boolean,
@@ -62,19 +64,34 @@ export async function applyWindowChrome(
       getCurrentWebview()
         .setBackgroundColor(null)
         .catch(() => undefined);
+    const material =
+      resolved === "dark"
+        ? [Effect.HudWindow]
+        : [Effect.HeaderView, Effect.ContentBackground];
+
     if (win.label === "popover") {
       await clearWebviewBackground();
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
-      await win.clearEffects();
+
+      if (!transparency) {
+        await win.clearEffects();
+        return;
+      }
+
+      // The glass is macOS's: a transparent webview has nothing of its own to
+      // blur, so a backdrop-filter there leaves the panel with no backdrop at
+      // all and the desktop reads straight through the text.
+      await win.setEffects({
+        effects: material,
+        state: EffectState.Active,
+        radius: POPOVER_RADIUS,
+      });
       return;
     }
     if (transparency) {
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
       await win.setEffects({
-        effects:
-          resolved === "dark"
-            ? [Effect.HudWindow]
-            : [Effect.HeaderView, Effect.ContentBackground],
+        effects: material,
         state: EffectState.Active,
       });
     } else {
