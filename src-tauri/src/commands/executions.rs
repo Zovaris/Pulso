@@ -36,6 +36,15 @@ pub async fn start_command(
 }
 
 #[tauri::command]
+pub async fn clear_finished(
+    supervisor: State<'_, Arc<ProcessSupervisor>>,
+) -> Result<Vec<Execution>> {
+    supervisor.clear_finished();
+
+    Ok(supervisor.list())
+}
+
+#[tauri::command]
 pub async fn stop_execution(
     supervisor: State<'_, Arc<ProcessSupervisor>>,
     execution_id: i64,

@@ -8,6 +8,7 @@ use crate::commands::settings::Preferences;
 use crate::domain::command::CommandScan;
 use crate::domain::execution::Execution;
 use crate::domain::log::LogLine;
+use crate::domain::metrics::MetricSample;
 use crate::domain::project::Project;
 use crate::persistence::repositories::flags::FlagsByCommand;
 use crate::persistence::{repositories, Database};
@@ -16,6 +17,7 @@ pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
 pub const COMMAND_FLAGS_CHANGED: &str = "project://flags-changed";
 pub const EXECUTION_CHANGED: &str = "execution://state-changed";
+pub const EXECUTION_METRICS: &str = "execution://metrics";
 pub const LOG_APPENDED: &str = "execution://log-appended";
 pub const POPOVER_PREPARE: &str = "popover://prepare";
 pub const POPOVER_SHOWN: &str = "popover://shown";
@@ -75,7 +77,6 @@ pub fn execution_changed(app: &AppHandle, execution: &Execution) {
     let _ = app.emit(EXECUTION_CHANGED, execution);
 }
 
-
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LogAppended {
@@ -89,6 +90,21 @@ pub fn log_appended(app: &AppHandle, execution_id: i64, lines: &[LogLine]) {
         LogAppended {
             execution_id,
             lines: lines.to_vec(),
+        },
+    );
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsChanged {
+    pub samples: Vec<MetricSample>,
+}
+
+pub fn execution_metrics(app: &AppHandle, samples: &[MetricSample]) {
+    let _ = app.emit(
+        EXECUTION_METRICS,
+        MetricsChanged {
+            samples: samples.to_vec(),
         },
     );
 }

@@ -44,6 +44,12 @@ pub fn run() {
                 log_notifier,
             ));
             supervisor.set_log_lines(commands::settings::log_lines(&handle));
+            process::metrics::spawn(Arc::clone(&supervisor), {
+                let handle = handle.clone();
+                Arc::new(move |samples: &[domain::metrics::MetricSample]| {
+                    events::execution_metrics(&handle, samples);
+                })
+            });
             app.manage(supervisor);
 
             app::tray::install(&handle)?;
@@ -93,6 +99,7 @@ pub fn run() {
             commands::tray::set_tray_badge,
             commands::executions::list_executions,
             commands::executions::start_command,
+            commands::executions::clear_finished,
             commands::executions::stop_execution,
             commands::executions::get_log_snapshot,
             commands::executions::open_detected_url,
