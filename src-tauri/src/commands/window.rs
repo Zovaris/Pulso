@@ -34,8 +34,8 @@ pub fn open_main_window(app: AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
-pub fn hide_popover(app: AppHandle) {
-    windows::hide_popover(&app);
+pub fn close_popover(app: AppHandle) {
+    windows::close_popover(&app);
 }
 
 #[tauri::command]

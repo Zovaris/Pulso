@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createCursorSlice } from "@/app/stores/cursor";
 import { createExecutionsSlice } from "@/app/stores/executions";
 import { createProjectsSlice } from "@/app/stores/projects";
 import { createSessionSlice } from "@/app/stores/session";
@@ -10,4 +11,5 @@ export const useStore = create<AppStore>()((...args) => ({
   ...createSessionSlice(...args),
   ...createProjectsSlice(...args),
   ...createExecutionsSlice(...args),
+  ...createCursorSlice(...args),
 }));

@@ -8,20 +8,27 @@ beforeEach(() => {
 });
 
 function header(
-  overrides: { runningCount?: number; rescanning?: boolean } = {},
+  overrides: {
+    runningCount?: number;
+    rescanning?: boolean;
+    sound?: boolean;
+  } = {},
 ) {
   const onRescan = vi.fn();
+  const onToggleSound = vi.fn();
 
   render(
     <PopoverHeader
       title="Pulso"
       runningCount={overrides.runningCount ?? 0}
       rescanning={overrides.rescanning ?? false}
+      sound={overrides.sound ?? true}
       onRescan={onRescan}
+      onToggleSound={onToggleSound}
     />,
   );
 
-  return onRescan;
+  return { onRescan, onToggleSound };
 }
 
 describe("PopoverHeader", () => {
@@ -44,7 +51,7 @@ describe("PopoverHeader", () => {
   });
 
   it("asks for a rescan when it is clicked", () => {
-    const onRescan = header();
+    const { onRescan } = header();
 
     fireEvent.click(screen.getByRole("button", { name: "Rescan projects" }));
 
@@ -62,6 +69,27 @@ describe("PopoverHeader", () => {
     expect(button.getAttribute("data-busy")).toBe("true");
     expect(button.getAttribute("title")).toBe(
       "Reads every project file again.",
+    );
+  });
+
+  it("silences the cues from where the processes are watched", () => {
+    const { onToggleSound } = header({ sound: true });
+
+    fireEvent.click(screen.getByRole("button", { name: "Mute sound cues" }));
+
+    expect(onToggleSound).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the cues are off", () => {
+    header({ sound: false });
+
+    const button = screen.getByRole<HTMLButtonElement>("button", {
+      name: "Unmute sound cues",
+    });
+
+    expect(button.getAttribute("data-off")).toBe("true");
+    expect(button.getAttribute("title")).toBe(
+      "Plays a cue when a command starts, finishes or fails.",
     );
   });
 });

@@ -5,10 +5,12 @@ import {
   TrashIcon,
 } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
+import { useIntoView } from "@/app/hooks/useIntoView";
 import { useReveal } from "@/app/hooks/useReveal";
 import { useStore } from "@/app/store";
 import { groupBySource } from "@/features/popover/commandGroups";
 import { CommandRow } from "@/features/popover/components/CommandRow";
+import { projectRowKey } from "@/features/popover/cursor";
 import { scanMessage } from "@/features/projects/scanMessage";
 import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
 import type { Project } from "@/lib/types";
@@ -20,7 +22,11 @@ export function ProjectRow({ project }: { project: Project }) {
   const scanning = useStore((state) => state.scanningProjectId === project.id);
   const toggleProject = useStore((state) => state.toggleProject);
   const removeProject = useStore((state) => state.removeProject);
+  const selected = useStore(
+    (state) => state.cursor === projectRowKey(project.id),
+  );
 
+  const row = useIntoView<HTMLDivElement>(selected);
   const scanBox = useReveal<HTMLDivElement>(expanded);
   const [commands] = useAutoAnimate<HTMLUListElement>({
     duration: REVEAL_DURATION,
@@ -34,7 +40,7 @@ export function ProjectRow({ project }: { project: Project }) {
 
   return (
     <div className="pulso-project-row">
-      <div className="pulso-project">
+      <div className="pulso-project" data-cursor={selected} ref={row}>
         <button
           type="button"
           className="pulso-project__open"

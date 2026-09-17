@@ -49,5 +49,9 @@
   "themeSystem": "System",
   "language": "Language",
   "transparency": "Transparency",
-  "soundCues": "Sound cues"
+  "soundCues": "Sound cues",
+  "muteSound": "Mute sound cues",
+  "unmuteSound": "Unmute sound cues",
+  "muteHint": "Stops the cue that plays when a command starts, finishes or fails.",
+  "unmuteHint": "Plays a cue when a command starts, finishes or fails."
 }

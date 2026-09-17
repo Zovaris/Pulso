@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useAddProject } from "@/features/projects/useAddProject";
 import {
-  hidePopover,
+  closePopover,
   openMainWindow,
   quitPulso,
   showPopover,
@@ -22,7 +22,7 @@ export function usePopoverActions(): PopoverActions {
 
   const openApp = useCallback(() => {
     void openMainWindow();
-    void hidePopover();
+    void closePopover();
   }, []);
 
   const quit = useCallback(() => {

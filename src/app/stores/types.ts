@@ -32,6 +32,8 @@ export type StoreState = {
 
   logs: Record<number, LogLine[]>;
   openLogKey: string | null;
+
+  cursor: string | null;
 };
 
 export type StoreActions = {
@@ -60,6 +62,11 @@ export type StoreActions = {
   applyExecution: (execution: Execution) => void;
   startCommand: (projectId: number, commandId: string) => Promise<void>;
   stopExecution: (executionId: number) => Promise<void>;
+
+  setCursor: (key: string | null) => void;
+  moveCursor: (delta: number) => void;
+  stepCursor: (direction: "in" | "out") => void;
+  activateCursor: () => void;
 
   applyLogs: (executionId: number, lines: LogLine[]) => void;
   loadLogs: (executionId: number) => Promise<void>;

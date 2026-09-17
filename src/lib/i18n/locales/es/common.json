@@ -49,5 +49,9 @@
   "themeSystem": "Sistema",
   "language": "Idioma",
   "transparency": "Transparencia",
-  "soundCues": "Avisos sonoros"
+  "soundCues": "Avisos sonoros",
+  "muteSound": "Silenciar los avisos",
+  "unmuteSound": "Activar los avisos",
+  "muteHint": "Deja de sonar al arrancar, terminar o fallar un comando.",
+  "unmuteHint": "Suena al arrancar, terminar o fallar un comando."
 }

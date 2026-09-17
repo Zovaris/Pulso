@@ -7,6 +7,7 @@ import { PopoverHeader } from "@/features/popover/components/PopoverHeader";
 import { PopoverProjects } from "@/features/popover/components/PopoverProjects";
 import { usePopoverActions } from "@/features/popover/usePopoverActions";
 import { usePopoverEntrance } from "@/features/popover/usePopoverEntrance";
+import { usePopoverKeyboard } from "@/features/popover/usePopoverKeyboard";
 
 export function PopoverShell() {
   const { t } = useI18n();
@@ -19,8 +20,11 @@ export function PopoverShell() {
   );
   const rescanning = useStore((state) => state.rescanning);
   const rescanProjects = useStore((state) => state.rescanProjects);
+  const sound = useStore((state) => state.sound);
+  const setSound = useStore((state) => state.setSound);
   const actions = usePopoverActions();
   const shell = usePopoverEntrance<HTMLDivElement>();
+  usePopoverKeyboard();
 
   return (
     <div
@@ -31,7 +35,9 @@ export function PopoverShell() {
         title={t("appName")}
         runningCount={runningCount}
         rescanning={rescanning}
+        sound={sound}
         onRescan={() => void rescanProjects()}
+        onToggleSound={() => setSound(!sound)}
       />
       <PopoverProjects projects={projects} onAddProject={actions.addProject} />
       <PopoverFooter {...actions} showAddProject={projects.length > 0} />

@@ -1,18 +1,26 @@
-import { ArrowClockwiseIcon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon,
+  SpeakerHighIcon,
+  SpeakerSlashIcon,
+} from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
 
 type PopoverHeaderProps = {
   title: string;
   runningCount: number;
   rescanning: boolean;
+  sound: boolean;
   onRescan: () => void;
+  onToggleSound: () => void;
 };
 
 export function PopoverHeader({
   title,
   runningCount,
   rescanning,
+  sound,
   onRescan,
+  onToggleSound,
 }: PopoverHeaderProps) {
   const { t } = useI18n();
 
@@ -28,6 +36,20 @@ export function PopoverHeader({
             ? t("noneRunning")
             : t("runningCount", { count: runningCount })}
         </p>
+        <button
+          type="button"
+          className="pulso-mute"
+          data-off={!sound}
+          aria-label={sound ? t("muteSound") : t("unmuteSound")}
+          title={sound ? t("muteHint") : t("unmuteHint")}
+          onClick={onToggleSound}
+        >
+          {sound ? (
+            <SpeakerHighIcon size={13} weight="bold" />
+          ) : (
+            <SpeakerSlashIcon size={13} weight="bold" />
+          )}
+        </button>
         <button
           type="button"
           className="pulso-rescan"

@@ -18,9 +18,9 @@ export function openMainWindow(): Promise<void> {
   return invoke("open_main_window");
 }
 
-export function hidePopover(): Promise<void> {
+export function closePopover(): Promise<void> {
   if (!isTauri()) return Promise.resolve();
-  return invoke("hide_popover");
+  return invoke("close_popover");
 }
 
 export async function showPopover(): Promise<void> {

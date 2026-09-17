@@ -1,5 +1,6 @@
 import { CaretRightIcon, PlayIcon, StopIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
+import { useIntoView } from "@/app/hooks/useIntoView";
 import { useStore } from "@/app/store";
 import { CommandLogs } from "@/features/executions/CommandLogs";
 import {
@@ -9,6 +10,7 @@ import {
   useElapsed,
 } from "@/features/executions/execution";
 import { PortBadge } from "@/features/executions/PortBadge";
+import { commandRowKey } from "@/features/popover/cursor";
 import type { DetectedCommand } from "@/lib/types";
 
 export function CommandRow({
@@ -26,7 +28,11 @@ export function CommandRow({
   const stopExecution = useStore((state) => state.stopExecution);
   const toggleLogs = useStore((state) => state.toggleLogs);
   const openUrl = useStore((state) => state.openUrl);
+  const selected = useStore(
+    (state) => state.cursor === commandRowKey(projectId, command.id),
+  );
 
+  const row = useIntoView<HTMLDivElement>(selected);
   const execution = latestExecution(executions, projectId, command.id);
   const active = execution ? isActiveState(execution.state) : false;
   const elapsed = useElapsed(execution?.startedAt, active);
@@ -36,8 +42,8 @@ export function CommandRow({
   const open = openLogKey === key;
 
   return (
-    <div className="pulso-command-row">
-      <div className="pulso-command" data-live={active}>
+    <div className="pulso-command-row" ref={row}>
+      <div className="pulso-command" data-live={active} data-cursor={selected}>
         <button
           type="button"
           className="pulso-command__open"

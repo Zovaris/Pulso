@@ -180,7 +180,8 @@ html[data-transparency="on"] .pulso-popover {
   background-color: var(--accent-strong);
 }
 
-.pulso-rescan {
+.pulso-rescan,
+.pulso-mute {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -195,12 +196,14 @@ html[data-transparency="on"] .pulso-popover {
     background-color var(--motion-fast) var(--ease-out);
 }
 
-.pulso-rescan:hover {
+.pulso-rescan:hover,
+.pulso-mute:hover {
   color: var(--paper);
   background-color: var(--hover);
 }
 
-.pulso-rescan:focus-visible {
+.pulso-rescan:focus-visible,
+.pulso-mute:focus-visible {
   outline: 2px solid var(--accent-strong);
   outline-offset: 1px;
 }
@@ -208,6 +211,14 @@ html[data-transparency="on"] .pulso-popover {
 .pulso-rescan:disabled {
   cursor: default;
   color: var(--mist);
+}
+
+.pulso-mute {
+  color: var(--mist);
+}
+
+.pulso-mute[data-off="true"] {
+  color: var(--faint);
 }
 
 .pulso-rescan[data-busy="true"] svg {
@@ -775,4 +786,22 @@ button.pulso-port:hover {
     background-color: var(--popover-base);
     backdrop-filter: none;
   }
+}
+
+.pulso-project[data-cursor="true"] .pulso-project__open {
+  background-color: var(--fill);
+}
+
+.pulso-project[data-cursor="true"] .pulso-project__icon,
+.pulso-project[data-cursor="true"] .pulso-project__chevron {
+  color: var(--paper);
+}
+
+.pulso-command[data-cursor="true"] .pulso-command__open {
+  background-color: var(--fill);
+}
+
+.pulso-command[data-cursor="true"] .pulso-command__caret {
+  color: var(--paper);
+  opacity: 1;
 }
