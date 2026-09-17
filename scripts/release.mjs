@@ -34,15 +34,7 @@ function fail(msg) {
 }
 
 function banner(current) {
-  const art = `
-${c.cyan}${c.bold}
-   ╔══════════════════════════════════════╗
-   ║                                      ║
-   ║   ✦   P U L S O   release            ║
-   ║                                      ║
-   ╚══════════════════════════════════════╝
-${c.reset}`;
-  console.log(art);
+  console.log(`\n   ${paint(c.cyan + c.bold, "✦  Pulso release")}\n`);
   console.log(
     `   ${paint(c.dim, "current")}  ${paint(c.bold + c.white, `v${current}`)}`,
   );
