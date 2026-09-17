@@ -1,6 +1,7 @@
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { isActiveState } from "@/features/executions/execution";
+import { useTrayBadge } from "@/features/executions/useTrayBadge";
 import { PopoverFooter } from "@/features/popover/components/PopoverFooter";
 import { PopoverHeader } from "@/features/popover/components/PopoverHeader";
 import { PopoverProjects } from "@/features/popover/components/PopoverProjects";
@@ -9,6 +10,7 @@ import { usePopoverEntrance } from "@/features/popover/usePopoverEntrance";
 
 export function PopoverShell() {
   const { t } = useI18n();
+  useTrayBadge();
   const projects = useStore((state) => state.projects);
   const runningCount = useStore(
     (state) =>
