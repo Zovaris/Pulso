@@ -21,9 +21,8 @@ pub fn run() {
             let handle = app.handle().clone();
 
             let data_dir = handle.path().app_data_dir()?;
-            persistence::legacy::adopt_legacy_database(&data_dir)?;
             app.manage(Arc::new(persistence::Database::open(
-                &persistence::database_path(&data_dir),
+                &data_dir.join("pulso.db"),
             )?));
 
             let notifier = {

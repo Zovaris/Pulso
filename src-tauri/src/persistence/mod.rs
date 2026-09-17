@@ -1,9 +1,7 @@
 pub mod database;
-pub mod legacy;
 pub mod repositories;
 
 pub use database::Database;
-pub use legacy::database_path;
 
 use crate::support::error::BackendError;
 
