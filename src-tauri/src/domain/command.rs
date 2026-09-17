@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use serde::Serialize;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -40,6 +42,13 @@ impl CommandCategory {
     }
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CommandFlags {
+    pub favorite: bool,
+    pub hidden: bool,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CommandScan {
@@ -47,6 +56,9 @@ pub struct CommandScan {
     pub commands: Vec<DetectedCommand>,
     pub status: ScanStatus,
     pub detail: Option<String>,
+    /// What the user chose about each command, keyed by `DetectedCommand::id`.
+    /// The detectors stay ignorant of it: this is the scan's answer, not theirs.
+    pub flags: BTreeMap<String, CommandFlags>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -67,6 +79,7 @@ impl CommandScan {
             commands: Vec::new(),
             status,
             detail,
+            flags: BTreeMap::new(),
         }
     }
 
@@ -76,6 +89,15 @@ impl CommandScan {
             commands,
             status: ScanStatus::Detected,
             detail: None,
+            flags: BTreeMap::new(),
         }
     }
+
+    pub fn with_flags(mut self, flags: BTreeMap<String, CommandFlags>) -> Self {
+        self.flags = flags;
+        self
+    }
 }
+
+#[cfg(test)]
+mod tests;

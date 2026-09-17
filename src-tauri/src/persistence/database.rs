@@ -5,7 +5,10 @@ use rusqlite::Connection;
 
 use crate::support::error::{BackendError, ErrorKind, Result};
 
-const MIGRATIONS: &[&str] = &[include_str!("../../migrations/0001_projects.sql")];
+const MIGRATIONS: &[&str] = &[
+    include_str!("../../migrations/0001_projects.sql"),
+    include_str!("../../migrations/0002_command_flags.sql"),
+];
 
 pub struct Database {
     conn: Mutex<Connection>,

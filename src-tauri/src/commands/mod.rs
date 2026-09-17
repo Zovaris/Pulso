@@ -1,3 +1,4 @@
+pub mod editors;
 pub mod executions;
 pub mod projects;
 pub mod settings;

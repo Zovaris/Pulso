@@ -3,10 +3,11 @@ use std::sync::Arc;
 
 use tauri::{AppHandle, State};
 
-use crate::domain::command::CommandScan;
+use crate::domain::command::{CommandFlags, CommandScan};
 use crate::domain::project::Project;
 use crate::events;
-use crate::persistence::{repositories, Database};
+use crate::persistence::repositories::{self, flags::FlagsByCommand};
+use crate::persistence::Database;
 use crate::support::error::{BackendError, ErrorKind, Result};
 use crate::support::{now_ms, paths};
 
@@ -77,7 +78,54 @@ pub async fn list_commands(
     db: State<'_, Arc<Database>>,
     project_id: i64,
 ) -> Result<CommandScan> {
-    let project = in_database(&db, move |conn| {
+    let scan = scan_project(&db, project_id).await?;
+
+    events::commands_changed(&app, &scan);
+
+    Ok(scan)
+}
+
+#[tauri::command]
+pub async fn rescan_project(
+    app: AppHandle,
+    db: State<'_, Arc<Database>>,
+    project_id: i64,
+) -> Result<CommandScan> {
+    let scan = scan_project(&db, project_id).await?;
+
+    events::commands_changed(&app, &scan);
+
+    Ok(scan)
+}
+
+#[tauri::command]
+pub async fn set_command_flag(
+    app: AppHandle,
+    db: State<'_, Arc<Database>>,
+    project_id: i64,
+    command_id: String,
+    favorite: bool,
+    hidden: bool,
+) -> Result<FlagsByCommand> {
+    let flags = in_database(&db, move |conn| {
+        repositories::flags::set(
+            conn,
+            project_id,
+            &command_id,
+            CommandFlags { favorite, hidden },
+        )?;
+
+        repositories::flags::for_project(conn, project_id)
+    })
+    .await?;
+
+    events::command_flags_changed(&app, project_id, &flags);
+
+    Ok(flags)
+}
+
+async fn scan_project(db: &State<'_, Arc<Database>>, project_id: i64) -> Result<CommandScan> {
+    let project = in_database(db, move |conn| {
         repositories::projects::by_id(conn, project_id)
     })
     .await?
@@ -86,7 +134,10 @@ pub async fn list_commands(
     let path = project.path;
     let scan = off_thread(move || crate::detectors::scan(project_id, Path::new(&path))).await?;
 
-    events::commands_changed(&app, &scan);
+    let flags = in_database(db, move |conn| {
+        repositories::flags::for_project(conn, project_id)
+    })
+    .await?;
 
-    Ok(scan)
+    Ok(scan.with_flags(flags))
 }

@@ -188,7 +188,9 @@ fn finished_executions_are_pruned_but_the_recent_ones_stay() {
             Managed {
                 execution,
                 pgid: 0,
-                logs: Arc::new(LogBuffer::new()),
+                logs: Arc::new(LogBuffer::new(Arc::new(AtomicUsize::new(
+                    log_buffer::DEFAULT_LINES,
+                )))),
             },
         );
     }

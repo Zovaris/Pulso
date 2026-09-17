@@ -11,7 +11,9 @@ pub async fn quit_pulso(
     app: AppHandle,
     supervisor: State<'_, Arc<ProcessSupervisor>>,
 ) -> Result<()> {
-    supervisor.stop_all().await;
+    if !crate::commands::settings::keep_running(&app) {
+        supervisor.stop_all().await;
+    }
 
     windows::hide_popover(&app);
     if let Some(win) = windows::main_window(&app) {

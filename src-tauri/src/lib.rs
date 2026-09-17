@@ -39,10 +39,12 @@ pub fn run() {
                     events::log_appended(&handle, execution_id, lines)
                 })
             };
-            app.manage(Arc::new(process::supervisor::ProcessSupervisor::new(
+            let supervisor = Arc::new(process::supervisor::ProcessSupervisor::new(
                 notifier,
                 log_notifier,
-            )));
+            ));
+            supervisor.set_log_lines(commands::settings::log_lines(&handle));
+            app.manage(supervisor);
 
             app::tray::install(&handle)?;
 
@@ -82,7 +84,12 @@ pub fn run() {
             commands::projects::add_project,
             commands::projects::remove_project,
             commands::projects::list_commands,
+            commands::projects::rescan_project,
             commands::projects::rescan_projects,
+            commands::projects::set_command_flag,
+            commands::editors::list_editors,
+            commands::editors::app_icon,
+            commands::editors::open_project,
             commands::tray::set_tray_badge,
             commands::executions::list_executions,
             commands::executions::start_command,

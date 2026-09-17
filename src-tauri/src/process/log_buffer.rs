@@ -1,11 +1,15 @@
 use std::collections::VecDeque;
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::{Arc, Mutex};
 
 use crate::domain::log::{LogLine, LogStream};
 use crate::support::now_ms;
 
-const MAX_LINES: usize = 2000;
-const MAX_BYTES: usize = 256 * 1024;
+pub const DEFAULT_LINES: usize = 4000;
+
+/// Room the text may take, as a multiple of the line cap: a log full of long
+/// lines is cut by bytes before it is cut by lines.
+const BYTES_PER_LINE: usize = 128;
 
 struct Inner {
     lines: VecDeque<LogLine>,
@@ -16,16 +20,13 @@ struct Inner {
 
 pub struct LogBuffer {
     inner: Mutex<Inner>,
-}
-
-impl Default for LogBuffer {
-    fn default() -> Self {
-        Self::new()
-    }
+    limit: Arc<AtomicUsize>,
 }
 
 impl LogBuffer {
-    pub fn new() -> Self {
+    /// The cap is shared rather than copied, so changing `logs.maxLines` in
+    /// Ajustes reaches every buffer that is already running.
+    pub fn new(limit: Arc<AtomicUsize>) -> Self {
         Self {
             inner: Mutex::new(Inner {
                 lines: VecDeque::new(),
@@ -33,7 +34,14 @@ impl LogBuffer {
                 next_seq: 1,
                 pending: Vec::new(),
             }),
+            limit,
         }
+    }
+
+    fn capacity(&self) -> (usize, usize) {
+        let lines = self.limit.load(Ordering::Relaxed).max(1);
+
+        (lines, lines * BYTES_PER_LINE)
     }
 
     pub fn push(&self, stream: LogStream, raw: &str) {
@@ -58,7 +66,12 @@ impl LogBuffer {
         inner.pending.push(line.clone());
         inner.lines.push_back(line);
 
-        while inner.lines.len() > MAX_LINES || inner.bytes > MAX_BYTES {
+        let (max_lines, max_bytes) = self.capacity();
+
+        // The last line always stays, even when it alone is over the byte cap:
+        // a single huge line is still output, and dropping it would leave a
+        // buffer that silently keeps nothing.
+        while inner.lines.len() > 1 && (inner.lines.len() > max_lines || inner.bytes > max_bytes) {
             let Some(dropped) = inner.lines.pop_front() else {
                 break;
             };

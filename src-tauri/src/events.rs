@@ -9,10 +9,12 @@ use crate::domain::command::CommandScan;
 use crate::domain::execution::Execution;
 use crate::domain::log::LogLine;
 use crate::domain::project::Project;
+use crate::persistence::repositories::flags::FlagsByCommand;
 use crate::persistence::{repositories, Database};
 
 pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
+pub const COMMAND_FLAGS_CHANGED: &str = "project://flags-changed";
 pub const EXECUTION_CHANGED: &str = "execution://state-changed";
 pub const LOG_APPENDED: &str = "execution://log-appended";
 pub const POPOVER_PREPARE: &str = "popover://prepare";
@@ -34,6 +36,25 @@ pub fn commands_changed(app: &AppHandle, scan: &CommandScan) {
     let _ = app.emit(COMMANDS_CHANGED, scan);
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FlagsChanged {
+    pub project_id: i64,
+    pub flags: FlagsByCommand,
+}
+
+/// Sent instead of a whole scan, because toggling a favourite should not make
+/// Pulso read every project file again.
+pub fn command_flags_changed(app: &AppHandle, project_id: i64, flags: &FlagsByCommand) {
+    let _ = app.emit(
+        COMMAND_FLAGS_CHANGED,
+        FlagsChanged {
+            project_id,
+            flags: flags.clone(),
+        },
+    );
+}
+
 pub fn preferences_changed(app: &AppHandle, preferences: &Preferences) {
     let _ = app.emit(PREFERENCES_CHANGED, preferences);
 }
@@ -53,6 +74,7 @@ pub fn popover_closing(app: &AppHandle) {
 pub fn execution_changed(app: &AppHandle, execution: &Execution) {
     let _ = app.emit(EXECUTION_CHANGED, execution);
 }
+
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -81,11 +103,29 @@ pub async fn refresh(app: &AppHandle) {
     let Some(projects) = broadcast_projects(app).await else {
         return;
     };
+    let Some(database) = app
+        .try_state::<Arc<Database>>()
+        .map(|state| Arc::clone(state.inner()))
+    else {
+        return;
+    };
 
     for project in projects {
-        if let Some(scan) = scan_project(project.id, project.path).await {
-            commands_changed(app, &scan);
+        let id = project.id;
+        let Some(mut scan) = scan_project(id, project.path).await else {
+            continue;
+        };
+
+        let reading = Arc::clone(&database);
+        if let Ok(Ok(flags)) = tauri::async_runtime::spawn_blocking(move || {
+            reading.with(|conn| repositories::flags::for_project(conn, id))
+        })
+        .await
+        {
+            scan.flags = flags;
         }
+
+        commands_changed(app, &scan);
     }
 }
 

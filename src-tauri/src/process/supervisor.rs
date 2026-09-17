@@ -14,7 +14,7 @@ use crate::domain::command::DetectedCommand;
 use crate::domain::execution::{Execution, ExecutionState};
 use crate::domain::log::{LogLine, LogSnapshot, LogStream};
 use crate::platform::macos::environment::ShellEnvironment;
-use crate::process::log_buffer::LogBuffer;
+use crate::process::log_buffer::{self, LogBuffer};
 use crate::process::{ports, signals};
 use crate::support::error::{BackendError, ErrorKind, Result};
 use crate::support::now_ms;
@@ -35,6 +35,9 @@ pub struct ProcessSupervisor {
     environment: ShellEnvironment,
     executions: Arc<Mutex<HashMap<i64, Managed>>>,
     next_id: AtomicI64,
+    /// Shared with every `LogBuffer`, so `logs.maxLines` reaches buffers that
+    /// are already running instead of only the next ones.
+    log_lines: Arc<AtomicUsize>,
 }
 
 struct Managed {
@@ -51,7 +54,46 @@ impl ProcessSupervisor {
             environment: ShellEnvironment::new(),
             executions: Arc::new(Mutex::new(HashMap::new())),
             next_id: AtomicI64::new(1),
+            log_lines: Arc::new(AtomicUsize::new(log_buffer::DEFAULT_LINES)),
         }
+    }
+
+    pub fn set_log_lines(&self, lines: usize) {
+        self.log_lines.store(lines.max(1), Ordering::Relaxed);
+    }
+
+    /// Drops every execution that already finished. Live ones stay, because
+    /// clearing the list must never be a way to lose a running process.
+    pub fn clear_finished(&self) -> usize {
+        let Ok(mut executions) = self.executions.lock() else {
+            return 0;
+        };
+
+        let finished: Vec<i64> = executions
+            .values()
+            .filter(|managed| !managed.execution.is_active())
+            .map(|managed| managed.execution.id)
+            .collect();
+
+        for id in &finished {
+            executions.remove(id);
+        }
+
+        finished.len()
+    }
+
+    /// The process group of every live execution, which is what the resource
+    /// sampler walks.
+    pub fn live_groups(&self) -> Vec<(i64, i32)> {
+        let Ok(executions) = self.executions.lock() else {
+            return Vec::new();
+        };
+
+        executions
+            .values()
+            .filter(|managed| managed.execution.is_active() && managed.pgid > 0)
+            .map(|managed| (managed.execution.id, managed.pgid))
+            .collect()
     }
 
     pub fn list(&self) -> Vec<Execution> {
@@ -97,7 +139,7 @@ impl ProcessSupervisor {
                 execution.pid = pid;
                 execution.state = ExecutionState::Running;
 
-                let logs = Arc::new(LogBuffer::new());
+                let logs = Arc::new(LogBuffer::new(Arc::clone(&self.log_lines)));
                 let readers = Arc::new(AtomicUsize::new(0));
 
                 if let Some(stdout) = child.stdout.take() {
@@ -143,7 +185,7 @@ impl ProcessSupervisor {
 
                 self.remember(Managed {
                     pgid: 0,
-                    logs: Arc::new(LogBuffer::new()),
+                    logs: Arc::new(LogBuffer::new(Arc::clone(&self.log_lines))),
                     execution: execution.clone(),
                 });
                 self.notify(&execution);
