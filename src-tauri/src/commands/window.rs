@@ -41,6 +41,11 @@ pub fn close_popover(app: AppHandle) {
 }
 
 #[tauri::command]
+pub fn set_reduced_motion(value: bool) {
+    windows::set_reduced_motion(value);
+}
+
+#[tauri::command]
 pub async fn pick_project_folder(app: AppHandle, title: String) -> Option<String> {
     picker::pick_folder(&app, title).await
 }

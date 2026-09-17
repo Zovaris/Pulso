@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use tauri::{AppHandle, Manager, PhysicalPosition, WebviewWindow};
@@ -10,6 +11,15 @@ use super::slide;
 const FRAME: Duration = Duration::from_millis(16);
 
 static SLIDES: slide::Generation = slide::Generation::new();
+static REDUCED_MOTION: AtomicBool = AtomicBool::new(false);
+
+pub fn set_reduced_motion(value: bool) {
+    REDUCED_MOTION.store(value, Ordering::Relaxed);
+}
+
+fn reduced_motion() -> bool {
+    REDUCED_MOTION.load(Ordering::Relaxed)
+}
 
 pub struct Motion {
     from: PhysicalPosition<i32>,
@@ -34,6 +44,15 @@ impl Motion {
             to,
             duration: slide::EXIT,
             fade: (1.0, 0.0),
+        }
+    }
+
+    fn resting(at: PhysicalPosition<i32>) -> Self {
+        Self {
+            from: at,
+            to: at,
+            duration: Duration::ZERO,
+            fade: (1.0, 1.0),
         }
     }
 
@@ -73,9 +92,13 @@ pub fn close_popover(app: &AppHandle) {
 
         if let Some(win) = popover(&app) {
             if let Ok(from) = win.outer_position() {
-                let to = slid(&win, from, slide::DISTANCE);
+                let motion = if reduced_motion() {
+                    Motion::resting(from)
+                } else {
+                    Motion::leaving(from, slid(&win, from, slide::DISTANCE))
+                };
 
-                if !slide_window(&win, Motion::leaving(from, to)).await {
+                if !slide_window(&win, motion).await {
                     return;
                 }
 
@@ -118,8 +141,15 @@ pub fn show_main(app: &AppHandle) -> bool {
 
 pub fn stage_popover(win: &WebviewWindow, x: i32, y: i32, width: u32, height: u32) -> Motion {
     let settled = popover_origin(win, x, y, width, height);
-    let from = slid(win, settled, slide::DISTANCE);
 
+    if reduced_motion() {
+        let _ = win.set_position(settled);
+        window::set_alpha(win, 1.0);
+
+        return Motion::resting(settled);
+    }
+
+    let from = slid(win, settled, slide::DISTANCE);
     let _ = win.set_position(from);
     window::set_alpha(win, 0.0);
 
@@ -153,17 +183,19 @@ fn slid(
 }
 
 pub async fn slide_window(win: &WebviewWindow, motion: Motion) -> bool {
-    let generation = SLIDES.begin();
+    if !motion.duration.is_zero() {
+        let generation = SLIDES.begin();
 
-    for progress in slide::progressions(motion.duration, slide::STEP) {
-        if !SLIDES.is_current(generation) {
-            return false;
+        for progress in slide::progressions(motion.duration, slide::STEP) {
+            if !SLIDES.is_current(generation) {
+                return false;
+            }
+
+            tokio::time::sleep(slide::STEP).await;
+
+            let _ = win.set_position(motion.position(progress));
+            window::set_alpha(win, motion.alpha(progress));
         }
-
-        tokio::time::sleep(slide::STEP).await;
-
-        let _ = win.set_position(motion.position(progress));
-        window::set_alpha(win, motion.alpha(progress));
     }
 
     let _ = win.set_position(motion.to);
@@ -171,3 +203,6 @@ pub async fn slide_window(win: &WebviewWindow, motion: Motion) -> bool {
 
     true
 }
+
+#[cfg(test)]
+mod tests;

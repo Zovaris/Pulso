@@ -98,6 +98,7 @@ pub fn run() {
             commands::window::quit_pulso,
             commands::window::open_main_window,
             commands::window::close_popover,
+            commands::window::set_reduced_motion,
             commands::window::pick_project_folder,
             commands::projects::list_projects,
             commands::projects::add_project,
