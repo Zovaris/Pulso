@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useMotionSync } from "@/app/hooks/useMotionSync";
 import { usePreferencesSync } from "@/features/app/usePreferencesSync";
 import { PopoverShell } from "@/features/popover/PopoverShell";
 import { useProjectSync } from "@/features/projects/useProjectSync";
@@ -18,6 +19,7 @@ export default function App() {
 
   useProjectSync();
   usePreferencesSync();
+  useMotionSync();
 
   useEffect(() => {
     void hydratePreferences();

@@ -32,6 +32,11 @@ export async function showPopover(): Promise<void> {
   } catch {}
 }
 
+export function setReducedMotion(value: boolean): Promise<void> {
+  if (!isTauri()) return Promise.resolve();
+  return invoke("set_reduced_motion", { value });
+}
+
 export async function pickProjectFolder(title: string): Promise<string | null> {
   if (!isTauri()) return null;
   const selected = await invoke<string | null>("pick_project_folder", {
