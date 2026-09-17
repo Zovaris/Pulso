@@ -217,7 +217,7 @@
   "language": "Idioma",
   "languageHint": "Se aplica a las dos ventanas y a la barra.",
   "transparency": "Transparencia",
-  "transparencyHint": "Material de macOS detrás de la ventana principal. La barra de la esquina se queda opaca, que es lo que necesita su texto.",
+  "transparencyHint": "Material de macOS detrás de las dos ventanas. El popover deja pasar el escritorio difuminado, y las superficies con texto se quedan más densas.",
   "soundCues": "Avisos sonoros",
   "soundCuesHint": "Tink al arrancar, Glass al terminar bien, Basso al fallar.",
   "muteSound": "Silenciar los avisos",
