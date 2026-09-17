@@ -9,6 +9,10 @@ pub const EXIT: Duration = Duration::from_millis(120);
 const CONTROL_X1: f64 = 0.16;
 const CONTROL_X2: f64 = 0.3;
 
+pub fn between(from: f64, to: f64, progress: f64) -> f64 {
+    from + (to - from) * progress
+}
+
 pub fn ease(x: f64) -> f64 {
     if x <= 0.0 {
         return 0.0;

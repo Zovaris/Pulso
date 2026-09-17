@@ -3,6 +3,15 @@ use std::time::Duration;
 use super::*;
 
 #[test]
+fn a_line_lands_where_it_is_asked_to() {
+    assert_eq!(between(0.0, 8.0, 0.0), 0.0);
+    assert_eq!(between(0.0, 8.0, 1.0), 8.0);
+    assert_eq!(between(0.0, 8.0, 0.5), 4.0);
+    assert_eq!(between(1.0, 0.0, 0.25), 0.75);
+    assert_eq!(between(4.0, 4.0, 0.4), 4.0);
+}
+
+#[test]
 fn the_curve_holds_both_ends() {
     assert_eq!(ease(0.0), 0.0);
     assert_eq!(ease(1.0), 1.0);
