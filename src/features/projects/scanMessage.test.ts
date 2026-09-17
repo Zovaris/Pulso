@@ -11,25 +11,32 @@ describe("scanMessage", () => {
     expect(scanMessage(scan("detected"))).toBeNull();
   });
 
-  it("points at the Node-only limit when there is no manifest", () => {
-    expect(scanMessage(scan("noManifest"))).toEqual({
-      key: "noManifest",
-      hint: "nodeOnlyHint",
-    });
+  it("lists what it reads when the folder declares nothing", () => {
+    const message = scanMessage(scan("noManifest", "package.json, Makefile"));
+
+    expect(message?.key).toBe("noManifest");
+    expect(message?.detail).toBe("package.json, Makefile");
   });
 
-  it("distinguishes an empty manifest from a broken one", () => {
-    expect(scanMessage(scan("noCommands"))).toEqual({ key: "noCommands" });
+  it("names the files that declare nothing", () => {
+    const message = scanMessage(scan("noCommands", "package.json"));
+
+    expect(message?.key).toBe("noCommands");
+    expect(message?.detail).toBe("package.json");
   });
 
-  it("carries the reason the manifest was refused", () => {
-    expect(scanMessage(scan("invalidManifest", "line 4"))?.detail).toBe(
-      "line 4",
+  it("separates a broken file from one that could not be opened", () => {
+    expect(scanMessage(scan("invalidManifest", "not valid JSON"))?.key).toBe(
+      "manifestBroken",
     );
     expect(scanMessage(scan("unreadable"))?.key).toBe("manifestUnreadable");
   });
 
   it("reports a folder that is gone", () => {
     expect(scanMessage(scan("unavailable"))?.key).toBe("projectMissing");
+  });
+
+  it("leaves the detail out when the backend sent none", () => {
+    expect(scanMessage(scan("noManifest"))?.detail).toBeUndefined();
   });
 });

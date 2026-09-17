@@ -87,9 +87,6 @@ export function ProjectRow({ project }: { project: Project }) {
           {message ? (
             <p className="soffy-scan__note">
               {t(message.key)}
-              {message.hint ? (
-                <span className="soffy-scan__hint">{t(message.hint)}</span>
-              ) : null}
               {message.detail ? (
                 <span className="soffy-scan__detail">{message.detail}</span>
               ) : null}

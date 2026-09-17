@@ -622,19 +622,14 @@ button.soffy-port:hover {
   color: var(--mist);
 }
 
-.soffy-scan__hint {
-  display: block;
-  color: var(--faint);
-}
-
 .soffy-scan__detail {
   display: block;
-  overflow: hidden;
+  margin-top: 2px;
   font-family: var(--font-mono);
   font-size: 10.5px;
+  line-height: 1.5;
   color: var(--faint);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .soffy-error {
