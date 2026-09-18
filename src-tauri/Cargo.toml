@@ -3,6 +3,7 @@ name = "pulso"
 version = "0.2.1"
 description = "Menubar app for project commands"
 authors = ["sthbryan"]
+license = "GPL-3.0-or-later"
 edition = "2021"
 
 [lib]
