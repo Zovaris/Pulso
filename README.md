@@ -66,13 +66,37 @@ Pulso is not a full terminal, a remote runner, or a cloud dashboard. It does not
 
 ---
 
+## Install
+
+A Mac with Apple Silicon. Nothing else to sign up for.
+
+```bash
+brew install --cask sthbryan/tap/pulso
+```
+
+The cask is in my own tap, so Homebrew trusts just that cask. Use the full name above, or `brew trust --cask sthbryan/tap/pulso` first if you want the short one.
+
+Without Homebrew, the installer script fetches the latest release, puts it in `/Applications`, and clears the quarantine flag:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Zovaris/Pulso/main/install.sh | bash
+```
+
+Pulso is ad-hoc signed but not notarized, since that needs a paid Apple Developer account. The first open may ask for confirmation in System Settings → Privacy & Security, or via right click → Open. To remove it again:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Zovaris/Pulso/main/uninstall.sh | bash
+```
+
+---
+
 ## Run it
 
 A Mac, [Bun](https://bun.sh), and the Rust toolchain. Nothing to sign up for.
 
 ```bash
 bun install
-bun run desktop
+bun run desktop:macos
 ```
 
 Pulso is built for yourself, not for a store. It reads the folders you add, writes a small database of its own, and talks to nothing else.
