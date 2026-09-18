@@ -16,7 +16,6 @@ export default defineConfig({
   clearScreen: false,
   build: {
     sourcemap: false,
-    minify: "esbuild",
   },
   test: {
     environment: "jsdom",
