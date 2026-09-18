@@ -103,6 +103,14 @@ Pulso is built for yourself, not for a store. It reads the folders you add, writ
 
 ---
 
+## License
+
+GPL-3.0 or later. Read it, change it, ship your version — the copy you distribute has to stay free software, sources included. That is what the copyleft is for.
+
+Copyright (C) 2026 Bryan Villafuerte.
+
+---
+
 <p align="center">
   <sub>Local. Personal. macOS first.</sub>
 </p>
