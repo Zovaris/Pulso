@@ -1,6 +1,6 @@
 [package]
 name = "pulso"
-version = "0.2.0"
+version = "0.2.1"
 description = "Menubar app for project commands"
 authors = ["sthbryan"]
 edition = "2021"
