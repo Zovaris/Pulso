@@ -1,3 +1,4 @@
+pub mod custom_commands;
 pub mod data;
 pub mod editors;
 pub mod environment;

@@ -37,6 +37,12 @@ pub async fn start_command(
     // Running once with extra arguments is a different thing from editing the
     // manifest, so the override never leaves this call.
     if let Some(args) = args {
+        if command.detector == "custom" {
+            return Err(BackendError::new(
+                ErrorKind::InvalidInput,
+                "Edit the saved shell command to change its arguments.",
+            ));
+        }
         command.args = args;
     }
 
@@ -103,6 +109,27 @@ async fn resolve_command(
     project_id: i64,
     command_id: &str,
 ) -> Result<DetectedCommand> {
+    if let Some(id) = command_id
+        .strip_prefix("custom:")
+        .and_then(|id| id.parse::<i64>().ok())
+    {
+        let command = in_database(db, move |conn| {
+            repositories::custom_commands::by_id(conn, id)
+        })
+        .await?;
+        if command
+            .project_id
+            .unwrap_or(repositories::custom_commands::PERSONAL_SCOPE)
+            != project_id
+        {
+            return Err(BackendError::new(
+                ErrorKind::NotFound,
+                "That command does not belong to this project.",
+            ));
+        }
+        crate::support::paths::canonical_dir(Path::new(&command.cwd))?;
+        return Ok(command.detected());
+    }
     let project = in_database(db, move |conn| {
         repositories::projects::by_id(conn, project_id)
     })

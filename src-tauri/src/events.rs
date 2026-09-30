@@ -168,7 +168,14 @@ pub async fn refresh(app: &AppHandle) {
             scan.flags = flags;
         }
 
-        commands_changed(app, &scan);
+        let reading = Arc::clone(&database);
+        if let Ok(Ok(scan)) = tauri::async_runtime::spawn_blocking(move || {
+            reading.with(|conn| repositories::custom_commands::augment_scan(conn, scan))
+        })
+        .await
+        {
+            commands_changed(app, &scan);
+        }
     }
 }
 
