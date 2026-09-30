@@ -371,7 +371,7 @@ export function ProjectInspector({ project }: { project: Project }) {
         </dl>
         {message ? (
           <p className="mt-1 text-[11px] leading-5 text-faint">
-            {t(message.key)}
+            {t(message.key)} {message.detail}
           </p>
         ) : null}
       </Section>

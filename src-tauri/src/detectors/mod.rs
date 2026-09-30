@@ -179,7 +179,12 @@ pub fn scan(project_id: i64, project_dir: &Path) -> CommandScan {
 
     if !commands.is_empty() {
         naming::sort_commands(&mut commands);
-        return CommandScan::detected(project_id, commands);
+        let mut scan = CommandScan::detected(project_id, commands);
+        let warnings: Vec<String> = invalid.into_iter().chain(unreadable).collect();
+        if !warnings.is_empty() {
+            scan.detail = Some(warnings.join(" "));
+        }
+        return scan;
     }
 
     if !invalid.is_empty() {

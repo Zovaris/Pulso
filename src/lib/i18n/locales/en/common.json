@@ -24,6 +24,7 @@
   "readingShort": "…",
   "noManifest": "Pulso found nothing to run here. It reads:",
   "noCommands": "These files declare no commands:",
+  "manifestWarnings": "Some manifests could not be read",
   "manifestBroken": "One of its project files is not valid.",
   "manifestUnreadable": "One of its project files could not be opened.",
   "projectMissing": "This folder is no longer there.",

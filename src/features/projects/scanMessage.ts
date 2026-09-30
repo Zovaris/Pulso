@@ -11,7 +11,7 @@ export function scanMessage(scan: CommandScan): ScanMessage | null {
 
   switch (scan.status) {
     case "detected":
-      return null;
+      return detail ? { key: "manifestWarnings", detail } : null;
     case "noManifest":
       return { key: "noManifest", detail };
     case "noCommands":

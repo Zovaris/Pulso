@@ -80,6 +80,11 @@ fn a_broken_manifest_is_reported_even_when_another_one_works() {
 
     assert_eq!(scan.status, ScanStatus::Detected);
     assert!(!scan.commands.is_empty());
+    assert!(scan
+        .detail
+        .as_deref()
+        .unwrap_or_default()
+        .contains("package.json"));
 }
 
 #[test]
