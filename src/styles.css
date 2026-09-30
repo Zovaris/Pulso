@@ -308,26 +308,23 @@ button:not(:disabled) {
   display: flex;
 }
 
-.pulso-project__open {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+.pulso-project__open.sph-button {
   width: 100%;
+  height: auto;
+  align-items: flex-start;
   padding: 6px 50px 6px 6px;
   border-radius: 8px;
-  text-align: left;
-  transition: background-color var(--motion-fast) var(--ease-out);
+}
+
+.pulso-project__open .sph-button__label {
+  width: 100%;
+  min-width: 0;
+  align-items: flex-start;
 }
 
 .pulso-project__open:hover,
 .pulso-project__open[aria-expanded="true"] {
   background-color: var(--hover);
-}
-
-.pulso-project__open:focus-visible,
-.pulso-project__forget:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: -2px;
 }
 
 .pulso-project__icon {
@@ -379,20 +376,14 @@ button:not(:disabled) {
   transform: rotate(90deg);
 }
 
-.pulso-project__forget {
+.pulso-project__forget.sph-icon-button {
   position: absolute;
   top: 5px;
   right: 26px;
-  display: grid;
-  place-items: center;
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  color: var(--mist);
   opacity: 0;
-  transition:
-    opacity var(--motion-fast) var(--ease-out),
-    background-color var(--motion-fast) var(--ease-out);
 }
 
 .pulso-project-row:hover .pulso-project__forget,
@@ -426,27 +417,18 @@ button:not(:disabled) {
   min-height: 26px;
 }
 
-.pulso-command__open {
-  display: flex;
+.pulso-command__open.sph-button {
   flex: 1;
-  gap: 8px;
-  align-items: center;
+  width: auto;
   min-width: 0;
-  min-height: 26px;
   margin-left: -6px;
   padding: 0 6px;
   border-radius: 6px;
-  text-align: left;
-  transition: background-color var(--motion-fast) var(--ease-out);
 }
 
-.pulso-command__open:hover {
-  background-color: var(--hover);
-}
-
-.pulso-command__open:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: -2px;
+.pulso-command__open .sph-button__label {
+  width: 100%;
+  min-width: 0;
 }
 
 .pulso-command__caret {
@@ -551,32 +533,10 @@ button.pulso-port:hover {
   color: var(--mist);
 }
 
-.pulso-command__control {
-  display: grid;
-  flex: none;
-  place-items: center;
+.pulso-command__control.sph-icon-button {
   width: 22px;
   height: 22px;
   border-radius: 5px;
-  color: var(--faint);
-  transition:
-    color var(--motion-fast) var(--ease-out),
-    background-color var(--motion-fast) var(--ease-out);
-}
-
-.pulso-command__control:hover:not(:disabled) {
-  background-color: var(--fill);
-  color: var(--paper);
-}
-
-.pulso-command__control:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: -2px;
-}
-
-.pulso-command__control:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 .pulso-command__control[data-kind="stop"] {
