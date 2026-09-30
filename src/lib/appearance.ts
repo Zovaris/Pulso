@@ -93,9 +93,9 @@ export async function applyWindowChrome(
     } else {
       await win.clearEffects();
       await win.setBackgroundColor(
-        resolved === "dark"
-          ? { red: 17, green: 17, blue: 17, alpha: 255 }
-          : { red: 243, green: 243, blue: 243, alpha: 255 },
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--sph-bg")
+          .trim(),
       );
     }
   } catch {}

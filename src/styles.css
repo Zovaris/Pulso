@@ -24,13 +24,13 @@
 }
 
 html {
-  --void-base: #111111;
-  --night-base: #191919;
-  --panel-base: #1c1c1c;
-  --raised-base: #232323;
-  --overlay-base: #2a2a2a;
-  --line-base: #2e2e2e;
-  --hairline-base: #242424;
+  --void-base: var(--sph-bg);
+  --night-base: var(--sph-surface);
+  --panel-base: var(--sph-surface);
+  --raised-base: var(--sph-surface-elevated);
+  --overlay-base: var(--sph-raised);
+  --line-base: var(--sph-border);
+  --hairline-base: color-mix(in srgb, var(--sph-border) 65%, transparent);
   --void: var(--void-base);
   --night: var(--night-base);
   --panel: var(--panel-base);
@@ -38,19 +38,19 @@ html {
   --overlay: var(--overlay-base);
   --line: var(--line-base);
   --hairline: var(--hairline-base);
-  --mist: #a3a3a3;
-  --faint: #8a8a8a;
-  --paper: #ececec;
-  --accent: #4e7657;
-  --accent-hover: #587f61;
-  --accent-press: #41664a;
-  --accent-strong: #80a989;
-  --ok: #28c840;
-  --alarm: #b4584d;
-  --hover: rgb(255 255 255 / 0.04);
-  --fill: rgb(255 255 255 / 0.06);
-  --popover-base: #212121;
-  --popover-rim: #333333;
+  --mist: var(--sph-text-muted);
+  --faint: var(--sph-text-muted);
+  --paper: var(--sph-text);
+  --accent: var(--sph-accent);
+  --accent-hover: var(--sph-accent-hover);
+  --accent-press: var(--sph-accent-pressed);
+  --accent-strong: var(--sph-accent-strong);
+  --ok: var(--sph-success);
+  --alarm: var(--sph-danger);
+  --hover: color-mix(in srgb, var(--sph-text) 4%, transparent);
+  --fill: color-mix(in srgb, var(--sph-text) 6%, transparent);
+  --popover-base: var(--sph-surface);
+  --popover-rim: var(--sph-border);
   --popover: var(--popover-base);
   --popover-line: var(--popover-rim);
   --motion-fast: 120ms;
@@ -58,30 +58,6 @@ html {
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
   color-scheme: dark;
-}
-
-html[data-theme="light"] {
-  --void-base: #f3f3f3;
-  --night-base: #ececec;
-  --panel-base: #ffffff;
-  --raised-base: #f6f6f6;
-  --overlay-base: #e8e8e8;
-  --line-base: #dcdcdc;
-  --hairline-base: #e4e4e4;
-  --mist: #5c5c5c;
-  --faint: #6e6e6e;
-  --paper: #161616;
-  --accent: #3d7049;
-  --accent-hover: #325f3d;
-  --accent-press: #284d32;
-  --accent-strong: #2f5b39;
-  --ok: #188a2c;
-  --alarm: #a3453a;
-  --hover: rgb(0 0 0 / 0.045);
-  --fill: rgb(0 0 0 / 0.06);
-  --popover-base: #ffffff;
-  --popover-rim: #ebebeb;
-  color-scheme: light;
 }
 
 html[data-transparency="on"] {
