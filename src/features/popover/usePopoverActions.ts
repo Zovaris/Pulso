@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useStore } from "@/app/store";
 import { useAddProject } from "@/features/projects/useAddProject";
 import {
   closePopover,
@@ -9,6 +10,7 @@ import {
 
 export type PopoverActions = {
   addProject: () => void;
+  manageCommands: () => void;
   openApp: () => void;
   quit: () => void;
 };
@@ -20,6 +22,12 @@ export function usePopoverActions(): PopoverActions {
     void pickAndAddProject().then(() => showPopover());
   }, [pickAndAddProject]);
 
+  const manageCommands = useCallback(() => {
+    useStore.getState().setSection("commands");
+    void openMainWindow();
+    void closePopover();
+  }, []);
+
   const openApp = useCallback(() => {
     void openMainWindow();
     void closePopover();
@@ -29,5 +37,5 @@ export function usePopoverActions(): PopoverActions {
     void quitPulso();
   }, []);
 
-  return { addProject, openApp, quit };
+  return { addProject, manageCommands, openApp, quit };
 }

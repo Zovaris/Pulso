@@ -1,14 +1,20 @@
-import { PlusIcon, SignOutIcon, SquaresFourIcon } from "@phosphor-icons/react";
+import {
+  PlusIcon,
+  SignOutIcon,
+  SquaresFourIcon,
+  TerminalWindowIcon,
+} from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { ActionRow } from "@/components/shared/ActionRow";
 import type { PopoverActions } from "@/features/popover/usePopoverActions";
 
 export function PopoverFooter({
   addProject,
+  manageCommands,
   openApp,
   quit,
   showAddProject,
-}: PopoverActions & { showAddProject: boolean }) {
+}: PopoverActions & { showAddProject: boolean; manageCommands: () => void }) {
   const { t } = useI18n();
 
   return (
@@ -21,6 +27,11 @@ export function PopoverFooter({
           onClick={addProject}
         />
       ) : null}
+      <ActionRow
+        icon={<TerminalWindowIcon size={14} />}
+        label={t("manageCommands")}
+        onClick={manageCommands}
+      />
       <ActionRow
         icon={<SquaresFourIcon size={14} />}
         label={t("openApp")}

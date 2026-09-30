@@ -1,4 +1,3 @@
-import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { ErrorNote } from "@/components/shared/ErrorNote";
@@ -9,7 +8,6 @@ import {
 import { CommandRow } from "@/features/popover/components/CommandRow";
 import { PopoverEmptyState } from "@/features/popover/components/PopoverEmptyState";
 import { ProjectList } from "@/features/popover/components/ProjectList";
-import { closePopover, openMainWindow } from "@/lib/tauri";
 import type { Project } from "@/lib/types";
 
 export function PopoverProjects({
@@ -24,7 +22,6 @@ export function PopoverProjects({
   const dismissProjectError = useStore((state) => state.dismissProjectError);
   const commands = useStore((state) => state.customCommands);
   const executions = useStore((state) => state.executions);
-  const setSection = useStore((state) => state.setSection);
   const favorites = menubarCommands(commands, executions);
   const hasProjects = projects.length > 0;
 
@@ -44,18 +41,6 @@ export function PopoverProjects({
           ))}
         </div>
       ) : null}
-      <div className="mb-3">
-        <Button
-          size="sm"
-          onClick={() => {
-            setSection("commands");
-            void openMainWindow();
-            void closePopover();
-          }}
-        >
-          {t("manageCommands")}
-        </Button>
-      </div>
       {hasProjects ? (
         <p className="mb-2 text-[11px] font-medium text-mist">
           {t("projects")}
