@@ -154,6 +154,10 @@ button:not(:disabled) {
   display: none;
 }
 
+.sph-kbd {
+  font-family: var(--font-mono);
+}
+
 .pulso-nav.sph-button {
   width: 100%;
   height: 30px;
@@ -183,6 +187,15 @@ button:not(:disabled) {
 .pulso-search-trigger .sph-button__label {
   width: 100%;
   min-width: 0;
+}
+
+.pulso-search-trigger .sph-kbd {
+  height: auto;
+  min-width: 0;
+  padding-inline: 0;
+  border-width: 0;
+  background-color: transparent;
+  font-size: 10.5px;
 }
 
 .pulso-split-start.sph-icon-button {
