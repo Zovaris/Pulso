@@ -1,56 +1,70 @@
-import { MagnifyingGlassIcon, PlayIcon, StarIcon } from "@phosphor-icons/react";
-import { Button, Input, Kbd } from "@zovaris/sephiro";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { PlayIcon, StarIcon } from "@phosphor-icons/react";
+import {
+  type CommandItem,
+  CommandPalette as SephiroPalette,
+} from "@zovaris/sephiro";
+import { useMemo } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import {
-  type PaletteHit,
-  rowsFrom,
-  searchCommands,
-} from "@/features/desktop/palette";
+import { type PaletteHit, rankAll, rowsFrom } from "@/features/desktop/palette";
 import { latestExecution } from "@/features/executions/execution";
 
-/**
- * Every command of every project, one keystroke away. The desktop already knows
- * all of them, so this is only about getting to the right one without walking
- * the sidebar.
- */
+const KEYS: Record<string, PaletteHit> = {};
+
 export function CommandPalette() {
   const { t } = useI18n();
   const open = useStore((state) => state.paletteOpen);
-  const close = useStore((state) => state.closePalette);
+  const setOpen = useStore((state) =>
+    state.paletteOpen ? state.closePalette : state.openPalette,
+  );
   const projects = useStore((state) => state.projects);
   const customCommands = useStore((state) => state.customCommands);
   const scans = useStore((state) => state.scans);
   const executions = useStore((state) => state.executions);
   const startCommand = useStore((state) => state.startCommand);
   const stopExecution = useStore((state) => state.stopExecution);
-  const [query, setQuery] = useState("");
-  const [index, setIndex] = useState(0);
-  const box = useRef<HTMLDivElement>(null);
 
-  const personalName = t("personalCommands");
   const rows = useMemo(
-    () => rowsFrom(projects, scans, customCommands, personalName),
-    [projects, scans, customCommands, personalName],
+    () => rowsFrom(projects, scans, customCommands, t("personalCommands")),
+    [projects, scans, customCommands, t],
   );
-  const hits = useMemo(() => searchCommands(rows, query), [rows, query]);
 
-  useEffect(() => {
-    if (!open) return;
+  const items = useMemo<CommandItem[]>(() => {
+    for (const key of Object.keys(KEYS)) delete KEYS[key];
 
-    setQuery("");
-    setIndex(0);
-    box.current?.querySelector("input")?.focus();
-  }, [open]);
+    return rankAll(rows, "").map((hit) => {
+      const key = `${hit.project.id}:${hit.commandId}`;
+      KEYS[key] = hit;
 
-  useEffect(() => {
-    setIndex(0);
-  }, []);
+      const running = latestExecution(
+        executions,
+        hit.project.id,
+        hit.commandId,
+      );
+      const active =
+        running?.state === "running" || running?.state === "starting";
 
-  if (!open) return null;
+      return {
+        id: key,
+        value: key,
+        label: hit.label,
+        keywords: `${hit.invocation} ${hit.project.name}`,
+        icon: hit.favorite ? (
+          <StarIcon size={12} weight="fill" />
+        ) : (
+          <PlayIcon size={11} weight="fill" />
+        ),
+        hint: hit.invocation,
+        badge: active ? t("stateRunning") : undefined,
+        group: hit.project.name,
+      };
+    });
+  }, [rows, executions, t]);
 
-  const run = (hit: PaletteHit) => {
+  const run = (item: CommandItem) => {
+    const hit = KEYS[String(item.value)];
+    if (!hit) return;
+
     const execution = latestExecution(
       executions,
       hit.project.id,
@@ -68,123 +82,17 @@ export function CommandPalette() {
     void startCommand(hit.project.id, hit.commandId);
   };
 
-  const move = (delta: number) => {
-    if (hits.length === 0) return;
-
-    setIndex((current) => {
-      const next = current + delta;
-      if (next < 0) return hits.length - 1;
-
-      return next % hits.length;
-    });
-  };
-
   return (
-    <div className="pulso-palette absolute inset-0 z-40 flex items-start justify-center pt-[12vh]">
-      <button
-        type="button"
-        aria-label={t("close")}
-        className="absolute inset-0 cursor-default"
-        onClick={close}
-      />
-      <div className="pulso-palette__panel relative w-[560px] overflow-hidden rounded-[12px] border border-line bg-panel">
-        <div
-          ref={box}
-          className="flex items-center gap-2.5 border-b border-hairline px-3.5 py-2.5"
-        >
-          <MagnifyingGlassIcon size={14} className="flex-none text-faint" />
-          <Input
-            value={query}
-            aria-label={t("palettePlaceholder")}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-                event.preventDefault();
-                move(event.key === "ArrowDown" ? 1 : -1);
-                return;
-              }
-
-              if (event.key !== "Enter") return;
-
-              const hit = hits[index];
-              if (!hit) return;
-
-              run(hit);
-              close();
-            }}
-            placeholder={t("palettePlaceholder")}
-            className="min-w-0 flex-1 bg-transparent text-[13px]"
-          />
-          <Kbd keys="⌘K" className="flex-none" />
-        </div>
-
-        {hits.length === 0 ? (
-          <p className="px-3.5 py-6 text-center text-[12px] text-faint">
-            {t("paletteEmpty")}
-          </p>
-        ) : (
-          <ul className="max-h-[320px] overflow-auto p-1">
-            {hits.map((hit, position) => {
-              const running = latestExecution(
-                executions,
-                hit.project.id,
-                hit.commandId,
-              );
-              const active =
-                running?.state === "running" || running?.state === "starting";
-
-              return (
-                <li key={`${hit.project.id}:${hit.commandId}`}>
-                  <Button
-                    type="button"
-                    size="md"
-                    variant="quiet"
-                    onMouseEnter={() => setIndex(position)}
-                    onClick={() => {
-                      run(hit);
-                      close();
-                    }}
-                    data-selected={position === index}
-                    className="pulso-row-fill-bare pulso-row-fill gap-2.5 px-2 py-1.5"
-                  >
-                    <span className="flex-none text-faint">
-                      {hit.favorite ? (
-                        <StarIcon size={12} weight="fill" />
-                      ) : (
-                        <PlayIcon size={11} weight="fill" />
-                      )}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[12.5px]">
-                        {hit.label}
-                      </span>
-                      <span className="block truncate font-mono text-[11px] text-faint">
-                        {hit.project.name} · {hit.invocation}
-                      </span>
-                    </span>
-                    {hit.hidden ? (
-                      <span className="flex-none text-[10.5px] text-faint">
-                        {t("hiddenBadge")}
-                      </span>
-                    ) : null}
-                    {active ? (
-                      <span className="flex-none text-[10.5px] text-accent-strong">
-                        {t("stateRunning")}
-                      </span>
-                    ) : null}
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
-        <footer className="flex items-center gap-3 border-t border-hairline px-3.5 py-2 text-[10.5px] text-faint">
-          <span>{t("paletteMove")}</span>
-          <span>{t("paletteRun")}</span>
-          <span className="ml-auto">{t("paletteEsc")}</span>
-        </footer>
-      </div>
-    </div>
+    <SephiroPalette
+      open={open}
+      onOpenChange={(next) => {
+        if (next !== open) setOpen();
+      }}
+      items={items}
+      onSelect={run}
+      placeholder={t("palettePlaceholder")}
+      emptyMessage={t("paletteEmpty")}
+      ariaLabel={t("palettePlaceholder")}
+    />
   );
 }
