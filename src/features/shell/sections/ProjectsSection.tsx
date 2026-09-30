@@ -8,12 +8,11 @@ import {
   StopIcon,
   TextboxIcon,
 } from "@phosphor-icons/react";
-import { Button, IconButton } from "@zovaris/sephiro";
+import { Button, IconButton, SegmentedControl } from "@zovaris/sephiro";
 import { useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { Card, CardEmpty } from "@/components/shared/Card";
-import { Chip } from "@/components/shared/Chip";
 import { IconTool } from "@/components/shared/IconTool";
 import {
   type CommandFilter,
@@ -32,6 +31,15 @@ import { ProjectInspector } from "@/features/shell/components/Inspector";
 import { ProjectStrip } from "@/features/shell/components/ProjectStrip";
 import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
 import type { DetectedCommand } from "@/lib/types";
+
+const FILTERS = [
+  "all",
+  "favorites",
+  "dev",
+  "test",
+  "lint",
+  "hidden",
+] as CommandFilter[];
 
 const FILTER_ICONS: Partial<Record<CommandFilter, typeof StarIcon>> = {
   favorites: StarIcon,
@@ -252,25 +260,29 @@ export function ProjectsSection() {
 
         {scan && scan.commands.length > 0 ? (
           <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
-            {(
-              [
-                "all",
-                "favorites",
-                "dev",
-                "test",
-                "lint",
-                "hidden",
-              ] as CommandFilter[]
-            ).map((entry) => (
-              <Chip
-                key={entry}
-                label={t(`filter${entry[0].toUpperCase()}${entry.slice(1)}`)}
-                count={filterCount(scan, entry)}
-                icon={FILTER_ICONS[entry]}
-                active={filter === entry}
-                onClick={() => setCommandFilter(entry)}
-              />
-            ))}
+            <SegmentedControl
+              size="sm"
+              ariaLabel={t("commandFilters")}
+              value={filter}
+              onValueChange={(value) =>
+                setCommandFilter(value as CommandFilter)
+              }
+              options={FILTERS.map((entry) => {
+                const Icon = FILTER_ICONS[entry];
+                return {
+                  value: entry,
+                  icon: Icon ? <Icon size={12} /> : undefined,
+                  label: (
+                    <span className="inline-flex items-center gap-1.5">
+                      {t(`filter${entry[0].toUpperCase()}${entry.slice(1)}`)}
+                      <span className="text-faint tabular-nums">
+                        {filterCount(scan, entry)}
+                      </span>
+                    </span>
+                  ),
+                };
+              })}
+            />
           </div>
         ) : null}
 

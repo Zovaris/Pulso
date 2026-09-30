@@ -128,6 +128,7 @@
   "hideInPopover": "Hide from the menubar",
   "hiddenBadge": "hidden",
   "nothingInFilter": "Nothing here under that filter.",
+  "commandFilters": "Command filters",
   "filterAll": "All",
   "filterFavorites": "Favourites",
   "filterDev": "Dev",
