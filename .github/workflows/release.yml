@@ -43,3 +43,12 @@ jobs:
           prerelease: false
           uploadUpdaterJson: false
           args: --bundles app,dmg
+
+      - name: Publish the DMG checksum
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          dmg=$(ls src-tauri/target/release/bundle/dmg/*.dmg | head -n1)
+          (cd "$(dirname "$dmg")" && shasum -a 256 "$(basename "$dmg")" > "$(basename "$dmg").sha256")
+          gh release upload "${{ github.ref_name }}" "${dmg}.sha256" --clobber
