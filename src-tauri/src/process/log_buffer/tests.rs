@@ -94,7 +94,6 @@ fn a_very_long_line_is_cut_by_bytes_not_only_by_count() {
 }
 
 #[test]
-#[test]
 fn a_line_without_newlines_cannot_grow_without_bound() {
     let buffer = buffer();
     buffer.push(LogStream::Stdout, &"x".repeat(200_000));
