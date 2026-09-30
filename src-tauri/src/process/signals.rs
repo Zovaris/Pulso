@@ -4,6 +4,9 @@ pub const TERMINATE: i32 = libc::SIGTERM;
 pub const KILL: i32 = libc::SIGKILL;
 
 pub fn signal_group(pgid: i32, signal: i32) -> io::Result<()> {
+    if pgid <= 0 {
+        return Err(io::Error::from_raw_os_error(libc::EINVAL));
+    }
     let result = unsafe { libc::killpg(pgid, signal) };
     if result == 0 {
         return Ok(());
