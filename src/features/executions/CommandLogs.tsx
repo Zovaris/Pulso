@@ -66,7 +66,7 @@ export function CommandLogs({
   return (
     <div className="pulso-logs" ref={box} inert={!open}>
       <div className="pulso-logs__panel" ref={panel}>
-        {lines.length > 0 ? (
+        {!open ? null : lines.length > 0 ? (
           <ol
             ref={list}
             className="pulso-logs__list"

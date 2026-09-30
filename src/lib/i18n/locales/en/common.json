@@ -194,7 +194,7 @@
   "copyLog": "Copy the visible log",
   "saveLog": "Save to a file…",
   "noMatch": "Nothing matches that search.",
-  "noLineCap": "no line cap here",
+  "logRetention": "up to {count} lines; older output is discarded",
 
   "palettePlaceholder": "Jump to a command…",
   "paletteEmpty": "No command matches that.",
