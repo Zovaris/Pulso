@@ -74,6 +74,10 @@ pub fn import(conn: &Connection, bundle: &Bundle) -> Result<usize> {
         ));
     }
 
+    let transaction = conn
+        .unchecked_transaction()
+        .map_err(crate::persistence::storage_error)?;
+    let conn = &transaction;
     let mut added = 0;
 
     for project in &bundle.projects {
@@ -87,7 +91,7 @@ pub fn import(conn: &Connection, bundle: &Bundle) -> Result<usize> {
             .unwrap_or_else(|_| path.to_string());
 
         let row = repositories::projects::ensure(conn, &stored, &project.name, now_ms())?;
-        added += 1;
+        added += conn.changes() as usize;
 
         let mut wanted: BTreeMap<String, CommandFlags> = BTreeMap::new();
         for command_id in &project.favorite {
@@ -117,6 +121,9 @@ pub fn import(conn: &Connection, bundle: &Bundle) -> Result<usize> {
         }
     }
 
+    transaction
+        .commit()
+        .map_err(crate::persistence::storage_error)?;
     Ok(added)
 }
 
