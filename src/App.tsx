@@ -15,15 +15,10 @@ export default function App() {
   const surface = useStore((s) => s.surface);
   const themePref = useStore((s) => s.themePref);
   const transparency = useStore((s) => s.transparency);
-  const hydratePreferences = useStore((s) => s.hydratePreferences);
 
   useProjectSync();
   usePreferencesSync();
   useMotionSync();
-
-  useEffect(() => {
-    void hydratePreferences();
-  }, [hydratePreferences]);
 
   useEffect(() => {
     const resolved = resolveTheme(themePref);

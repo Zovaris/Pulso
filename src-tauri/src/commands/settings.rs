@@ -267,9 +267,20 @@ pub async fn save_preferences(
         }
     }
 
+    let open_at_login_changed = in_database(&db, move |conn| {
+        Ok(
+            repositories::settings::get(conn, OPEN_AT_LOGIN_KEY)?.as_deref()
+                != Some(if preferences.open_at_login { "1" } else { "0" }),
+        )
+    })
+    .await?;
     let stored = preferences.clone();
 
     in_database(&db, move |conn| {
+        let transaction = conn
+            .unchecked_transaction()
+            .map_err(crate::persistence::storage_error)?;
+        let conn = &transaction;
         let theme = stored.theme.as_str();
         let locale = stored.locale.as_str();
 
@@ -302,11 +313,17 @@ pub async fn save_preferences(
             NOTIFY_ON_FAILURE_KEY,
             if stored.notify_on_failure { "1" } else { "0" },
         )?;
-        repositories::settings::set(conn, LOG_LINES_KEY, &stored.log_lines.to_string())
+        repositories::settings::set(conn, LOG_LINES_KEY, &stored.log_lines.to_string())?;
+        transaction
+            .commit()
+            .map_err(crate::persistence::storage_error)
     })
     .await?;
 
-    crate::app::autostart::apply(preferences.open_at_login);
+    let open_at_login = preferences.open_at_login;
+    if open_at_login_changed {
+        super::off_thread(move || crate::app::autostart::apply(open_at_login)).await?;
+    }
     if let Some(supervisor) = app.try_state::<Arc<crate::process::supervisor::ProcessSupervisor>>()
     {
         supervisor.set_log_lines(preferences.log_lines);

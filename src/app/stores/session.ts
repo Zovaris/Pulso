@@ -14,6 +14,7 @@ import {
 } from "@/lib/i18n";
 import type { Locale, Preferences, Surface, ThemePref } from "@/lib/types";
 import { LOG_LINE_CHOICES } from "@/lib/types";
+import { toBackendError } from "@/services/api/errors";
 import { getPreferences, persistPreferences } from "@/services/api/settings";
 import type { AppStore } from "./types";
 
@@ -77,8 +78,39 @@ export const createSessionSlice: StateCreator<
   [],
   SessionSlice
 > = (set, get) => {
+  let saving = Promise.resolve();
+  let pending = 0;
+  let changed = 0;
+  let hydrated: Promise<void> | undefined;
+  let confirmed: Preferences | undefined;
+
   const persist = (preferences: Preferences) => {
-    void persistPreferences(preferences).catch(() => undefined);
+    pending += 1;
+    const request = changed;
+    saving = saving.then(async () => {
+      try {
+        const stored = await persistPreferences(preferences);
+        confirmed = stored ?? preferences;
+        if (request === changed) apply(confirmed);
+      } catch (cause) {
+        if (request === changed && confirmed) apply(confirmed);
+        set({ projectError: toBackendError(cause) });
+      } finally {
+        pending -= 1;
+        if (pending === 0) {
+          try {
+            const latest = await getPreferences();
+            if (latest && pending === 0 && request === changed) {
+              confirmed = latest;
+              apply(latest);
+            }
+          } catch (cause) {
+            set({ projectError: toBackendError(cause) });
+          }
+        }
+      }
+    });
+    return saving;
   };
 
   const chosen = (): Preferences => {
@@ -117,6 +149,16 @@ export const createSessionSlice: StateCreator<
       confirmStop: preferences.confirmStop,
       notifyOnFailure: preferences.notifyOnFailure,
       logLines: sanitizeLogLines(preferences.logLines),
+      ...(sanitizeLogLines(preferences.logLines) < get().logLines
+        ? {
+            logs: Object.fromEntries(
+              Object.entries(get().logs ?? {}).map(([id, lines]) => [
+                id,
+                lines.slice(-sanitizeLogLines(preferences.logLines)),
+              ]),
+            ),
+          }
+        : {}),
     });
   };
 
@@ -144,9 +186,11 @@ export const createSessionSlice: StateCreator<
       ),
 
     updatePreferences: (patch) => {
+      confirmed ??= chosen();
+      changed += 1;
       const next = { ...chosen(), ...patch };
       apply(next);
-      persist(next);
+      void persist(next);
     },
 
     setLocale: (locale: Locale) => get().updatePreferences({ locale }),
@@ -158,19 +202,30 @@ export const createSessionSlice: StateCreator<
 
     setSound: (value: boolean) => get().updatePreferences({ sound: value }),
 
-    applyPreferences: apply,
+    applyPreferences: (preferences) => {
+      if (pending > 0) return;
+      confirmed = preferences;
+      apply(preferences);
+    },
 
-    hydratePreferences: async () => {
-      const stored = await getPreferences().catch(() => null);
-      if (!stored) {
-        persist(chosen());
-        return;
-      }
-
-      const current = chosen();
-      if (JSON.stringify(stored) === JSON.stringify(current)) return;
-
-      apply(stored);
+    hydratePreferences: () => {
+      hydrated ??= (async () => {
+        const request = changed;
+        try {
+          const stored = await getPreferences();
+          if (request !== changed) return;
+          if (!stored) {
+            confirmed = chosen();
+            await persist(confirmed);
+          } else {
+            confirmed = stored;
+            apply(stored);
+          }
+        } catch (cause) {
+          set({ projectError: toBackendError(cause) });
+        }
+      })();
+      return hydrated;
     },
 
     t: (key, vars) => translate(get().locale, key, vars),

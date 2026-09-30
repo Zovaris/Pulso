@@ -82,11 +82,14 @@ fn gui_domain() -> String {
 }
 
 fn run(args: &[&str]) {
-    let _ = Command::new("/bin/launchctl")
+    let result = Command::new("/bin/launchctl")
         .args(args)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status();
+    if let Err(error) = result {
+        eprintln!("Could not run launchctl: {error}");
+    }
 }
 
 #[cfg(test)]
