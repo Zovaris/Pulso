@@ -6,6 +6,7 @@ use crate::domain::log::{LogLine, LogStream};
 use crate::support::now_ms;
 
 pub const DEFAULT_LINES: usize = 4000;
+const MAX_LINE_CHARS: usize = 16_384;
 
 /// Room the text may take, as a multiple of the line cap: a log full of long
 /// lines is cut by bytes before it is cut by lines.
@@ -45,7 +46,8 @@ impl LogBuffer {
     }
 
     pub fn push(&self, stream: LogStream, raw: &str) {
-        let text = clean(raw);
+        let mut text = clean(raw);
+        truncate(&mut text);
         if text.trim().is_empty() {
             return;
         }
@@ -76,6 +78,11 @@ impl LogBuffer {
                 break;
             };
             inner.bytes = inner.bytes.saturating_sub(dropped.text.len());
+        }
+
+        if inner.pending.len() > max_lines {
+            let excess = inner.pending.len() - max_lines;
+            inner.pending.drain(..excess);
         }
     }
 
@@ -115,6 +122,18 @@ impl LogBuffer {
             .cloned()
             .collect()
     }
+}
+
+fn truncate(text: &mut String) {
+    if text.len() <= MAX_LINE_CHARS {
+        return;
+    }
+
+    let mut end = MAX_LINE_CHARS;
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    text.truncate(end);
 }
 
 fn clean(raw: &str) -> String {
