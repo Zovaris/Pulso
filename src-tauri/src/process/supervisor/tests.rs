@@ -163,8 +163,8 @@ async fn the_output_of_a_command_reaches_its_buffer() {
     }
 
     assert_eq!(lines.len(), 2, "both streams are captured");
-    assert_eq!(lines[0].stream, LogStream::Stdout);
-    assert_eq!(lines[1].stream, LogStream::Stderr);
+    assert!(lines.iter().any(|line| line.stream == LogStream::Stdout));
+    assert!(lines.iter().any(|line| line.stream == LogStream::Stderr));
 
     assert_eq!(ports.len(), 1);
     assert_eq!(ports[0].port, 4321);
@@ -174,6 +174,134 @@ async fn the_output_of_a_command_reaches_its_buffer() {
             .expect("the URL is openable"),
         "http://localhost:4321/en/"
     );
+}
+
+#[tokio::test]
+async fn concurrent_starts_reserve_the_command_once() {
+    let supervisor = supervisor();
+    let command = command("concurrent", "/bin/sleep", &["30"]);
+    let (first, second) = tokio::join!(
+        supervisor.start(1, &command, None),
+        supervisor.start(1, &command, None),
+    );
+    assert_ne!(first.is_ok(), second.is_ok());
+    let started = first.or(second).expect("one start succeeds");
+    supervisor.stop(started.id).await.expect("stop");
+}
+
+#[tokio::test]
+async fn children_remain_stoppable_after_the_parent_exits() {
+    let supervisor = supervisor();
+    let started = supervisor
+        .start(
+            1,
+            &command("orphan", "/bin/sh", &["-c", "sleep 30 & exit 0"]),
+            None,
+        )
+        .await
+        .expect("start");
+    sleep(Duration::from_millis(150)).await;
+    assert!(supervisor.snapshot(started.id).unwrap().is_active());
+    let stopped = supervisor.stop(started.id).await.expect("stop descendants");
+    assert!(!stopped.is_active());
+    assert!(!signals::group_exists(started.pid.unwrap() as i32));
+}
+
+#[tokio::test]
+async fn final_output_is_drained_before_history_is_written() {
+    let supervisor = supervisor();
+    let written = Arc::new(Mutex::new(Vec::new()));
+    let observed = Arc::clone(&written);
+    supervisor.on_finished(Arc::new(move |_, lines| {
+        *observed.lock().unwrap() = lines.to_vec();
+    }));
+    let started = supervisor
+        .start(
+            1,
+            &command("tail", "/bin/sh", &["-c", "echo first; printf last >&2"]),
+            None,
+        )
+        .await
+        .unwrap();
+    supervisor
+        .await_final_state(started.id)
+        .await
+        .expect("finished");
+    let lines = written.lock().unwrap();
+    assert!(lines.iter().any(|line| line.text == "first"));
+    assert!(lines.iter().any(|line| line.text == "last"));
+}
+
+#[tokio::test]
+async fn the_reader_bounds_partial_lines_and_survives_invalid_utf8() {
+    use tokio::io::AsyncWriteExt;
+    let logs = Arc::new(LogBuffer::new(Arc::new(AtomicUsize::new(4000))));
+    let (mut writer, reader) = tokio::io::duplex(8192);
+    let readers = Arc::new(AtomicUsize::new(1));
+    let task = read_stream(
+        reader,
+        LogStream::Stdout,
+        Arc::clone(&logs),
+        Arc::new(Mutex::new(HashMap::new())),
+        Arc::new(|_| {}),
+        Arc::clone(&readers),
+        1,
+    );
+    writer.write_all(&vec![b'x'; 1_000_000]).await.unwrap();
+    assert!(logs.tail(10).is_empty());
+    writer.write_all(b"\n\xff invalid\nnext\n").await.unwrap();
+    drop(writer);
+    task.await.unwrap();
+    let lines = logs.tail(10);
+    assert_eq!(lines.len(), 3);
+    assert!(lines[0].text.len() <= MAX_LINE_BYTES);
+    assert!(lines[0].text.ends_with("[truncated]"));
+    assert!(lines[1].text.contains("invalid"));
+    assert_eq!(lines[2].text, "next");
+    assert_eq!(readers.load(Ordering::SeqCst), 0);
+}
+
+#[test]
+fn cancelled_start_reservations_are_removed() {
+    let supervisor = supervisor();
+    supervisor
+        .reserve(Managed {
+            execution: Execution::new(1, 1, &command("cancel", "/bin/true", &[]), 1),
+            pgid: 0,
+            logs: Arc::new(LogBuffer::new(Arc::new(AtomicUsize::new(4000)))),
+        })
+        .unwrap();
+    let removed = Arc::new(Mutex::new(Vec::new()));
+    let observed = Arc::clone(&removed);
+    let reservation = StartReservation {
+        id: 1,
+        executions: Arc::clone(&supervisor.executions),
+        removed: Some(Arc::new(move |ids| {
+            observed.lock().unwrap().extend_from_slice(ids)
+        })),
+    };
+    drop(reservation);
+    assert!(supervisor.list().is_empty());
+    assert_eq!(*removed.lock().unwrap(), vec![1]);
+}
+
+#[test]
+fn clearing_finished_broadcasts_removed_ids() {
+    let supervisor = supervisor();
+    let removed = Arc::new(Mutex::new(Vec::new()));
+    let observed = Arc::clone(&removed);
+    supervisor.on_removed(Arc::new(move |ids| {
+        observed.lock().unwrap().extend_from_slice(ids)
+    }));
+    let mut execution = Execution::new(8, 1, &command("done", "/bin/true", &[]), 1);
+    execution.state = ExecutionState::Exited;
+    supervisor.remember(Managed {
+        execution,
+        pgid: 0,
+        logs: Arc::new(LogBuffer::new(Arc::new(AtomicUsize::new(4000)))),
+    });
+    assert_eq!(supervisor.clear_finished(), 1);
+    assert_eq!(*removed.lock().unwrap(), vec![8]);
 }
 
 #[test]

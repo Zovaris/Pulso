@@ -48,6 +48,10 @@ pub fn run() {
                 log_notifier,
             ));
             supervisor.set_log_lines(commands::settings::log_lines(&handle));
+            supervisor.on_removed({
+                let handle = handle.clone();
+                Arc::new(move |ids| events::executions_removed(&handle, ids))
+            });
             supervisor.on_finished({
                 let history = Arc::clone(&history);
                 Arc::new(

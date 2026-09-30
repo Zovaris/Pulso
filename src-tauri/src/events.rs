@@ -17,6 +17,7 @@ pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
 pub const COMMAND_FLAGS_CHANGED: &str = "project://flags-changed";
 pub const EXECUTION_CHANGED: &str = "execution://state-changed";
+pub const EXECUTIONS_REMOVED: &str = "execution://removed";
 pub const EXECUTION_METRICS: &str = "execution://metrics";
 pub const LOG_APPENDED: &str = "execution://log-appended";
 pub const POPOVER_PREPARE: &str = "popover://prepare";
@@ -71,6 +72,10 @@ pub fn popover_shown(app: &AppHandle) {
 
 pub fn popover_closing(app: &AppHandle) {
     let _ = app.emit(POPOVER_CLOSING, ());
+}
+
+pub fn executions_removed(app: &AppHandle, ids: &[i64]) {
+    let _ = app.emit(EXECUTIONS_REMOVED, ids);
 }
 
 pub fn execution_changed(app: &AppHandle, execution: &Execution) {
