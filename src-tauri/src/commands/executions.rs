@@ -55,8 +55,9 @@ pub async fn save_log_text(app: AppHandle, text: String, name: String) -> Result
         return Ok(None);
     };
 
-    let target = Path::new(&path);
-    std::fs::write(target, text)
+    let target = path.clone();
+    off_thread(move || std::fs::write(&target, text))
+        .await?
         .map_err(|error| BackendError::internal(format!("The log could not be saved: {error}")))?;
 
     Ok(Some(path))

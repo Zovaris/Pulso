@@ -73,13 +73,16 @@ pub async fn export_projects(
     })?;
 
     let target = PathBuf::from(&path);
-    std::fs::write(&target, json).map_err(|error| {
-        BackendError::at(
-            ErrorKind::Unreadable,
-            &target,
-            format!("The file could not be written: {error}"),
-        )
-    })?;
+    let writing = target.clone();
+    off_thread(move || std::fs::write(writing, json))
+        .await?
+        .map_err(|error| {
+            BackendError::at(
+                ErrorKind::Unreadable,
+                &target,
+                format!("The file could not be written: {error}"),
+            )
+        })?;
 
     Ok(Some(path))
 }
@@ -94,13 +97,16 @@ pub async fn import_projects(
     };
 
     let target = PathBuf::from(&path);
-    let raw = std::fs::read_to_string(&target).map_err(|error| {
-        BackendError::at(
-            ErrorKind::Unreadable,
-            &target,
-            format!("The file could not be read: {error}"),
-        )
-    })?;
+    let reading = target.clone();
+    let raw = off_thread(move || std::fs::read_to_string(reading))
+        .await?
+        .map_err(|error| {
+            BackendError::at(
+                ErrorKind::Unreadable,
+                &target,
+                format!("The file could not be read: {error}"),
+            )
+        })?;
 
     let bundle: transfer::Bundle = serde_json::from_str(&raw).map_err(|error| {
         BackendError::new(
@@ -151,10 +157,12 @@ pub async fn diagnostic_bundle(
         )
         .into_bytes(),
     ));
-    files.push((
-        "environment.txt".to_string(),
-        environment_text(&app, &projects).into_bytes(),
-    ));
+    files.push(("environment.txt".to_string(), {
+        let app = app.clone();
+        off_thread(move || environment_text(&app, &projects))
+            .await?
+            .into_bytes()
+    }));
 
     for execution in supervisor.list() {
         let snapshot = supervisor.logs(execution.id, None, LOGS_IN_BUNDLE)?;
