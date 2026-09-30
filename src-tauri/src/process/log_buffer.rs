@@ -16,7 +16,8 @@ struct Inner {
     lines: VecDeque<LogLine>,
     bytes: usize,
     next_seq: u64,
-    pending: Vec<LogLine>,
+    pending: VecDeque<LogLine>,
+    pending_bytes: usize,
 }
 
 pub struct LogBuffer {
@@ -33,7 +34,8 @@ impl LogBuffer {
                 lines: VecDeque::new(),
                 bytes: 0,
                 next_seq: 1,
-                pending: Vec::new(),
+                pending: VecDeque::new(),
+                pending_bytes: 0,
             }),
             limit,
         }
@@ -65,7 +67,8 @@ impl LogBuffer {
 
         inner.next_seq += 1;
         inner.bytes += line.text.len();
-        inner.pending.push(line.clone());
+        inner.pending_bytes += line.text.len();
+        inner.pending.push_back(line.clone());
         inner.lines.push_back(line);
 
         let (max_lines, max_bytes) = self.capacity();
@@ -80,9 +83,12 @@ impl LogBuffer {
             inner.bytes = inner.bytes.saturating_sub(dropped.text.len());
         }
 
-        if inner.pending.len() > max_lines {
-            let excess = inner.pending.len() - max_lines;
-            inner.pending.drain(..excess);
+        while inner.pending.len() > 1
+            && (inner.pending.len() > max_lines || inner.pending_bytes > max_bytes)
+        {
+            if let Some(dropped) = inner.pending.pop_front() {
+                inner.pending_bytes = inner.pending_bytes.saturating_sub(dropped.text.len());
+            }
         }
     }
 
@@ -91,7 +97,8 @@ impl LogBuffer {
             return Vec::new();
         };
 
-        std::mem::take(&mut inner.pending)
+        inner.pending_bytes = 0;
+        inner.pending.drain(..).collect()
     }
 
     pub fn tail(&self, limit: usize) -> Vec<LogLine> {

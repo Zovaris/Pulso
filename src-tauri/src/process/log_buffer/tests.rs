@@ -126,6 +126,17 @@ fn pending_never_holds_more_than_the_line_cap() {
 }
 
 #[test]
+fn pending_is_also_bounded_by_bytes() {
+    let buffer = LogBuffer::new(Arc::new(AtomicUsize::new(100)));
+    for _ in 0..100 {
+        buffer.push(LogStream::Stdout, &"x".repeat(4096));
+    }
+    let lines = buffer.take_pending();
+    assert!(lines.iter().map(|line| line.text.len()).sum::<usize>() <= 100 * BYTES_PER_LINE);
+    assert_eq!(lines.last().unwrap().seq, 100);
+}
+
+#[test]
 fn taking_pending_empties_it() {
     let buffer = buffer();
     buffer.push(LogStream::Stdout, "one");
