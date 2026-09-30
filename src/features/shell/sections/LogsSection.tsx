@@ -4,7 +4,7 @@ import {
   FloppyDiskIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
-import { Button, SegmentedControl } from "@zovaris/sephiro";
+import { Button, Input, SegmentedControl } from "@zovaris/sephiro";
 import { useEffect, useMemo, useRef } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -192,22 +192,24 @@ export function LogsSection() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-none items-center gap-2 border-b border-line px-3.5 py-2">
-          <label className="flex h-[26px] min-w-[220px] flex-1 items-center gap-2 rounded-[7px] border border-line px-2 focus-within:border-accent">
+          <div className="flex min-w-[220px] flex-1 items-center gap-2">
             <MagnifyingGlassIcon size={12} className="flex-none text-faint" />
-            <input
+            <Input
+              size="sm"
               value={filter.query}
               onChange={(event) =>
                 setLogFilter({ ...filter, query: event.target.value })
               }
               placeholder={t("searchLogs")}
-              className="min-w-0 flex-1 bg-transparent text-[12px] outline-none"
+              aria-label={t("searchLogs")}
+              className="min-w-0 flex-1 text-[12px]"
             />
             {filter.query.trim() === "" ? null : (
               <span className="flex-none text-[11px] text-faint tabular-nums">
                 {t("matchCount", { count: matches })}
               </span>
             )}
-          </label>
+          </div>
 
           <SegmentedControl
             size="sm"

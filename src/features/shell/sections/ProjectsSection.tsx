@@ -8,7 +8,7 @@ import {
   StopIcon,
   TextboxIcon,
 } from "@phosphor-icons/react";
-import { Button, IconButton, SegmentedControl } from "@zovaris/sephiro";
+import { Button, IconButton, Input, SegmentedControl } from "@zovaris/sephiro";
 import { useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -160,11 +160,13 @@ function CommandRow({
             );
           }}
         >
-          <input
+          <Input
+            size="sm"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={t("argumentsPlaceholder")}
-            className="h-[26px] min-w-0 flex-1 rounded-[6px] border border-line bg-void px-2 font-mono text-[11.5px] outline-none focus:border-accent"
+            aria-label={t("argumentsPlaceholder")}
+            className="min-w-0 flex-1 font-mono text-[11.5px]"
           />
           <Button size="sm" variant="primary" type="submit">
             {t("runCommand")}

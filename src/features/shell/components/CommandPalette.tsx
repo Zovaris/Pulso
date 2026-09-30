@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon, PlayIcon, StarIcon } from "@phosphor-icons/react";
-import { Button, Kbd } from "@zovaris/sephiro";
+import { Button, Input, Kbd } from "@zovaris/sephiro";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -27,7 +27,7 @@ export function CommandPalette() {
   const stopExecution = useStore((state) => state.stopExecution);
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
-  const box = useRef<HTMLInputElement>(null);
+  const box = useRef<HTMLDivElement>(null);
 
   const personalName = t("personalCommands");
   const rows = useMemo(
@@ -41,7 +41,7 @@ export function CommandPalette() {
 
     setQuery("");
     setIndex(0);
-    box.current?.focus();
+    box.current?.querySelector("input")?.focus();
   }, [open]);
 
   useEffect(() => {
@@ -88,11 +88,14 @@ export function CommandPalette() {
         onClick={close}
       />
       <div className="pulso-palette__panel relative w-[560px] overflow-hidden rounded-[12px] border border-line bg-panel">
-        <label className="flex items-center gap-2.5 border-b border-hairline px-3.5 py-2.5">
+        <div
+          ref={box}
+          className="flex items-center gap-2.5 border-b border-hairline px-3.5 py-2.5"
+        >
           <MagnifyingGlassIcon size={14} className="flex-none text-faint" />
-          <input
-            ref={box}
+          <Input
             value={query}
+            aria-label={t("palettePlaceholder")}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -110,10 +113,10 @@ export function CommandPalette() {
               close();
             }}
             placeholder={t("palettePlaceholder")}
-            className="min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+            className="min-w-0 flex-1 bg-transparent text-[13px]"
           />
           <Kbd keys="⌘K" className="flex-none" />
-        </label>
+        </div>
 
         {hits.length === 0 ? (
           <p className="px-3.5 py-6 text-center text-[12px] text-faint">
