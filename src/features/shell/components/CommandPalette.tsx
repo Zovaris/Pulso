@@ -142,7 +142,7 @@ export function CommandPalette() {
                       close();
                     }}
                     data-selected={position === index}
-                    className="pulso-row-fill-bare pulso-row-fill"
+                    className="pulso-row-fill-bare pulso-row-fill gap-2.5 px-2 py-1.5"
                   >
                     <span className="flex-none text-faint">
                       {hit.favorite ? (

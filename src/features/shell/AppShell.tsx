@@ -37,7 +37,7 @@ function Notice() {
           size="md"
           variant="secondary"
           onClick={dismissNotice}
-          className="pulso-row-fill-bare pointer-events-auto max-w-[420px] items-start text-left text-[11.5px] shadow-[0_12px_32px_rgb(0_0_0/0.4)]"
+          className="pulso-row-fill-bare pointer-events-auto max-w-[420px] items-start px-3 py-2 text-left text-[11.5px] shadow-[0_12px_32px_rgb(0_0_0/0.4)]"
         >
           {notice}
         </Button>

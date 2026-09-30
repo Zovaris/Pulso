@@ -81,7 +81,7 @@ function ProcessRow({
         variant="quiet"
         type="button"
         onClick={() => select(execution.id)}
-        className="pulso-row-fill-bare pulso-row-fill min-w-0"
+        className="pulso-row-fill-bare pulso-row-fill min-w-0 p-0"
       >
         <i className="pulso-dot" data-s={live} />
         <span className="min-w-0">

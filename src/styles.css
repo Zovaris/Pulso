@@ -228,6 +228,11 @@ button:not(:disabled) {
   height: auto;
 }
 
+.pulso-row-fill.sph-button:hover:not(:disabled),
+.pulso-row-fill.sph-button:active:not(:disabled) {
+  transform: none;
+}
+
 .pulso-row-fill-bare.sph-button[data-selected="true"] {
   background-color: var(--fill);
 }

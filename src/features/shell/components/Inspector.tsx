@@ -282,7 +282,7 @@ function ProjectTimeline({ projectId }: { projectId: number }) {
               disabled={!stored}
               title={stored ? t("openStoredLog") : (run.detail ?? undefined)}
               onClick={() => void toggleHistoryLog(run.id)}
-              className="pulso-row-fill-bare pulso-row-fill"
+              className="pulso-row-fill-bare pulso-row-fill px-1.5 py-1"
             >
               <i className="pulso-dot" data-s={run.state} />
               <span className="min-w-0 flex-1 truncate text-[11.5px]">

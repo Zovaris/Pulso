@@ -170,7 +170,7 @@ export function LogsSection() {
             variant="quiet"
             onClick={() => select(execution.id)}
             data-selected={execution.id === selected.id}
-            className="pulso-row-fill-bare pulso-row-fill"
+            className="pulso-row-fill-bare pulso-row-fill px-3 py-1.5"
           >
             <i className="pulso-dot" data-s={stateOf(execution)} />
             <span className="min-w-0 flex-1">
