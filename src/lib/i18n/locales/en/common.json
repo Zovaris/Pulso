@@ -129,6 +129,7 @@
   "hiddenBadge": "hidden",
   "nothingInFilter": "Nothing here under that filter.",
   "commandFilters": "Command filters",
+  "filterStreams": "Stream filter",
   "filterAll": "All",
   "filterFavorites": "Favourites",
   "filterDev": "Dev",

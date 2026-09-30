@@ -1,4 +1,5 @@
 import { StopIcon } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { Card } from "@/components/shared/Card";
@@ -33,25 +34,27 @@ export function ProcessesSection() {
           <p className="mt-1 text-[12px] text-mist">{t("processesLede")}</p>
         </div>
         <div className="ml-auto flex flex-none items-center gap-2">
-          <button
+          <Button
             type="button"
+            size="md"
+            variant="secondary"
             disabled={done.length === 0}
             onClick={() => void clearFinished()}
-            className="flex h-[28px] items-center rounded-[7px] border border-line px-3 text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper disabled:cursor-default disabled:opacity-40"
           >
             {t("clearFinished")}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="md"
+            variant="secondary"
             disabled={liveCount === 0}
             onClick={() => {
               for (const execution of live) void stopExecution(execution.id);
             }}
-            className="flex h-[28px] items-center gap-1.5 rounded-[7px] border border-line px-3 text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper disabled:cursor-default disabled:opacity-40"
           >
             <StopIcon size={12} weight="fill" />
             {t("stopAll")}
-          </button>
+          </Button>
         </div>
       </header>
 

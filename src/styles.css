@@ -140,6 +140,37 @@ button:not(:disabled) {
   width: 100%;
 }
 
+.pulso-nav.sph-button {
+  width: 100%;
+  height: 30px;
+  justify-content: flex-start;
+  padding-inline: 8px;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.pulso-nav .sph-button__label {
+  width: 100%;
+  min-width: 0;
+}
+
+.pulso-nav-active.sph-button {
+  background-color: var(--fill);
+  font-weight: 500;
+}
+
+.pulso-search-trigger.sph-button {
+  justify-content: flex-start;
+  padding-inline: 8px;
+  font-size: 12px;
+  text-align: left;
+}
+
+.pulso-search-trigger .sph-button__label {
+  width: 100%;
+  min-width: 0;
+}
+
 .pulso-split-start.sph-icon-button {
   border-radius: 7px 0 0 7px;
 }
@@ -182,6 +213,10 @@ button:not(:disabled) {
 .pulso-row-fill-bare.sph-button {
   height: auto;
   padding: 0;
+}
+
+.pulso-row-fill-bare.sph-button[data-selected="true"] {
+  background-color: var(--fill);
 }
 
 .pulso-row__icon {

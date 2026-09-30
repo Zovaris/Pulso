@@ -4,6 +4,7 @@ import {
   FloppyDiskIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
+import { Button, SegmentedControl } from "@zovaris/sephiro";
 import { useEffect, useMemo, useRef } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -162,13 +163,14 @@ export function LogsSection() {
     <div className="flex min-w-0 flex-1">
       <div className="pulso-pane flex w-[228px] flex-none flex-col gap-0.5 overflow-auto border-r border-line bg-night py-3">
         {ordered.map((execution) => (
-          <button
+          <Button
             key={execution.id}
             type="button"
+            size="md"
+            variant="quiet"
             onClick={() => select(execution.id)}
-            className={`flex items-center gap-2 px-3 py-1.5 text-left transition-colors duration-[120ms] ${
-              execution.id === selected.id ? "bg-fill" : "hover:bg-hover"
-            }`}
+            data-selected={execution.id === selected.id}
+            className="pulso-row-fill-bare pulso-row-fill"
           >
             <i className="pulso-dot" data-s={stateOf(execution)} />
             <span className="min-w-0 flex-1">
@@ -184,7 +186,7 @@ export function LogsSection() {
             <span className="text-[11px] text-faint tabular-nums">
               {logs[execution.id]?.length ?? 0}
             </span>
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -207,20 +209,20 @@ export function LogsSection() {
             )}
           </label>
 
-          {(["all", "stdout", "stderr"] as StreamFilter[]).map((stream) => (
-            <button
-              key={stream}
-              type="button"
-              onClick={() => setLogFilter({ ...filter, stream })}
-              className={`h-[26px] rounded-[7px] border px-2.5 font-mono text-[11px] transition-colors duration-[120ms] ${
-                filter.stream === stream
-                  ? "border-transparent bg-accent text-white"
-                  : "border-line text-mist hover:bg-hover hover:text-paper"
-              }`}
-            >
-              {stream === "all" ? t("filterAll") : stream}
-            </button>
-          ))}
+          <SegmentedControl
+            size="sm"
+            ariaLabel={t("filterStreams")}
+            value={filter.stream}
+            onValueChange={(stream) =>
+              setLogFilter({ ...filter, stream: stream as StreamFilter })
+            }
+            options={(["all", "stdout", "stderr"] as StreamFilter[]).map(
+              (stream) => ({
+                value: stream,
+                label: stream === "all" ? t("filterAll") : stream,
+              }),
+            )}
+          />
 
           <span className="ml-auto flex-none text-[11px] text-faint tabular-nums">
             {t("lineCount", { count: shown })}
