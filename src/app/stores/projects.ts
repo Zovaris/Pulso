@@ -63,6 +63,11 @@ export const createProjectsSlice: StateCreator<
   applyProjects: (projects) =>
     set((state) => ({
       projects,
+      scans: Object.fromEntries(
+        Object.entries(state.scans).filter(([id]) =>
+          projects.some((project) => project.id === Number(id)),
+        ),
+      ),
       selectedProjectId: projects.some(
         (project) => project.id === state.selectedProjectId,
       )
@@ -106,7 +111,11 @@ export const createProjectsSlice: StateCreator<
 
   loadProjects: async () => {
     try {
-      set({ projects: await projectsApi.listProjects(), projectError: null });
+      const before = get().projects;
+      const projects = await projectsApi.listProjects();
+      if (get().projects !== before) return;
+      get().applyProjects(projects);
+      set({ projectError: null });
     } catch (cause) {
       set({ projectError: toBackendError(cause) });
     }

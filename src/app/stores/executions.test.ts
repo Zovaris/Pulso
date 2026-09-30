@@ -8,6 +8,7 @@ vi.mock("@/services/api/executions", () => ({
   startCommand: vi.fn(),
   stopExecution: vi.fn(),
   getLogSnapshot: vi.fn(),
+  clearFinished: vi.fn(),
   openDetectedUrl: vi.fn(),
 }));
 
@@ -45,6 +46,10 @@ beforeEach(() => {
     openLogKey: null,
     pendingCommandId: null,
     projectError: null,
+    logLines: 4000,
+    historyProject: null,
+    metrics: {},
+    histories: {},
   });
 });
 
@@ -95,13 +100,13 @@ describe("applyLogs", () => {
 });
 
 describe("loadLogs", () => {
-  it("asks only for what it is missing", async () => {
+  it("refreshes the retained tail to recover output missed while hidden", async () => {
     useStore.getState().applyLogs(7, [line(1), line(5)]);
     api.getLogSnapshot.mockResolvedValue({ executionId: 7, lines: [line(6)] });
 
     await useStore.getState().loadLogs(7);
 
-    expect(api.getLogSnapshot).toHaveBeenCalledWith(7, 5, 4000);
+    expect(api.getLogSnapshot).toHaveBeenCalledWith(7, null, 4000);
     expect(useStore.getState().logs[7].map((item) => item.seq)).toEqual([
       1, 5, 6,
     ]);
@@ -202,6 +207,95 @@ describe("stopExecution", () => {
       message: "boom",
       path: null,
     });
+  });
+});
+
+describe("reconciliation", () => {
+  it("does not regress a terminal state with a late start response", async () => {
+    useStore
+      .getState()
+      .applyExecution(execution(101, { state: "exited", revision: 4 }));
+    api.startCommand.mockResolvedValue(execution(101, { revision: 2 }));
+    api.getLogSnapshot.mockResolvedValue({ executionId: 101, lines: [] });
+    await useStore.getState().startCommand(1, "package.json:dev");
+    expect(useStore.getState().executions[0].state).toBe("exited");
+  });
+
+  it("preserves events arriving while a snapshot is in flight", async () => {
+    let resolve!: (runs: Execution[]) => void;
+    api.listExecutions.mockImplementation(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    const loading = useStore.getState().loadExecutions();
+    useStore
+      .getState()
+      .applyExecution(execution(102, { state: "exited", revision: 4 }));
+    useStore.getState().applyExecution(execution(103));
+    resolve([execution(102, { revision: 2 })]);
+    await loading;
+    expect(useStore.getState().executions.map((entry) => entry.id)).toEqual([
+      102, 103,
+    ]);
+    expect(useStore.getState().executions[0].state).toBe("exited");
+  });
+
+  it("cleans associated data and ignores late events after removal", () => {
+    useStore.getState().applyExecution(execution(104));
+    useStore.getState().applyLogs(104, [line(1)]);
+    useStore.getState().removeExecutions([104]);
+    useStore.getState().applyExecution(execution(104));
+    useStore.getState().applyLogs(104, [line(2)]);
+    expect(useStore.getState().executions).toEqual([]);
+    expect(useStore.getState().logs[104]).toBeUndefined();
+  });
+
+  it("merges an earlier snapshot even if live output arrived first", () => {
+    useStore.getState().applyLogs(105, [line(4)]);
+    useStore.getState().applyLogs(105, [line(1), line(2), line(3)]);
+    expect(useStore.getState().logs[105].map((entry) => entry.seq)).toEqual([
+      1, 2, 3, 4,
+    ]);
+  });
+
+  it("honors the chosen retention instead of a hardcoded cap", () => {
+    useStore.setState({ logLines: 500 });
+    useStore.getState().applyLogs(
+      106,
+      Array.from({ length: 800 }, (_, index) => line(index + 1)),
+    );
+    expect(useStore.getState().logs[106]).toHaveLength(500);
+  });
+
+  it("does not restart when stopping failed", async () => {
+    useStore.getState().applyExecution(execution(107));
+    api.stopExecution.mockRejectedValue(new Error("stop failed"));
+    await useStore.getState().restartExecution(107);
+    expect(api.startCommand).not.toHaveBeenCalled();
+    expect(useStore.getState().projectError?.message).toBe("stop failed");
+  });
+
+  it("keeps old live executions while compacting many removed IDs", () => {
+    useStore.getState().applyExecution(execution(1000));
+    useStore
+      .getState()
+      .removeExecutions(
+        Array.from({ length: 300 }, (_, index) => 1001 + index),
+      );
+    useStore.getState().applyExecution(execution(1001));
+    expect(useStore.getState().executions.map((entry) => entry.id)).toEqual([
+      1000,
+    ]);
+  });
+
+  it("drops logs when finished runs are cleared", async () => {
+    useStore.getState().applyExecution(execution(108, { state: "exited" }));
+    useStore.getState().applyLogs(108, [line(1)]);
+    api.clearFinished.mockResolvedValue([]);
+    await useStore.getState().clearFinished();
+    expect(useStore.getState().logs[108]).toBeUndefined();
   });
 });
 

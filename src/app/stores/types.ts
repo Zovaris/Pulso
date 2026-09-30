@@ -114,6 +114,7 @@ export type StoreActions = {
 
   loadExecutions: () => Promise<void>;
   applyExecution: (execution: Execution) => void;
+  removeExecutions: (ids: number[]) => void;
   applyMetrics: (samples: MetricsSample[]) => void;
   startCommand: (
     projectId: number,
