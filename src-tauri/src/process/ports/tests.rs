@@ -48,6 +48,7 @@ fn only_http_urls_are_openable() {
     assert_eq!(ports_for("ready at https://localhost:3443/app").len(), 1);
 }
 
+#[test]
 fn a_named_port_is_read_without_a_host() {
     assert_eq!(ports_for("ready, listening on port 3000").len(), 1);
     assert_eq!(ports_for("--port=8080").len(), 1);

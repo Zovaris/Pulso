@@ -258,6 +258,7 @@ fn an_existing_path_is_stored_canonical() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+#[test]
 fn a_file_without_flags_still_parses() {
     let bundle: Bundle =
         serde_json::from_str(r#"{"version":1,"projects":[{"name":"one","path":"/tmp/one"}]}"#)

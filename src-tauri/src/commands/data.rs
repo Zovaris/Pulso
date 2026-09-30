@@ -420,10 +420,7 @@ mod tests {
 
     #[test]
     fn key_material_headers_are_masked() {
-        assert_eq!(
-            redact_secrets("-----BEGIN RSA PRIVATE KEY-----").starts_with("[redacted]"),
-            true
-        );
+        assert!(redact_secrets("-----BEGIN RSA PRIVATE KEY-----").starts_with("[redacted]"));
         assert_eq!(redact_secrets("listening on :3000"), "listening on :3000");
     }
 
