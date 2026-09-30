@@ -62,6 +62,15 @@ fn priviledged_and_standard_ports_are_ignored() {
 }
 
 #[test]
+fn announced_ports_have_a_fixed_ceiling() {
+    let mut ports = Vec::new();
+    for port in 2000..2200 {
+        infer(&mut ports, &format!("http://localhost:{port}"));
+    }
+    assert_eq!(ports.len(), 64);
+}
+
+#[test]
 fn the_same_port_is_kept_once_and_gains_its_url_when_it_appears() {
     let mut ports = ports_for("Listening on :4321");
     assert_eq!(ports[0].url, None);

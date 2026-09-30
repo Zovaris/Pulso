@@ -22,6 +22,9 @@ fn merge(ports: &mut Vec<DetectedPort>, port: u16, url: Option<String>) -> bool 
         return false;
     }
 
+    if ports.len() >= 64 {
+        return false;
+    }
     ports.push(DetectedPort {
         id: format!("log:{port}"),
         port,

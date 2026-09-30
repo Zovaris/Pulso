@@ -38,7 +38,7 @@ One click starts a command. Stop signals the whole process group, not just the p
 stdout and stderr stream into a window. Search, copy, or save the whole thing to a file. Autoscroll pauses when you scroll up.
 
 **Ports you can open**  
-Pulso watches logs for URLs and confirms listening sockets on the process tree. Open the one that is actually yours.
+Pulso watches logs for announced ports and HTTP(S) URLs. These are hints from process output, not verified listening sockets.
 
 **The count rides on the icon**  
 The menu bar icon carries how many processes are alive, so a glance tells you the state without opening anything. Behind it sits every project and everything each one can run.
