@@ -167,7 +167,7 @@ pub async fn diagnostic_bundle(
                     crate::domain::log::LogStream::Stderr => "err",
                 };
 
-                format!("{} {} {}\n", line.seq, stream, line.text)
+                format!("{} {} {}\n", line.seq, stream, redact_secrets(&line.text))
             })
             .collect::<String>();
 
@@ -185,6 +185,154 @@ pub async fn diagnostic_bundle(
     off_thread(move || archive::write_zip(&target, &files)).await??;
 
     Ok(Some(path))
+}
+
+const SECRET_PREFIXES: [&str; 16] = [
+    "sk-ant-",
+    "sk-",
+    "ghp_",
+    "gho_",
+    "ghu_",
+    "ghs_",
+    "ghr_",
+    "github_pat_",
+    "xoxa-",
+    "xoxb-",
+    "xoxp-",
+    "xoxs-",
+    "AKIA",
+    "AIza",
+    "-----BEGIN",
+    "Bearer ",
+];
+
+const SECRET_KEYS: [&str; 8] = [
+    "password", "passwd", "secret", "token", "api_key", "api-key", "apikey", "auth",
+];
+
+fn is_secret_char(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_' | b'.' | b'/' | b'+' | b'=')
+}
+
+fn redact_secrets(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+
+    loop {
+        let Some((value_at, value_end)) = next_secret(rest) else {
+            out.push_str(rest);
+            break;
+        };
+        out.push_str(&rest[..value_at]);
+        out.push_str("[redacted]");
+        rest = &rest[value_end..];
+    }
+
+    out
+}
+
+fn next_secret(text: &str) -> Option<(usize, usize)> {
+    let lowered = text.to_ascii_lowercase();
+    let mut best: Option<(usize, usize)> = None;
+    let mut consider = |candidate: Option<(usize, usize)>| {
+        if let Some(found) = candidate {
+            if best.map(|known| found.0 < known.0).unwrap_or(true) {
+                best = Some(found);
+            }
+        }
+    };
+
+    for prefix in SECRET_PREFIXES {
+        consider(prefix_value(text, prefix));
+    }
+    for key in SECRET_KEYS {
+        consider(key_value(&lowered, key));
+    }
+
+    best
+}
+
+fn prefix_value(text: &str, prefix: &str) -> Option<(usize, usize)> {
+    let at = text.find(prefix)?;
+    let start = at + prefix.len();
+
+    if prefix == "-----BEGIN" {
+        let mut end = start;
+        while end < text.len() && text.as_bytes()[end] != b'\n' {
+            end += 1;
+        }
+        return Some((at, end));
+    }
+
+    let mut end = start;
+    while text
+        .as_bytes()
+        .get(end)
+        .copied()
+        .map(is_secret_char)
+        .unwrap_or(false)
+    {
+        end += 1;
+    }
+
+    if end == start {
+        return None;
+    }
+
+    Some((at, end))
+}
+
+fn key_value(lowered: &str, key: &str) -> Option<(usize, usize)> {
+    let bytes = lowered.as_bytes();
+    let mut from = 0;
+
+    while let Some(relative) = lowered[from..].find(key) {
+        let at = from + relative;
+        let mut cursor = at + key.len();
+
+        while matches!(bytes.get(cursor).copied(), Some(b' ') | Some(b'\t')) {
+            cursor += 1;
+        }
+        if !matches!(bytes.get(cursor).copied(), Some(b'=') | Some(b':')) {
+            from = at + 1;
+            continue;
+        }
+        cursor += 1;
+        while matches!(bytes.get(cursor).copied(), Some(b' ') | Some(b'\t')) {
+            cursor += 1;
+        }
+
+        let quote = bytes
+            .get(cursor)
+            .copied()
+            .filter(|byte| *byte == b'\'' || *byte == b'"');
+        if quote.is_some() {
+            cursor += 1;
+        }
+
+        let mut end = cursor;
+        if let Some(mark) = quote {
+            while end < lowered.len() && bytes[end] != mark {
+                end += 1;
+            }
+            if end < lowered.len() {
+                end += 1;
+            }
+        } else {
+            while bytes.get(end).copied().map(is_secret_char).unwrap_or(false) {
+                end += 1;
+            }
+        }
+
+        if end == cursor {
+            from = at + 1;
+            continue;
+        }
+
+        return Some((cursor, end));
+    }
+
+    None
 }
 
 fn bundle_name(command_id: &str) -> String {
@@ -229,7 +377,7 @@ fn environment_text(app: &AppHandle, projects: &[crate::domain::project::Project
 
 #[cfg(test)]
 mod tests {
-    use super::bundle_name;
+    use super::{bundle_name, redact_secrets};
 
     #[test]
     fn plain_ids_survive() {
@@ -240,6 +388,43 @@ mod tests {
     fn separators_and_dots_become_single_dashes() {
         assert_eq!(bundle_name("package_json:../../evil"), "package_json-evil");
         assert_eq!(bundle_name("makefile:a/b\\c"), "makefile-a-b-c");
+    }
+
+    #[test]
+    fn tokens_are_masked_but_context_survives() {
+        assert_eq!(
+            redact_secrets("key sk-abcDEF123 done"),
+            "key [redacted] done"
+        );
+        assert_eq!(
+            redact_secrets("Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.cGF5bG9hZA.SflKxwRJ"),
+            "Authorization: [redacted]"
+        );
+    }
+
+    #[test]
+    fn assignments_are_masked_with_quotes_or_bare() {
+        assert_eq!(
+            redact_secrets("password=hunter2; user=bryan"),
+            "password=[redacted]; user=bryan"
+        );
+        assert_eq!(
+            redact_secrets("API_KEY: \"abc-123_xyz\" ok"),
+            "API_KEY: \"[redacted] ok"
+        );
+        assert_eq!(
+            redact_secrets("the token authenticates the user"),
+            "the token authenticates the user"
+        );
+    }
+
+    #[test]
+    fn key_material_headers_are_masked() {
+        assert_eq!(
+            redact_secrets("-----BEGIN RSA PRIVATE KEY-----").starts_with("[redacted]"),
+            true
+        );
+        assert_eq!(redact_secrets("listening on :3000"), "listening on :3000");
     }
 
     #[test]
