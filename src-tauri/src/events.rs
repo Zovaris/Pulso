@@ -91,13 +91,17 @@ pub struct LogAppended {
 }
 
 pub fn log_appended(app: &AppHandle, execution_id: i64, lines: &[LogLine]) {
-    let _ = app.emit(
-        LOG_APPENDED,
-        LogAppended {
-            execution_id,
-            lines: lines.to_vec(),
-        },
-    );
+    let payload = LogAppended {
+        execution_id,
+        lines: lines.to_vec(),
+    };
+    for label in ["main", "popover"] {
+        if app.get_webview_window(label).is_some_and(|window| {
+            window.is_visible().unwrap_or(false) && !window.is_minimized().unwrap_or(false)
+        }) {
+            let _ = app.emit_to(label, LOG_APPENDED, &payload);
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]

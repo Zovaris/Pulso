@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System};
 
@@ -75,16 +75,15 @@ fn read(system: &System) -> Vec<Probe> {
         .collect()
 }
 
-/// Walks every live group every `INTERVAL`.
-///
-/// The thread sleeps the whole interval whether or not anything is running, and
-/// nothing is queued for later: a hidden webview simply misses samples, which is
-/// the point. An empty reading is only sent once, when the last process leaves,
-/// so an idle app is silent between ticks.
-pub fn spawn(supervisor: Arc<ProcessSupervisor>, notifier: MetricsNotifier) {
+pub fn spawn(
+    supervisor: Arc<ProcessSupervisor>,
+    notifier: MetricsNotifier,
+    visible: Arc<dyn Fn() -> bool + Send + Sync>,
+) {
     std::thread::spawn(move || {
         let mut system = System::new();
         let mut sent_empty = false;
+        let mut sampled = Instant::now() - Duration::from_secs(10);
 
         loop {
             let groups = supervisor.live_groups();
@@ -100,6 +99,11 @@ pub fn spawn(supervisor: Arc<ProcessSupervisor>, notifier: MetricsNotifier) {
             }
 
             sent_empty = false;
+            if !visible() && sampled.elapsed() < Duration::from_secs(10) {
+                std::thread::sleep(INTERVAL);
+                continue;
+            }
+            sampled = Instant::now();
 
             system.refresh_processes_specifics(
                 ProcessesToUpdate::All,

@@ -61,12 +61,24 @@ pub fn run() {
                     },
                 )
             });
-            process::metrics::spawn(Arc::clone(&supervisor), {
-                let handle = handle.clone();
-                Arc::new(move |samples: &[domain::metrics::MetricSample]| {
-                    events::execution_metrics(&handle, samples);
-                })
-            });
+            process::metrics::spawn(
+                Arc::clone(&supervisor),
+                {
+                    let handle = handle.clone();
+                    Arc::new(move |samples: &[domain::metrics::MetricSample]| {
+                        events::execution_metrics(&handle, samples);
+                    })
+                },
+                {
+                    let handle = handle.clone();
+                    Arc::new(move || {
+                        app::windows::main_window(&handle).is_some_and(|window| {
+                            window.is_visible().unwrap_or(false)
+                                && !window.is_minimized().unwrap_or(false)
+                        })
+                    })
+                },
+            );
             app.manage(supervisor);
 
             app::tray::install(&handle)?;
