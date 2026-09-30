@@ -51,10 +51,8 @@ export function CommandsSection() {
           onClick={() => setDraft({ ...EMPTY })}
           disabled={draft !== null}
         >
-          <span className="inline-flex items-center gap-1.5">
-            <PlusIcon size={14} />
-            {t("addCommand")}
-          </span>
+          <PlusIcon size={14} />
+          {t("addCommand")}
         </Button>
       </header>
       {draft ? (

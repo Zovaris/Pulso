@@ -1,3 +1,4 @@
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import type { CommandScan, Project } from "@/lib/types";
 
@@ -25,25 +26,22 @@ export function ProjectStrip({
         const active = project.id === selectedId;
 
         return (
-          <button
+          <Button
+            size="sm"
+            variant={active ? "primary" : "secondary"}
             key={project.id}
             type="button"
             aria-current={active ? "true" : undefined}
             onClick={() => onSelect(project.id)}
-            className={`flex h-[26px] items-center gap-1.5 rounded-[7px] border px-2.5 text-[11.5px] transition-colors duration-[120ms] ${
-              active
-                ? "border-transparent bg-fill text-paper"
-                : "border-line text-mist hover:bg-hover hover:text-paper"
-            }`}
           >
             {project.availability === "missing" ? (
               <i className="pulso-dot" data-s="failed" />
             ) : null}
             <span className="max-w-[160px] truncate">{project.name}</span>
-            <span className="text-faint tabular-nums">
+            <span className="opacity-80 tabular-nums">
               {scan ? scan.commands.length : t("readingShort")}
             </span>
-          </button>
+          </Button>
         );
       })}
     </div>

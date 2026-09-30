@@ -1,4 +1,5 @@
 import { ArrowClockwiseIcon, StopIcon } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { Card, CardEmpty } from "@/components/shared/Card";
@@ -75,10 +76,12 @@ function ProcessRow({
       className="pulso-proc pulso-row pulso-row-proc px-3.5 py-2"
       data-selected={selected}
     >
-      <button
+      <Button
+        size="sm"
+        variant="quiet"
         type="button"
         onClick={() => select(execution.id)}
-        className="flex min-w-0 items-center gap-2 text-left"
+        className="pulso-row-fill-bare pulso-row-fill min-w-0"
       >
         <i className="pulso-dot" data-s={live} />
         <span className="min-w-0">
@@ -91,7 +94,7 @@ function ProcessRow({
               : `PID ${execution.pid}`}
           </span>
         </span>
-      </button>
+      </Button>
 
       <div
         className="min-w-0 truncate font-mono text-[11.5px] text-mist"

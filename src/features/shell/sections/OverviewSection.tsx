@@ -6,6 +6,7 @@ import {
   StopIcon,
   WarningOctagonIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { Card } from "@/components/shared/Card";
@@ -88,15 +89,17 @@ function Notice() {
           code: failed.exitCode ?? "—",
         })}
       </p>
-      <button
+      <Button
+        size="sm"
+        variant="secondary"
         type="button"
         onClick={() => {
           setSection("logs");
         }}
-        className="h-[24px] flex-none rounded-[6px] border border-line px-2 text-[11.5px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+        className="pulso-control-xs"
       >
-        {t("seeLogs")}
-      </button>
+        <span className="inline-flex items-center gap-1.5">{t("seeLogs")}</span>
+      </Button>
     </div>
   );
 }
@@ -134,25 +137,27 @@ export function OverviewSection() {
             <p className="mt-1 text-[12px] text-mist">{t("overviewLede")}</p>
           </div>
           <div className="ml-auto flex flex-none items-center gap-2">
-            <button
+            <Button
+              size="md"
+              variant="secondary"
               type="button"
               disabled={live.length === 0}
               onClick={() => {
                 for (const execution of live) void stopExecution(execution.id);
               }}
-              className="flex h-[28px] items-center gap-1.5 rounded-[7px] border border-line px-3 text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper disabled:cursor-default disabled:opacity-40"
             >
               <StopIcon size={12} weight="fill" />
               {t("stopAll")}
-            </button>
-            <button
+            </Button>
+            <Button
+              size="md"
+              variant="primary"
               type="button"
               onClick={() => void addProject()}
-              className="flex h-[28px] items-center gap-1.5 rounded-[7px] bg-accent px-3 text-[12px] text-white transition-colors duration-[120ms] hover:bg-accent-hover"
             >
               <FolderSimplePlusIcon size={13} />
               {t("addProject")}
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -210,13 +215,15 @@ export function OverviewSection() {
             <span>{t("executionCount", { count: executions.length })}</span>
             <span className="h-[12px] w-px bg-line" />
             <span>{t("exitCodeHint")}</span>
-            <button
+            <Button
+              size="sm"
+              variant="secondary"
               type="button"
               onClick={() => void clearFinished()}
-              className="ml-auto h-[24px] rounded-[6px] border border-line px-2 text-[11.5px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+              className="pulso-control-xs ml-auto"
             >
               {t("clearFinished")}
-            </button>
+            </Button>
           </div>
         </Card>
       </div>

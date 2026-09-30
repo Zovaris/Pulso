@@ -1,4 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 
 export function Chip({
   label,
@@ -14,21 +15,18 @@ export function Chip({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
+      size="sm"
+      variant={active ? "primary" : "secondary"}
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`flex h-[26px] items-center gap-1.5 rounded-[7px] border px-2.5 text-[11.5px] transition-colors duration-[120ms] ${
-        active
-          ? "border-transparent bg-accent text-paper"
-          : "border-line text-mist hover:bg-hover hover:text-paper"
-      }`}
     >
       {Icon ? <Icon size={12} /> : null}
       {label}
       {count === undefined ? null : (
-        <span className={active ? "opacity-80" : "text-faint"}>{count}</span>
+        <span className={active ? "opacity-80" : "text-mist"}>{count}</span>
       )}
-    </button>
+    </Button>
   );
 }
