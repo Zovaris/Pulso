@@ -175,7 +175,7 @@ pub async fn diagnostic_bundle(
             format!(
                 "logs/{}-{}.log",
                 execution.id,
-                execution.command_id.replace(':', "-")
+                bundle_name(&execution.command_id)
             ),
             body.into_bytes(),
         ));
@@ -185,6 +185,25 @@ pub async fn diagnostic_bundle(
     off_thread(move || archive::write_zip(&target, &files)).await??;
 
     Ok(Some(path))
+}
+
+fn bundle_name(command_id: &str) -> String {
+    let mut name: String = command_id
+        .chars()
+        .map(|character| {
+            if character.is_ascii_alphanumeric() || character == '-' || character == '_' {
+                character
+            } else {
+                '-'
+            }
+        })
+        .collect();
+
+    while name.contains("--") {
+        name = name.replace("--", "-");
+    }
+
+    name.trim_matches('-').to_string()
 }
 
 fn environment_text(app: &AppHandle, projects: &[crate::domain::project::Project]) -> String {
@@ -206,4 +225,26 @@ fn environment_text(app: &AppHandle, projects: &[crate::domain::project::Project
     }
 
     text
+}
+
+#[cfg(test)]
+mod tests {
+    use super::bundle_name;
+
+    #[test]
+    fn plain_ids_survive() {
+        assert_eq!(bundle_name("package_json-dev"), "package_json-dev");
+    }
+
+    #[test]
+    fn separators_and_dots_become_single_dashes() {
+        assert_eq!(bundle_name("package_json:../../evil"), "package_json-evil");
+        assert_eq!(bundle_name("makefile:a/b\\c"), "makefile-a-b-c");
+    }
+
+    #[test]
+    fn an_empty_or_hostile_id_still_names_a_file() {
+        assert!(!bundle_name("../../..").contains('.'));
+        assert!(!bundle_name("../../..").contains('/'));
+    }
 }
