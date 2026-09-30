@@ -563,6 +563,8 @@ button.pulso-port:hover {
 }
 
 .pulso-log {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 16px;
   font-family: var(--font-mono);
   font-size: 10.5px;
   line-height: 1.55;
@@ -961,6 +963,11 @@ html[data-theme="light"] .pulso-stream::-webkit-scrollbar-thumb {
 
 html[data-theme="light"] .pulso-palette__panel {
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.18);
+}
+
+.pulso-stream > .pulso-stream__line {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 22px;
 }
 
 .pulso-stream__line[data-stream="stderr"] {

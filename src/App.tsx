@@ -1,9 +1,8 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useMotionSync } from "@/app/hooks/useMotionSync";
 import { usePreferencesSync } from "@/features/app/usePreferencesSync";
 import { PopoverShell } from "@/features/popover/PopoverShell";
 import { useProjectSync } from "@/features/projects/useProjectSync";
-import { AppShell } from "@/features/shell/AppShell";
 import {
   applyDocumentAppearance,
   applyWindowChrome,
@@ -11,19 +10,20 @@ import {
 } from "@/lib/appearance";
 import { useStore } from "./app/store";
 
+const AppShell = lazy(() =>
+  import("@/features/shell/AppShell").then((module) => ({
+    default: module.AppShell,
+  })),
+);
+
 export default function App() {
   const surface = useStore((s) => s.surface);
   const themePref = useStore((s) => s.themePref);
   const transparency = useStore((s) => s.transparency);
-  const hydratePreferences = useStore((s) => s.hydratePreferences);
 
   useProjectSync();
   usePreferencesSync();
   useMotionSync();
-
-  useEffect(() => {
-    void hydratePreferences();
-  }, [hydratePreferences]);
 
   useEffect(() => {
     const resolved = resolveTheme(themePref);
@@ -43,5 +43,11 @@ export default function App() {
     return () => mq.removeEventListener("change", onChange);
   }, [themePref, transparency]);
 
-  return surface === "popover" ? <PopoverShell /> : <AppShell />;
+  return surface === "popover" ? (
+    <PopoverShell />
+  ) : (
+    <Suspense fallback={<div className="pulso-window h-full bg-void" />}>
+      <AppShell />
+    </Suspense>
+  );
 }

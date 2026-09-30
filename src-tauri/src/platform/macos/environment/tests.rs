@@ -1,8 +1,5 @@
 use super::*;
 use std::os::unix::fs::PermissionsExt;
-use std::sync::Mutex;
-
-static SHELL_GUARD: Mutex<()> = Mutex::new(());
 
 #[test]
 fn parses_nul_separated_entries_and_ignores_junk() {
@@ -42,7 +39,6 @@ fn an_unusable_path_falls_back_to_the_usual_places() {
 
 #[test]
 fn resolving_keeps_every_inherited_entry() {
-    let _guard = SHELL_GUARD.lock().unwrap();
     let inherited = std::env::var("PATH").unwrap_or_default();
     let environment = ShellEnvironment::new().for_dir(&std::env::temp_dir());
     let path = environment.get("PATH").cloned().unwrap_or_default();
@@ -56,8 +52,21 @@ fn resolving_keeps_every_inherited_entry() {
 }
 
 #[test]
+fn the_environment_cache_expires() {
+    let resolver = ShellEnvironment::new();
+    let dir = std::env::temp_dir();
+    resolver.cache.lock().unwrap().insert(
+        dir.clone(),
+        CachedEnvironment {
+            at: Instant::now() - CACHE_TTL,
+            values: HashMap::from([("PATH".to_string(), "/stale".to_string())]),
+        },
+    );
+    assert!(resolver.cached(&dir).is_none());
+}
+
+#[test]
 fn a_hanging_shell_is_reaped_on_timeout() {
-    let _guard = SHELL_GUARD.lock().unwrap();
     let dir = std::env::temp_dir().join(format!(
         "pulso-hang-{}-{:?}",
         crate::support::now_ms(),
@@ -77,13 +86,7 @@ fn a_hanging_shell_is_reaped_on_timeout() {
     std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755))
         .expect("the fixture script runs");
 
-    let previous = std::env::var("SHELL").ok();
-    std::env::set_var("SHELL", &script);
-    let resolved = resolve(&std::env::temp_dir());
-    match previous {
-        Some(value) => std::env::set_var("SHELL", value),
-        None => std::env::remove_var("SHELL"),
-    }
+    let resolved = resolve_with_shell(&std::env::temp_dir(), &script, Duration::from_millis(250));
 
     assert!(resolved.is_none());
 

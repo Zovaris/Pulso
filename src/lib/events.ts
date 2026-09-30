@@ -45,6 +45,12 @@ export function onExecutionMetrics(
 }
 
 /** Every state change of an execution, including the terminal one. */
+export function onExecutionsRemoved(
+  handler: (ids: number[]) => void,
+): Promise<UnlistenFn> {
+  return subscribe<number[]>("execution://removed", handler);
+}
+
 export function onExecutionChanged(
   handler: (execution: Execution) => void,
 ): Promise<UnlistenFn> {

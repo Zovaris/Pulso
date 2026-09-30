@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { ErrorNote } from "@/components/shared/ErrorNote";
 import { CommandPalette } from "@/features/shell/components/CommandPalette";
 import { Sidebar } from "@/features/shell/components/Sidebar";
 import { StatusBar } from "@/features/shell/components/StatusBar";
@@ -89,6 +90,8 @@ function ClearHistoryConfirmation() {
 
 export function AppShell() {
   const section = useStore((state) => state.section);
+  const error = useStore((state) => state.projectError);
+  const dismissError = useStore((state) => state.dismissProjectError);
   useShellKeyboard();
   useDesktopSync();
 
@@ -105,6 +108,11 @@ export function AppShell() {
           {section === "settings" ? <SettingsSection /> : null}
         </main>
       </div>
+      {error && section !== "projects" ? (
+        <div className="px-4 pb-2">
+          <ErrorNote error={error} onDismiss={dismissError} />
+        </div>
+      ) : null}
       <StatusBar />
       <CommandPalette />
       <StopConfirmation />

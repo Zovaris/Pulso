@@ -103,6 +103,7 @@ export type DetectedPort = {
 
 export type Execution = {
   id: number;
+  revision?: number;
   projectId: number;
   commandId: string;
   label: string;

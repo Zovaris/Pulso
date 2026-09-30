@@ -14,6 +14,10 @@ BASE_URL="https://github.com/${REPO}/releases"
 API_URL="https://api.github.com/repos/${REPO}/releases"
 APPDIR="${PULSO_APPDIR:-/Applications}"
 TMP_DIR=""
+MOUNTPOINT=""
+STAGING=""
+BACKUP=""
+DEST_APP=""
 
 # ── colors (only if tty) ──────────────────────────────────────────
 if [[ -t 1 ]] || [[ -n "${FORCE_COLOR:-}" ]]; then
@@ -38,6 +42,18 @@ need_cmd() {
 }
 
 cleanup() {
+  if [[ -n "$BACKUP" && -e "$BACKUP" && -n "$DEST_APP" && ! -e "$DEST_APP" ]]; then
+    if ! mv "$BACKUP" "$DEST_APP"; then
+      warn "restore the previous copy from ${BACKUP}"
+      STAGING=""
+    fi
+  fi
+  if [[ -n "$STAGING" && -d "$STAGING" ]]; then
+    rm -rf "$STAGING"
+  fi
+  if [[ -n "$MOUNTPOINT" ]]; then
+    hdiutil detach "$MOUNTPOINT" >/dev/null 2>&1 || true
+  fi
   if [[ -n "$TMP_DIR" && -d "$TMP_DIR" ]]; then
     rm -rf "$TMP_DIR"
   fi
@@ -166,6 +182,7 @@ install_macos() {
   verify_checksum "${BASE_URL}/download/v${version}/${name}" "$dest"
 
   mountpoint="$(mktemp -d "${TMP_DIR}/dmg.XXXXXX")"
+  MOUNTPOINT="$mountpoint"
   info "mounting ${name}"
   attach_out="$(hdiutil attach -nobrowse -readonly -mountpoint "$mountpoint" "$dest")"
   device="$(echo "$attach_out" | awk 'NR==1{print $1}')"
@@ -177,25 +194,32 @@ install_macos() {
   fi
 
   local dest_app="${APPDIR}/${APP_NAME}.app"
+  DEST_APP="$dest_app"
+  check_signature "$app_src"
+
+  mkdir -p "$APPDIR"
+  STAGING="$(mktemp -d "${APPDIR}/.pulso-install.XXXXXX")"
+  local staged_app="${STAGING}/${APP_NAME}.app"
+  info "installing to ${BOLD}${dest_app}${RESET}"
+  ditto "$app_src" "$staged_app"
+  strip_quarantine "$staged_app"
+  check_signature "$staged_app"
 
   if [[ -e "$dest_app" ]]; then
     warn "replacing the copy already in ${APPDIR}"
     quit_running
-    rm -rf "$dest_app"
+    running && fail "the current copy is still running; close it before installing"
+    BACKUP="${STAGING}/${APP_NAME}.previous.app"
+    mv "$dest_app" "$BACKUP"
   fi
 
-  check_signature "$app_src"
-
-  mkdir -p "$APPDIR"
-  info "installing to ${BOLD}${dest_app}${RESET}"
-  # ditto preserves resource forks and the signature better than cp -R
-  ditto "$app_src" "$dest_app"
+  if ! mv "$staged_app" "$dest_app"; then
+    fail "installation failed; restoring the previous copy"
+  fi
+  BACKUP=""
 
   hdiutil detach "$mountpoint" >/dev/null 2>&1 || \
     hdiutil detach "$device" >/dev/null 2>&1 || true
-
-  strip_quarantine "$dest_app"
-  check_signature "$dest_app"
 
   printf '\n'
   ok "Pulso v${version} is in ${APPDIR}"

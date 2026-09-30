@@ -1,16 +1,24 @@
 use std::collections::HashMap;
 use std::io::Read;
+use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::sync::Mutex;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 const RESOLUTION_TIMEOUT: Duration = Duration::from_secs(5);
+const CACHE_TTL: Duration = Duration::from_secs(60);
+const MAX_ENV_BYTES: u64 = 1024 * 1024;
 const DEFAULT_PATH: &str = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
 
 pub struct ShellEnvironment {
-    cache: Mutex<HashMap<PathBuf, HashMap<String, String>>>,
+    cache: Mutex<HashMap<PathBuf, CachedEnvironment>>,
+}
+
+struct CachedEnvironment {
+    at: Instant,
+    values: HashMap<String, String>,
 }
 
 impl Default for ShellEnvironment {
@@ -34,7 +42,7 @@ impl ShellEnvironment {
         let inherited: HashMap<String, String> = std::env::vars().collect();
         let Some(from_shell) = resolve(dir) else {
             let mut fallback = inherited;
-            fallback.insert("PATH".to_string(), merged_path(None, None));
+            fallback.insert("PATH".to_string(), merged_path(None, fallback.get("PATH")));
             return fallback;
         };
 
@@ -47,14 +55,35 @@ impl ShellEnvironment {
             .or_insert_with(|| "xterm-256color".to_string());
 
         if let Ok(mut cache) = self.cache.lock() {
-            cache.insert(dir.to_path_buf(), environment.clone());
+            cache.retain(|_, cached| cached.at.elapsed() < CACHE_TTL);
+            if cache.len() >= 128 {
+                if let Some(oldest) = cache
+                    .iter()
+                    .min_by_key(|(_, cached)| cached.at)
+                    .map(|(path, _)| path.clone())
+                {
+                    cache.remove(&oldest);
+                }
+            }
+            cache.insert(
+                dir.to_path_buf(),
+                CachedEnvironment {
+                    at: Instant::now(),
+                    values: environment.clone(),
+                },
+            );
         }
 
         environment
     }
 
     fn cached(&self, dir: &Path) -> Option<HashMap<String, String>> {
-        self.cache.lock().ok()?.get(dir).cloned()
+        self.cache
+            .lock()
+            .ok()?
+            .get(dir)
+            .filter(|cached| cached.at.elapsed() < CACHE_TTL)
+            .map(|cached| cached.values.clone())
     }
 }
 
@@ -84,35 +113,54 @@ fn is_executable(path: &Path) -> bool {
 
 fn resolve(dir: &Path) -> Option<HashMap<String, String>> {
     let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/zsh".to_string());
+    resolve_with_shell(dir, Path::new(&shell), RESOLUTION_TIMEOUT)
+}
+
+fn resolve_with_shell(
+    dir: &Path,
+    shell: &Path,
+    timeout: Duration,
+) -> Option<HashMap<String, String>> {
     let mut command = Command::new(shell);
     command.args(["-lic", "env -0"]);
     command.current_dir(dir);
     command.stdin(Stdio::null());
     command.stderr(Stdio::null());
     command.stdout(Stdio::piped());
+    command.process_group(0);
 
     let mut child = command.spawn().ok()?;
-    let mut stdout = child.stdout.take()?;
+    let stdout = child.stdout.take()?;
+    let pgid = child.id() as i32;
 
     let (sender, receiver) = mpsc::channel();
-    std::thread::spawn(move || {
+    let reader = std::thread::spawn(move || {
         let mut bytes = Vec::new();
-        let _ = stdout.read_to_end(&mut bytes);
-        let _ = sender.send(bytes);
+        let result = stdout.take(MAX_ENV_BYTES + 1).read_to_end(&mut bytes);
+        let _ = sender.send(
+            result
+                .ok()
+                .filter(|_| bytes.len() <= MAX_ENV_BYTES as usize)
+                .map(|_| bytes),
+        );
     });
 
-    let bytes = match receiver.recv_timeout(RESOLUTION_TIMEOUT) {
+    let bytes = match receiver.recv_timeout(timeout) {
         Ok(bytes) => bytes,
         Err(_) => {
-            let _ = child.kill();
+            let _ = crate::process::signals::signal_group(pgid, libc::SIGKILL);
             let _ = child.wait();
+            if reader.is_finished() {
+                let _ = reader.join();
+            }
             return None;
         }
     };
-    let _ = child.kill();
+    let _ = crate::process::signals::signal_group(pgid, libc::SIGKILL);
     let _ = child.wait();
+    let _ = reader.join();
 
-    let environment = parse(&bytes);
+    let environment = parse(&bytes?);
     environment.contains_key("PATH").then_some(environment)
 }
 

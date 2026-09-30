@@ -7,6 +7,7 @@ use crate::domain::port::DetectedPort;
 #[serde(rename_all = "camelCase")]
 pub struct Execution {
     pub id: i64,
+    pub revision: u64,
     pub project_id: i64,
     pub command_id: String,
     pub label: String,
@@ -67,6 +68,7 @@ impl Execution {
     pub fn new(id: i64, project_id: i64, command: &DetectedCommand, started_at: i64) -> Self {
         Self {
             id,
+            revision: 1,
             project_id,
             command_id: command.id.clone(),
             label: command.label.clone(),

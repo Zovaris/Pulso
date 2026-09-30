@@ -37,12 +37,6 @@ pub async fn start_command(
     // Running once with extra arguments is a different thing from editing the
     // manifest, so the override never leaves this call.
     if let Some(args) = args {
-        let args: Vec<String> = args
-            .into_iter()
-            .map(|argument| argument.trim().to_string())
-            .filter(|argument| !argument.is_empty())
-            .collect();
-
         command.args = args;
     }
 
@@ -55,8 +49,9 @@ pub async fn save_log_text(app: AppHandle, text: String, name: String) -> Result
         return Ok(None);
     };
 
-    let target = Path::new(&path);
-    std::fs::write(target, text)
+    let target = path.clone();
+    off_thread(move || std::fs::write(&target, text))
+        .await?
         .map_err(|error| BackendError::internal(format!("The log could not be saved: {error}")))?;
 
     Ok(Some(path))

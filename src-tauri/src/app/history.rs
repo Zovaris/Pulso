@@ -41,8 +41,13 @@ impl ExecutionHistory {
             return;
         }
 
-        if self.record(execution, tail).is_err() {
+        if let Err(error) = self.record(execution, tail) {
+            eprintln!("Could not persist execution {}: {error}", execution.id);
             written.remove(&execution.id);
+        }
+        if written.len() > repositories::executions::KEPT_RUNS {
+            let floor = execution.id - repositories::executions::KEPT_RUNS as i64;
+            written.retain(|id| *id >= floor);
         }
     }
 

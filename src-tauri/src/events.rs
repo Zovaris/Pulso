@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use serde::Serialize;
@@ -17,6 +18,7 @@ pub const PROJECTS_CHANGED: &str = "project://changed";
 pub const COMMANDS_CHANGED: &str = "project://commands-changed";
 pub const COMMAND_FLAGS_CHANGED: &str = "project://flags-changed";
 pub const EXECUTION_CHANGED: &str = "execution://state-changed";
+pub const EXECUTIONS_REMOVED: &str = "execution://removed";
 pub const EXECUTION_METRICS: &str = "execution://metrics";
 pub const LOG_APPENDED: &str = "execution://log-appended";
 pub const POPOVER_PREPARE: &str = "popover://prepare";
@@ -73,6 +75,10 @@ pub fn popover_closing(app: &AppHandle) {
     let _ = app.emit(POPOVER_CLOSING, ());
 }
 
+pub fn executions_removed(app: &AppHandle, ids: &[i64]) {
+    let _ = app.emit(EXECUTIONS_REMOVED, ids);
+}
+
 pub fn execution_changed(app: &AppHandle, execution: &Execution) {
     let _ = app.emit(EXECUTION_CHANGED, execution);
 }
@@ -85,13 +91,17 @@ pub struct LogAppended {
 }
 
 pub fn log_appended(app: &AppHandle, execution_id: i64, lines: &[LogLine]) {
-    let _ = app.emit(
-        LOG_APPENDED,
-        LogAppended {
-            execution_id,
-            lines: lines.to_vec(),
-        },
-    );
+    let payload = LogAppended {
+        execution_id,
+        lines: lines.to_vec(),
+    };
+    for label in ["main", "popover"] {
+        if app.get_webview_window(label).is_some_and(|window| {
+            window.is_visible().unwrap_or(false) && !window.is_minimized().unwrap_or(false)
+        }) {
+            let _ = app.emit_to(label, LOG_APPENDED, &payload);
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -115,7 +125,24 @@ pub async fn broadcast_projects(app: &AppHandle) -> Option<Vec<Project>> {
     Some(projects)
 }
 
+static REFRESHING: AtomicBool = AtomicBool::new(false);
+
+struct RefreshGuard;
+
+impl Drop for RefreshGuard {
+    fn drop(&mut self) {
+        REFRESHING.store(false, Ordering::Release);
+    }
+}
+
 pub async fn refresh(app: &AppHandle) {
+    if REFRESHING
+        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    let _guard = RefreshGuard;
     let Some(projects) = broadcast_projects(app).await else {
         return;
     };
@@ -156,7 +183,7 @@ async fn read_projects(app: &AppHandle) -> Option<Vec<Project>> {
 
 async fn scan_project(project_id: i64, path: String) -> Option<CommandScan> {
     tauri::async_runtime::spawn_blocking(move || {
-        crate::detectors::scan(project_id, Path::new(&path))
+        crate::detectors::scan_cached(project_id, Path::new(&path))
     })
     .await
     .ok()

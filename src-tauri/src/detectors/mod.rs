@@ -9,7 +9,10 @@ pub mod package_json;
 pub mod procfile;
 pub mod taskfile;
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant, SystemTime};
 
 use yaml_rust2::Yaml;
 
@@ -61,6 +64,95 @@ pub fn declared_keys<'a>(document: &'a [Yaml], key: &str) -> Vec<&'a str> {
         .collect()
 }
 
+type Fingerprint = Vec<Option<(u64, SystemTime)>>;
+
+struct CachedScan {
+    at: Instant,
+    fingerprint: Fingerprint,
+    scan: CommandScan,
+}
+
+const SCAN_TTL: Duration = Duration::from_secs(30);
+const SCAN_FILES: &[&str] = &[
+    "package.json",
+    "deno.json",
+    "deno.jsonc",
+    "composer.json",
+    "Makefile",
+    "makefile",
+    "GNUmakefile",
+    "justfile",
+    "Justfile",
+    ".justfile",
+    "Taskfile.yml",
+    "Taskfile.yaml",
+    "taskfile.yml",
+    "taskfile.yaml",
+    "compose.yml",
+    "compose.yaml",
+    "docker-compose.yml",
+    "docker-compose.yaml",
+    "Cargo.toml",
+    "Procfile",
+    "bun.lock",
+    "bun.lockb",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "package-lock.json",
+];
+
+fn fingerprint(dir: &Path) -> Fingerprint {
+    SCAN_FILES
+        .iter()
+        .map(|name| {
+            let metadata = std::fs::metadata(dir.join(name)).ok()?;
+            Some((metadata.len(), metadata.modified().ok()?))
+        })
+        .collect()
+}
+
+pub fn scan_cached(project_id: i64, project_dir: &Path) -> CommandScan {
+    static CACHE: OnceLock<Mutex<HashMap<PathBuf, CachedScan>>> = OnceLock::new();
+    let cache = CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+    let stamp = fingerprint(project_dir);
+    if project_dir.is_dir() {
+        if let Ok(held) = cache.lock() {
+            if let Some(cached) = held
+                .get(project_dir)
+                .filter(|cached| cached.at.elapsed() < SCAN_TTL && cached.fingerprint == stamp)
+            {
+                let mut scan = cached.scan.clone();
+                scan.project_id = project_id;
+                return scan;
+            }
+        }
+    }
+    let scan = scan(project_id, project_dir);
+    if fingerprint(project_dir) == stamp {
+        if let Ok(mut held) = cache.lock() {
+            held.retain(|_, cached| cached.at.elapsed() < SCAN_TTL);
+            if held.len() >= 128 {
+                if let Some(oldest) = held
+                    .iter()
+                    .min_by_key(|(_, cached)| cached.at)
+                    .map(|(path, _)| path.clone())
+                {
+                    held.remove(&oldest);
+                }
+            }
+            held.insert(
+                project_dir.to_path_buf(),
+                CachedScan {
+                    at: Instant::now(),
+                    fingerprint: stamp,
+                    scan: scan.clone(),
+                },
+            );
+        }
+    }
+    scan
+}
+
 pub fn scan(project_id: i64, project_dir: &Path) -> CommandScan {
     if !project_dir.is_dir() {
         return CommandScan::new(
@@ -87,7 +179,12 @@ pub fn scan(project_id: i64, project_dir: &Path) -> CommandScan {
 
     if !commands.is_empty() {
         naming::sort_commands(&mut commands);
-        return CommandScan::detected(project_id, commands);
+        let mut scan = CommandScan::detected(project_id, commands);
+        let warnings: Vec<String> = invalid.into_iter().chain(unreadable).collect();
+        if !warnings.is_empty() {
+            scan.detail = Some(warnings.join(" "));
+        }
+        return scan;
     }
 
     if !invalid.is_empty() {

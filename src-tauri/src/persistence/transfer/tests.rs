@@ -115,8 +115,10 @@ fn importing_the_same_file_twice_adds_nothing() {
     .unwrap();
 
     let bundle = db.with(export).expect("the export runs");
-    db.with(|conn| import(conn, &bundle))
+    let added = db
+        .with(|conn| import(conn, &bundle))
         .expect("the import runs");
+    assert_eq!(added, 0);
 
     let projects = db
         .with(repositories::projects::list)

@@ -40,7 +40,9 @@ export function StatusBar() {
         {t(`hint${section[0].toUpperCase()}${section.slice(1)}`)}
       </span>
       <span className="h-[12px] w-px bg-line" />
-      <span>{t("appName")} 0.1.0</span>
+      <span>
+        {t("appName")} {__APP_VERSION__}
+      </span>
     </footer>
   );
 }

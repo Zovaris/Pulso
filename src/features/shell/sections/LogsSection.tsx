@@ -4,7 +4,7 @@ import {
   FloppyDiskIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { IconTool } from "@/components/shared/IconTool";
@@ -30,9 +30,11 @@ function stateOf(execution: Execution): string {
 function Stream({
   executionId,
   query,
+  stream,
 }: {
   executionId: number;
   query: string;
+  stream: StreamFilter;
 }) {
   const { t } = useI18n();
   const lines = useStore((state) => state.logs[executionId] ?? NO_LINES);
@@ -41,20 +43,25 @@ function Stream({
   const box = useRef<HTMLDivElement>(null);
   const scrolled = useRef(0);
 
-  const shown = filterLines(lines, { query, stream: "all" });
+  const shown = useMemo(
+    () => filterLines(lines, { query, stream }),
+    [lines, query, stream],
+  );
   const needle = query.trim().toLowerCase();
+  const hasOutput = shown.length > 0;
 
   useEffect(() => {
-    if (!autoscroll || shown.length === scrolled.current) return;
+    const latest = shown[shown.length - 1]?.seq ?? 0;
+    if (!autoscroll || latest === scrolled.current) return;
 
-    scrolled.current = shown.length;
+    scrolled.current = latest;
     const node = box.current;
     if (node) node.scrollTop = node.scrollHeight;
   }, [autoscroll, shown]);
 
   useEffect(() => {
     const node = box.current;
-    if (!node) return;
+    if (!hasOutput || !node) return;
 
     const onScroll = () => {
       const atBottom =
@@ -64,7 +71,7 @@ function Stream({
 
     node.addEventListener("scroll", onScroll);
     return () => node.removeEventListener("scroll", onScroll);
-  }, [autoscroll, setAutoscroll]);
+  }, [autoscroll, setAutoscroll, hasOutput]);
 
   if (shown.length === 0) {
     return (
@@ -123,6 +130,7 @@ export function LogsSection() {
   const loadLogs = useStore((state) => state.loadLogs);
   const saveLog = useStore((state) => state.saveLog);
   const note = useStore((state) => state.note);
+  const logLines = useStore((state) => state.logLines);
 
   const ordered = [...executions].sort(
     (left, right) => right.startedAt - left.startedAt,
@@ -133,9 +141,10 @@ export function LogsSection() {
   const matches = matchCount(lines, filter.query);
   const shown = filterLines(lines, filter).length;
 
+  const selectedExecutionId = selected?.id;
   useEffect(() => {
-    if (selected && logs[selected.id] === undefined) void loadLogs(selected.id);
-  }, [selected, logs, loadLogs]);
+    if (selectedExecutionId !== undefined) void loadLogs(selectedExecutionId);
+  }, [selectedExecutionId, loadLogs]);
 
   if (!selected) {
     return (
@@ -245,11 +254,16 @@ export function LogsSection() {
           ) : null}
           <span className="ml-auto flex items-center gap-1.5">
             <ArrowDownIcon size={11} />
-            {t("noLineCap")}
+            {t("logRetention", { count: logLines })}
           </span>
         </div>
 
-        <Stream executionId={selected.id} query={filter.query} />
+        <Stream
+          key={selected.id}
+          executionId={selected.id}
+          query={filter.query}
+          stream={filter.stream}
+        />
       </div>
     </div>
   );
