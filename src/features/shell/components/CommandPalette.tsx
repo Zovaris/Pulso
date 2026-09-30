@@ -1,4 +1,5 @@
 import { MagnifyingGlassIcon, PlayIcon, StarIcon } from "@phosphor-icons/react";
+import { Button, Kbd } from "@zovaris/sephiro";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -111,9 +112,7 @@ export function CommandPalette() {
             placeholder={t("palettePlaceholder")}
             className="min-w-0 flex-1 bg-transparent text-[13px] outline-none"
           />
-          <kbd className="flex-none rounded-[5px] border border-line px-1.5 py-0.5 font-mono text-[10.5px] text-faint">
-            ⌘K
-          </kbd>
+          <Kbd keys="⌘K" className="flex-none" />
         </label>
 
         {hits.length === 0 ? (
@@ -133,16 +132,17 @@ export function CommandPalette() {
 
               return (
                 <li key={`${hit.project.id}:${hit.commandId}`}>
-                  <button
+                  <Button
                     type="button"
+                    size="md"
+                    variant="quiet"
                     onMouseEnter={() => setIndex(position)}
                     onClick={() => {
                       run(hit);
                       close();
                     }}
-                    className={`flex w-full items-center gap-2.5 rounded-[7px] px-2 py-1.5 text-left transition-colors duration-[120ms] ${
-                      position === index ? "bg-fill" : "hover:bg-hover"
-                    }`}
+                    data-selected={position === index}
+                    className="pulso-row-fill-bare pulso-row-fill"
                   >
                     <span className="flex-none text-faint">
                       {hit.favorite ? (
@@ -169,7 +169,7 @@ export function CommandPalette() {
                         {t("stateRunning")}
                       </span>
                     ) : null}
-                  </button>
+                  </Button>
                 </li>
               );
             })}

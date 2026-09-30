@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -31,13 +32,15 @@ function Notice() {
       className="pointer-events-none absolute right-4 bottom-10 z-30"
     >
       {notice ? (
-        <button
+        <Button
           type="button"
+          size="md"
+          variant="secondary"
           onClick={dismissNotice}
-          className="pointer-events-auto max-w-[420px] truncate rounded-[8px] border border-line bg-panel px-3 py-2 text-left text-[11.5px] text-mist shadow-[0_12px_32px_rgb(0_0_0/0.4)]"
+          className="pulso-row-fill-bare pointer-events-auto max-w-[420px] items-start text-left text-[11.5px] shadow-[0_12px_32px_rgb(0_0_0/0.4)]"
         >
           {notice}
-        </button>
+        </Button>
       ) : null}
     </div>
   );
