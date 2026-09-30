@@ -41,6 +41,13 @@ fn timestamps_and_status_codes_are_not_ports() {
 }
 
 #[test]
+fn only_http_urls_are_openable() {
+    assert!(ports_for("found at ftp://files.internal:2121/build").is_empty());
+    assert!(ports_for("open file:///tmp/site:8080/index.html").is_empty());
+    assert!(ports_for("served over custom-scheme://localhost:3000/").is_empty());
+    assert_eq!(ports_for("ready at https://localhost:3443/app").len(), 1);
+}
+
 fn a_named_port_is_read_without_a_host() {
     assert_eq!(ports_for("ready, listening on port 3000").len(), 1);
     assert_eq!(ports_for("--port=8080").len(), 1);
