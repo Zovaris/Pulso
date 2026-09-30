@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::Path;
 
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
@@ -77,11 +78,15 @@ pub fn import(conn: &Connection, bundle: &Bundle) -> Result<usize> {
 
     for project in &bundle.projects {
         let path = project.path.trim();
-        if path.is_empty() {
+        if path.is_empty() || Path::new(path).is_relative() {
             continue;
         }
 
-        let row = repositories::projects::ensure(conn, path, &project.name, now_ms())?;
+        let stored = std::fs::canonicalize(path)
+            .map(|canonical| canonical.to_string_lossy().into_owned())
+            .unwrap_or_else(|_| path.to_string());
+
+        let row = repositories::projects::ensure(conn, &stored, &project.name, now_ms())?;
         added += 1;
 
         let mut wanted: BTreeMap<String, CommandFlags> = BTreeMap::new();
