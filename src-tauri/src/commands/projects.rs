@@ -48,6 +48,20 @@ pub async fn remove_project(
     db: State<'_, Arc<Database>>,
     project_id: i64,
 ) -> Result<()> {
+    if let Some(supervisor) =
+        tauri::Manager::try_state::<Arc<crate::process::supervisor::ProcessSupervisor>>(&app)
+    {
+        if supervisor
+            .list()
+            .iter()
+            .any(|execution| execution.project_id == project_id && execution.is_active())
+        {
+            return Err(BackendError::new(
+                ErrorKind::InvalidInput,
+                "Stop this project's commands before removing it.",
+            ));
+        }
+    }
     let removed = in_database(&db, move |conn| {
         repositories::projects::delete(conn, project_id)
     })
