@@ -37,12 +37,6 @@ pub async fn start_command(
     // Running once with extra arguments is a different thing from editing the
     // manifest, so the override never leaves this call.
     if let Some(args) = args {
-        let args: Vec<String> = args
-            .into_iter()
-            .map(|argument| argument.trim().to_string())
-            .filter(|argument| !argument.is_empty())
-            .collect();
-
         command.args = args;
     }
 
