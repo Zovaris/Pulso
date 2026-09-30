@@ -261,48 +261,18 @@ button:not(:disabled) {
   background-color: var(--accent-strong);
 }
 
-.pulso-rescan,
-.pulso-mute {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
+.pulso-header-tool.sph-icon-button {
   width: 22px;
   height: 22px;
   margin-block: -2px;
   border-radius: 6px;
-  color: var(--faint);
-  transition:
-    color var(--motion-fast) var(--ease-out),
-    background-color var(--motion-fast) var(--ease-out);
 }
 
-.pulso-rescan:hover,
-.pulso-mute:hover {
-  color: var(--paper);
-  background-color: var(--hover);
-}
-
-.pulso-rescan:focus-visible,
-.pulso-mute:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: 1px;
-}
-
-.pulso-rescan:disabled {
-  cursor: default;
-  color: var(--mist);
-}
-
-.pulso-mute {
-  color: var(--mist);
-}
-
-.pulso-mute[data-off="true"] {
+.pulso-header-tool[data-off="true"] {
   color: var(--faint);
 }
 
-.pulso-rescan[data-busy="true"] svg {
+.pulso-header-tool[data-busy="true"] svg {
   animation: pulso-turn 900ms linear infinite;
 }
 
@@ -837,7 +807,7 @@ button.pulso-port:hover {
 
   .pulso-logs__empty[data-live="true"],
   .pulso-command[data-live="true"] .pulso-command__marker,
-  .pulso-rescan[data-busy="true"] svg {
+  .pulso-header-tool[data-busy="true"] svg {
     animation: none;
   }
 }
