@@ -105,6 +105,7 @@ function CommandRow({
         <span className="flex items-center justify-end gap-0.5">
           <IconTool
             icon={TextboxIcon}
+            disabled={command.detector === "custom"}
             size={12}
             label={t("runWithArgs")}
             onClick={() => setArgsFor(open ? null : key)}

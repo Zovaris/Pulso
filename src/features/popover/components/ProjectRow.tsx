@@ -34,8 +34,9 @@ export function ProjectRow({ project }: { project: Project }) {
     easing: REVEAL_EASE,
   });
 
-  // The menubar shows what the user kept: favourites first, hidden ones gone.
-  const visible = scan ? visibleCommands(scan) : [];
+  const visible = scan
+    ? visibleCommands(scan).filter((command) => command.detector !== "custom")
+    : [];
   const count = visible.length;
   const groups = groupBySource(visible);
   const split = groups.length > 1;

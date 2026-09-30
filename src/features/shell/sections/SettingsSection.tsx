@@ -72,7 +72,7 @@ function Action({
 
 const SHORTCUTS = [
   { key: "shortcutPalette", keys: "⌘K" },
-  { key: "shortcutSections", keys: "⌘1…⌘5" },
+  { key: "shortcutSections", keys: "⌘1…⌘6" },
   { key: "shortcutRescan", keys: "⌘R" },
   { key: "shortcutOpenEditor", keys: "⌘O" },
   { key: "shortcutStop", keys: "⌘." },

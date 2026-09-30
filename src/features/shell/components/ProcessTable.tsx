@@ -212,7 +212,10 @@ export function ProcessTable({
               key={execution.id}
               execution={execution}
               projectName={
-                projects[execution.projectId] ?? `#${execution.projectId}`
+                projects[execution.projectId] ??
+                (execution.projectId === 0
+                  ? t("personalCommands")
+                  : `#${execution.projectId}`)
               }
               variant={variant}
             />

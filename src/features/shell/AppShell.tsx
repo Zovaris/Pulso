@@ -7,6 +7,7 @@ import { CommandPalette } from "@/features/shell/components/CommandPalette";
 import { Sidebar } from "@/features/shell/components/Sidebar";
 import { StatusBar } from "@/features/shell/components/StatusBar";
 import { Titlebar } from "@/features/shell/components/Titlebar";
+import { CommandsSection } from "@/features/shell/sections/CommandsSection";
 import { LogsSection } from "@/features/shell/sections/LogsSection";
 import { OverviewSection } from "@/features/shell/sections/OverviewSection";
 import { ProcessesSection } from "@/features/shell/sections/ProcessesSection";
@@ -103,6 +104,7 @@ export function AppShell() {
         <main className="flex min-w-0 flex-1">
           {section === "overview" ? <OverviewSection /> : null}
           {section === "projects" ? <ProjectsSection /> : null}
+          {section === "commands" ? <CommandsSection /> : null}
           {section === "processes" ? <ProcessesSection /> : null}
           {section === "logs" ? <LogsSection /> : null}
           {section === "settings" ? <SettingsSection /> : null}

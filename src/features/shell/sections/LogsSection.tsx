@@ -174,7 +174,10 @@ export function LogsSection() {
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[12px]">
                 {projects.find((entry) => entry.id === execution.projectId)
-                  ?.name ?? `#${execution.projectId}`}{" "}
+                  ?.name ??
+                  (execution.projectId === 0
+                    ? t("personalCommands")
+                    : `#${execution.projectId}`)}{" "}
                 · {execution.label}
               </span>
             </span>
@@ -240,7 +243,11 @@ export function LogsSection() {
 
         <div className="flex flex-none items-center gap-2 border-b border-hairline px-3.5 py-1.5 text-[11px] text-faint">
           <span>
-            {project?.name ?? `#${selected.projectId}`} · {selected.label}
+            {project?.name ??
+              (selected.projectId === 0
+                ? t("personalCommands")
+                : `#${selected.projectId}`)}{" "}
+            · {selected.label}
           </span>
           <span className="h-[12px] w-px bg-line" />
           <span className="font-mono">

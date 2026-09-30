@@ -1,5 +1,11 @@
+import { menubarCommands } from "@/features/desktop/customCommands";
 import { groupBySource } from "@/features/popover/commandGroups";
-import type { CommandScan, Project } from "@/lib/types";
+import type {
+  CommandScan,
+  CustomCommand,
+  Execution,
+  Project,
+} from "@/lib/types";
 
 export type CursorRow =
   | { kind: "project"; key: string; projectId: number }
@@ -22,8 +28,17 @@ export function cursorRows(
   projects: Project[],
   scans: Record<string, CommandScan>,
   expandedProjectId: number | null,
+  customCommands: CustomCommand[] = [],
+  executions: Execution[] = [],
 ): CursorRow[] {
-  const rows: CursorRow[] = [];
+  const rows: CursorRow[] = menubarCommands(customCommands, executions).map(
+    (command) => ({
+      kind: "command",
+      key: commandRowKey(command.projectId ?? 0, `custom:${command.id}`),
+      projectId: command.projectId ?? 0,
+      commandId: `custom:${command.id}`,
+    }),
+  );
 
   for (const project of projects) {
     rows.push({
@@ -39,6 +54,7 @@ export function cursorRows(
 
     for (const group of groupBySource(scan.commands)) {
       for (const command of group.commands) {
+        if (command.detector === "custom") continue;
         rows.push({
           kind: "command",
           key: commandRowKey(project.id, command.id),

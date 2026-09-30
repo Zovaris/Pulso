@@ -5,6 +5,7 @@ import type {
   BackendError,
   CommandFlags,
   CommandScan,
+  CustomCommand,
   DataStatus,
   EditorTarget,
   EnvironmentReport,
@@ -24,7 +25,8 @@ export type SectionId =
   | "projects"
   | "processes"
   | "logs"
-  | "settings";
+  | "settings"
+  | "commands";
 
 export type StoreState = {
   surface: Surface;
@@ -41,6 +43,7 @@ export type StoreState = {
   logLines: number;
 
   projects: Project[];
+  customCommands: CustomCommand[];
 
   scans: Record<string, CommandScan>;
   scanningProjectId: number | null;
@@ -93,6 +96,10 @@ export type StoreActions = {
   applyPreferences: (preferences: Preferences) => void;
   t: (key: string, vars?: TplVars) => string;
 
+  loadCustomCommands: () => Promise<void>;
+  applyCustomCommands: (commands: CustomCommand[]) => void;
+  saveCustomCommand: (command: CustomCommand) => Promise<boolean>;
+  deleteCustomCommand: (id: number) => Promise<boolean>;
   loadProjects: () => Promise<void>;
   addProject: (path: string) => Promise<Project | null>;
   removeProject: (projectId: number) => Promise<void>;

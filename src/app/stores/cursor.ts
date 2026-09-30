@@ -17,6 +17,15 @@ export type CursorSlice = Pick<
   "cursor" | "setCursor" | "moveCursor" | "stepCursor" | "activateCursor"
 >;
 
+const rowsFor = (state: AppStore) =>
+  cursorRows(
+    state.projects,
+    state.scans,
+    state.expandedProjectId,
+    state.customCommands,
+    state.executions,
+  );
+
 export const createCursorSlice: StateCreator<AppStore, [], [], CursorSlice> = (
   set,
   get,
@@ -27,19 +36,12 @@ export const createCursorSlice: StateCreator<AppStore, [], [], CursorSlice> = (
 
   moveCursor: (delta) =>
     set((state) => ({
-      cursor: advance(
-        cursorRows(state.projects, state.scans, state.expandedProjectId),
-        state.cursor,
-        delta,
-      ),
+      cursor: advance(rowsFor(state), state.cursor, delta),
     })),
 
   stepCursor: (direction) => {
     const state = get();
-    const row = rowAt(
-      cursorRows(state.projects, state.scans, state.expandedProjectId),
-      state.cursor,
-    );
+    const row = rowAt(rowsFor(state), state.cursor);
     if (!row) return;
 
     if (row.kind === "project") {
@@ -76,10 +78,7 @@ export const createCursorSlice: StateCreator<AppStore, [], [], CursorSlice> = (
 
   activateCursor: () => {
     const state = get();
-    const row = rowAt(
-      cursorRows(state.projects, state.scans, state.expandedProjectId),
-      state.cursor,
-    );
+    const row = rowAt(rowsFor(state), state.cursor);
     if (!row) return;
 
     if (row.kind === "project") {

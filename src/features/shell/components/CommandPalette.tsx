@@ -19,6 +19,7 @@ export function CommandPalette() {
   const open = useStore((state) => state.paletteOpen);
   const close = useStore((state) => state.closePalette);
   const projects = useStore((state) => state.projects);
+  const customCommands = useStore((state) => state.customCommands);
   const scans = useStore((state) => state.scans);
   const executions = useStore((state) => state.executions);
   const startCommand = useStore((state) => state.startCommand);
@@ -27,7 +28,11 @@ export function CommandPalette() {
   const [index, setIndex] = useState(0);
   const box = useRef<HTMLInputElement>(null);
 
-  const rows = useMemo(() => rowsFrom(projects, scans), [projects, scans]);
+  const personalName = t("personalCommands");
+  const rows = useMemo(
+    () => rowsFrom(projects, scans, customCommands, personalName),
+    [projects, scans, customCommands, personalName],
+  );
   const hits = useMemo(() => searchCommands(rows, query), [rows, query]);
 
   useEffect(() => {

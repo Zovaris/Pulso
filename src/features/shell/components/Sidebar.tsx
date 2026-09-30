@@ -3,6 +3,7 @@ import {
   GearSixIcon,
   ListBulletsIcon,
   SquaresFourIcon,
+  TerminalWindowIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks/useI18n";
@@ -18,6 +19,7 @@ const ICONS: Record<SectionId, typeof SquaresFourIcon> = {
   processes: ListBulletsIcon,
   logs: TextAlignLeftIcon,
   settings: GearSixIcon,
+  commands: TerminalWindowIcon,
 };
 
 export function Sidebar() {

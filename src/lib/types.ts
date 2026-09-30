@@ -191,3 +191,12 @@ export type BackendError = {
   message: string;
   path: string | null;
 };
+
+export type CustomCommand = {
+  id: number | null;
+  projectId: number | null;
+  label: string;
+  command: string;
+  cwd: string;
+  favorite: boolean;
+};

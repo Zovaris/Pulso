@@ -3,6 +3,7 @@ import { isTauri } from "@/lib/tauri";
 import type {
   CommandFlags,
   CommandScan,
+  CustomCommand,
   Execution,
   LogLine,
   MetricsSample,
@@ -84,4 +85,10 @@ async function subscribe<T>(
 ): Promise<UnlistenFn> {
   if (!isTauri()) return () => {};
   return listen<T>(event, (message) => handler(message.payload));
+}
+
+export function onCustomCommandsChanged(
+  handler: (commands: CustomCommand[]) => void,
+): Promise<UnlistenFn> {
+  return subscribe<CustomCommand[]>("custom-command://changed", handler);
 }
