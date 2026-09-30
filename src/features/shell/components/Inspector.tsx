@@ -112,7 +112,6 @@ export function ProcessInspector() {
     (state) => (execution ? state.logs[execution.id] : undefined) ?? NO_LINES,
   );
   const openLogs = useStore((state) => state.setSection);
-  const selectedProjectId = useStore((state) => state.selectedProjectId);
   const running =
     execution?.state === "running" ||
     execution?.state === "starting" ||
@@ -131,7 +130,7 @@ export function ProcessInspector() {
 
   const exit = exitBadge(execution);
   const tail = lines.slice(-4);
-  const projectId = selectedProjectId ?? execution.projectId;
+  const projectId = execution.projectId;
 
   return (
     <InspectorShell>
