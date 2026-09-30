@@ -4,7 +4,15 @@ import {
   StarIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { Button, IconButton } from "@zovaris/sephiro";
+import {
+  Button,
+  Checkbox,
+  Field,
+  IconButton,
+  Input,
+  Select,
+  Textarea,
+} from "@zovaris/sephiro";
 import { useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -26,9 +34,6 @@ const EMPTY: CustomCommand = {
   cwd: "",
   favorite: false,
 };
-const FIELD =
-  "mt-1 w-full rounded-[7px] border border-line bg-void px-3 py-2 text-[12px] text-paper outline-none focus:border-accent";
-
 export function CommandsSection() {
   const { t } = useI18n();
   const commands = useStore((s) => s.customCommands);
@@ -140,51 +145,54 @@ function CommandEditor({
       <h2 className="mb-4 font-medium">
         {t(draft.id === null ? "addCommand" : "editCommand")}
       </h2>
-      <label className="block">
-        {t("commandName")}
-        <input
-          className={FIELD}
+      <Field label={t("commandName")} htmlFor="command-label">
+        <Input
+          id="command-label"
           value={draft.label}
           required
           maxLength={160}
           onChange={(e) => change({ label: e.target.value })}
         />
-      </label>
-      <label className="mt-3 block">
-        {t("shellCommand")}
-        <textarea
-          className={`${FIELD} min-h-[74px] font-mono`}
+      </Field>
+      <Field label={t("shellCommand")} htmlFor="command-shell" className="mt-3">
+        <Textarea
+          id="command-shell"
+          className="min-h-[74px] font-mono"
           value={draft.command}
           required
           placeholder="brew upgrade"
           spellCheck={false}
           onChange={(e) => change({ command: e.target.value })}
         />
-      </label>
-      <label className="mt-3 block">
-        {t("commandProject")}
-        <select
-          className={FIELD}
-          value={draft.projectId ?? ""}
-          onChange={(e) =>
+      </Field>
+      <Field
+        label={t("commandProject")}
+        htmlFor="command-project"
+        className="mt-3"
+      >
+        <Select
+          id="command-project"
+          value={draft.projectId === null ? "" : String(draft.projectId)}
+          onValueChange={(value) =>
             change({
-              projectId: e.target.value === "" ? null : Number(e.target.value),
+              projectId: value === "" ? null : Number(value),
               cwd: "",
             })
           }
-        >
-          <option value="">{t("personalCommands")}</option>
-          {projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="mt-3 block">
-        {t("workingFolder")}
-        <input
-          className={`${FIELD} font-mono`}
+          options={[
+            { value: "", label: t("personalCommands") },
+            ...projects.map((project) => ({
+              value: String(project.id),
+              label: project.name,
+            })),
+          ]}
+          ariaLabel={t("commandProject")}
+        />
+      </Field>
+      <Field label={t("workingFolder")} htmlFor="command-cwd" className="mt-3">
+        <Input
+          id="command-cwd"
+          className="font-mono"
           value={draft.cwd}
           placeholder={
             draft.projectId === null
@@ -193,19 +201,16 @@ function CommandEditor({
           }
           onChange={(e) => change({ cwd: e.target.value })}
         />
-      </label>
+      </Field>
       <p className="mt-1.5 text-mist">
         {t(draft.projectId === null ? "homeFolderHint" : "projectFolderHint")}
       </p>
-      <label className="mt-4 flex items-center gap-2">
-        <input
-          type="checkbox"
-          className="accent-accent"
-          checked={draft.favorite}
-          onChange={(e) => change({ favorite: e.target.checked })}
-        />
-        {t("menubarFavorite")}
-      </label>
+      <Checkbox
+        className="mt-4"
+        label={t("menubarFavorite")}
+        checked={draft.favorite}
+        onChange={(e) => change({ favorite: e.target.checked })}
+      />
       <p className="mt-3 text-mist">{t("shellCommandHint")}</p>
       <div className="mt-4 flex gap-2">
         <Button

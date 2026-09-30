@@ -49,9 +49,8 @@ it("keeps the draft visible when storage rejects the command", async () => {
   fireEvent.change(screen.getByLabelText("Shell command"), {
     target: { value: "pwd" },
   });
-  fireEvent.change(screen.getByLabelText("Project"), {
-    target: { value: "5" },
-  });
+  fireEvent.click(screen.getByRole("button", { name: "Project" }));
+  fireEvent.click(screen.getByRole("option", { name: "Pulso" }));
   fireEvent.click(screen.getByRole("button", { name: "Save command" }));
   await waitFor(() =>
     expect(save).toHaveBeenCalledWith(
