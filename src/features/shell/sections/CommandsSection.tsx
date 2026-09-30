@@ -4,7 +4,7 @@ import {
   StarIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { Button } from "@zovaris/sephiro";
+import { Button, IconButton } from "@zovaris/sephiro";
 import { useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -252,16 +252,22 @@ function CommandEntry({
         <span className="min-w-0 flex-1 truncate font-mono" title={command.cwd}>
           {command.cwd}
         </span>
-        <button
+        <IconButton
           type="button"
-          aria-label={t("menubarFavorite")}
+          size="sm"
+          variant="ghost"
+          label={t("menubarFavorite")}
           aria-pressed={command.favorite}
           disabled={active || editing}
-          className="rounded p-1 text-accent-strong disabled:opacity-40"
           onClick={() => void save({ ...command, favorite: !command.favorite })}
-        >
-          <StarIcon size={14} weight={command.favorite ? "fill" : "regular"} />
-        </button>
+          icon={
+            <StarIcon
+              size={14}
+              weight={command.favorite ? "fill" : "regular"}
+            />
+          }
+          className="text-accent-strong"
+        />
         <IconTool
           icon={PencilSimpleIcon}
           label={t("editCommand")}

@@ -1,3 +1,4 @@
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import type { DetectedPort } from "@/lib/types";
 
@@ -24,14 +25,16 @@ export function PortBadge({
   }
 
   return (
-    <button
+    <Button
       type="button"
-      className="pulso-port"
+      size="sm"
+      variant="quiet"
       title={t("openPort", { url: port.url })}
       aria-label={t("openPort", { url: port.url })}
       onClick={onOpen}
+      className="pulso-port"
     >
       {label}
-    </button>
+    </Button>
   );
 }

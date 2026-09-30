@@ -1,4 +1,4 @@
-import { Button, Select, Toggle } from "@zovaris/sephiro";
+import { Button, Kbd, Select, Toggle } from "@zovaris/sephiro";
 import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -340,9 +340,7 @@ export function SettingsSection() {
                 className="flex items-baseline justify-between gap-4 text-[12px]"
               >
                 <span className="text-mist">{t(shortcut.key)}</span>
-                <kbd className="rounded-[5px] border border-line px-1.5 py-0.5 font-mono text-[11px] text-faint">
-                  {shortcut.keys}
-                </kbd>
+                <Kbd keys={shortcut.keys} />
               </div>
             ))}
           </div>

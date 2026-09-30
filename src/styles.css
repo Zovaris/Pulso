@@ -522,10 +522,13 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
   color: var(--paper);
   animation: pulso-port-in var(--motion-base) var(--ease-settle);
-  transition: background-color var(--motion-fast) var(--ease-out);
 }
 
-button.pulso-port:hover {
+.pulso-port.sph-button {
+  font-family: var(--font-mono);
+}
+
+.pulso-port.sph-button:hover {
   background-color: var(--line);
 }
 
