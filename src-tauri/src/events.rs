@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use serde::Serialize;
@@ -120,7 +121,24 @@ pub async fn broadcast_projects(app: &AppHandle) -> Option<Vec<Project>> {
     Some(projects)
 }
 
+static REFRESHING: AtomicBool = AtomicBool::new(false);
+
+struct RefreshGuard;
+
+impl Drop for RefreshGuard {
+    fn drop(&mut self) {
+        REFRESHING.store(false, Ordering::Release);
+    }
+}
+
 pub async fn refresh(app: &AppHandle) {
+    if REFRESHING
+        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    let _guard = RefreshGuard;
     let Some(projects) = broadcast_projects(app).await else {
         return;
     };
@@ -161,7 +179,7 @@ async fn read_projects(app: &AppHandle) -> Option<Vec<Project>> {
 
 async fn scan_project(project_id: i64, path: String) -> Option<CommandScan> {
     tauri::async_runtime::spawn_blocking(move || {
-        crate::detectors::scan(project_id, Path::new(&path))
+        crate::detectors::scan_cached(project_id, Path::new(&path))
     })
     .await
     .ok()

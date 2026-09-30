@@ -83,6 +83,21 @@ fn a_broken_manifest_is_reported_even_when_another_one_works() {
 }
 
 #[test]
+fn cached_scans_follow_manifest_changes_and_project_identity() {
+    let dir = std::env::temp_dir().join(format!("pulso-scan-cache-{}", crate::support::now_ms()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("package.json");
+    std::fs::write(&path, r#"{"scripts":{"dev":"vite"}}"#).unwrap();
+    assert_eq!(scan_cached(1, &dir).commands[0].label, "dev");
+    assert_eq!(scan_cached(2, &dir).project_id, 2);
+    std::fs::write(&path, r#"{"scripts":{"build":"vite build"}}"#).unwrap();
+    assert_eq!(scan_cached(1, &dir).commands[0].label, "build");
+    std::fs::remove_file(path).unwrap();
+    assert_eq!(scan_cached(1, &dir).status, ScanStatus::NoManifest);
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn a_folder_that_is_gone_is_unavailable() {
     let scan = scan(1, Path::new("/pulso/does/not/exist"));
 
