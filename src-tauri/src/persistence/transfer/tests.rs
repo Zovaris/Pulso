@@ -195,6 +195,70 @@ fn a_project_with_an_empty_path_is_skipped() {
 }
 
 #[test]
+fn a_relative_path_is_skipped() {
+    let db = database();
+    let bundle = Bundle {
+        version: VERSION,
+        projects: vec![
+            BundleProject {
+                name: "relative".to_string(),
+                path: "projects/one".to_string(),
+                favorite: Vec::new(),
+                hidden: Vec::new(),
+            },
+            BundleProject {
+                name: "dotdot".to_string(),
+                path: "../one".to_string(),
+                favorite: Vec::new(),
+                hidden: Vec::new(),
+            },
+        ],
+    };
+
+    let imported = db
+        .with(|conn| import(conn, &bundle))
+        .expect("the import runs");
+
+    assert_eq!(imported, 0);
+}
+
+#[test]
+fn an_existing_path_is_stored_canonical() {
+    let root = std::env::temp_dir().join(format!(
+        "pulso-import-{}-{:?}",
+        crate::support::now_ms(),
+        std::thread::current().id()
+    ));
+    let inner = root.join("inner");
+    std::fs::create_dir_all(&inner).expect("the fixture exists");
+
+    let messy = format!("{}/inner/../inner", root.to_string_lossy());
+    let db = database();
+    let bundle = Bundle {
+        version: VERSION,
+        projects: vec![BundleProject {
+            name: "messy".to_string(),
+            path: messy,
+            favorite: Vec::new(),
+            hidden: Vec::new(),
+        }],
+    };
+
+    db.with(|conn| import(conn, &bundle))
+        .expect("the import runs");
+
+    let projects = db
+        .with(repositories::projects::list)
+        .expect("the list reads");
+
+    assert_eq!(projects.len(), 1);
+    let canonical = std::fs::canonicalize(&inner).expect("the fixture resolves");
+    assert_eq!(projects[0].path, canonical.to_string_lossy());
+
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
 fn a_file_without_flags_still_parses() {
     let bundle: Bundle =
         serde_json::from_str(r#"{"version":1,"projects":[{"name":"one","path":"/tmp/one"}]}"#)

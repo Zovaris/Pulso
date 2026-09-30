@@ -81,6 +81,10 @@ fn is_a_port_word(token: &str) -> bool {
 
 fn url_candidate(token: &str) -> Option<(u16, String)> {
     let scheme = token.find("://")?;
+    let name = token[..scheme].to_ascii_lowercase();
+    if name != "http" && name != "https" {
+        return None;
+    }
     let url = token
         .trim_end_matches(['.', ',', ')', ']', '\''])
         .to_string();

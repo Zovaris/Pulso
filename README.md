@@ -103,6 +103,12 @@ Pulso is built for yourself, not for a store. It reads the folders you add, writ
 
 ---
 
+## Security notes
+
+Pulso runs the commands you click with your own shell environment, so only add projects you trust. Resolving that environment starts your login shell inside the project folder, which means a hostile repo's shell hooks could run before you start anything. Port buttons only open `http` and `https` URLs found in process output. The diagnostic bundle masks common secret formats in logs, but look it over before attaching it to an issue. The installer checks the DMG checksum when the release publishes one and refuses a bundle whose signature does not verify.
+
+---
+
 ## License
 
 GPL-3.0 or later. Read it, change it, ship your version — the copy you distribute has to stay free software, sources included. That is what the copyleft is for.

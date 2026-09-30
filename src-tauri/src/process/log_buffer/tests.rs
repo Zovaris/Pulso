@@ -94,6 +94,38 @@ fn a_very_long_line_is_cut_by_bytes_not_only_by_count() {
 }
 
 #[test]
+fn a_line_without_newlines_cannot_grow_without_bound() {
+    let buffer = buffer();
+    buffer.push(LogStream::Stdout, &"x".repeat(200_000));
+
+    let lines = buffer.tail(10);
+    assert_eq!(lines.len(), 1);
+    assert!(lines[0].text.len() <= 16_384);
+    assert!(lines[0].text.chars().all(|character| character == 'x'));
+}
+
+#[test]
+fn multibyte_characters_survive_truncation() {
+    let buffer = buffer();
+    buffer.push(LogStream::Stdout, &"é".repeat(100_000));
+
+    let lines = buffer.tail(10);
+    assert_eq!(lines.len(), 1);
+    assert!(lines[0].text.len() <= 16_384);
+}
+
+#[test]
+fn pending_never_holds_more_than_the_line_cap() {
+    let buffer = LogBuffer::new(Arc::new(AtomicUsize::new(10)));
+
+    for index in 0..50 {
+        buffer.push(LogStream::Stdout, &format!("line {index}"));
+    }
+
+    assert_eq!(buffer.take_pending().len(), 10);
+}
+
+#[test]
 fn taking_pending_empties_it() {
     let buffer = buffer();
     buffer.push(LogStream::Stdout, "one");

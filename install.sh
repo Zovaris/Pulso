@@ -101,6 +101,21 @@ download() {
   [[ -s "$dest" ]] || fail "downloaded file is empty: $dest"
 }
 
+verify_checksum() {
+  local url="$1" dest="$2"
+  local sums="${dest}.sha256"
+  if ! curl -fsSL -o "$sums" "${url}.sha256" 2>/dev/null; then
+    warn "no checksum published for this release, skipping verification"
+    return 0
+  fi
+  info "verifying the checksum"
+  if (cd "$(dirname "$dest")" && shasum -a 256 -c "$(basename "$sums")" >/dev/null 2>&1); then
+    ok "the checksum matches"
+    return 0
+  fi
+  fail "checksum mismatch: the download may be tampered with, aborting"
+}
+
 # ── signature / quarantine ────────────────────────────────────────
 # A downloaded copy carries the quarantine flag and Gatekeeper refuses it. The
 # release build is ad-hoc signed (no Apple Developer account involved), and that
@@ -112,20 +127,14 @@ strip_quarantine() {
   xattr -cr "$app" 2>/dev/null || true
 }
 
-verify_signature() {
+check_signature() {
   local app="$1"
   if codesign --verify --deep --strict "$app" >/dev/null 2>&1; then
     ok "the bundle signature checks out (ad-hoc, not notarized)"
     return 0
   fi
 
-  # Only re-sign when the bundle is actually broken, and note that a blanket
-  # `codesign --force --sign -` drops the hardened runtime flag the release
-  # build carries, which is why it is not done by default.
-  warn "the bundle signature looks broken, signing it ad-hoc so macOS will open it"
-  codesign --force --deep --sign - "$app" >/dev/null 2>&1 || \
-    warn "could not sign it; the app may refuse to open"
-  return 0
+  fail "the bundle signature is broken, aborting instead of re-signing a damaged bundle"
 }
 
 # ── running copy ──────────────────────────────────────────────────
@@ -154,6 +163,7 @@ install_macos() {
   local mountpoint app_src device attach_out
 
   download "${BASE_URL}/download/v${version}/${name}" "$dest"
+  verify_checksum "${BASE_URL}/download/v${version}/${name}" "$dest"
 
   mountpoint="$(mktemp -d "${TMP_DIR}/dmg.XXXXXX")"
   info "mounting ${name}"
@@ -174,6 +184,8 @@ install_macos() {
     rm -rf "$dest_app"
   fi
 
+  check_signature "$app_src"
+
   mkdir -p "$APPDIR"
   info "installing to ${BOLD}${dest_app}${RESET}"
   # ditto preserves resource forks and the signature better than cp -R
@@ -183,7 +195,7 @@ install_macos() {
     hdiutil detach "$device" >/dev/null 2>&1 || true
 
   strip_quarantine "$dest_app"
-  verify_signature "$dest_app"
+  check_signature "$dest_app"
 
   printf '\n'
   ok "Pulso v${version} is in ${APPDIR}"

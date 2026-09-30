@@ -101,7 +101,14 @@ fn resolve(dir: &Path) -> Option<HashMap<String, String>> {
         let _ = sender.send(bytes);
     });
 
-    let bytes = receiver.recv_timeout(RESOLUTION_TIMEOUT).ok()?;
+    let bytes = match receiver.recv_timeout(RESOLUTION_TIMEOUT) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            let _ = child.kill();
+            let _ = child.wait();
+            return None;
+        }
+    };
     let _ = child.kill();
     let _ = child.wait();
 
