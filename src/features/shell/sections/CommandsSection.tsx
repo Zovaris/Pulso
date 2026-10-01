@@ -271,11 +271,11 @@ function CommandEntry({
   const active = execution ? isActiveState(execution.state) : false;
   return (
     <div className="border-b border-hairline pb-3 last:border-b-0">
-      <div className="flex items-start gap-1">
+      <div className="flex items-center gap-1">
         <div className="min-w-0 flex-1">
           <CommandRow projectId={scope} command={detected} />
         </div>
-        <div className="flex flex-none items-center gap-1 pt-1">
+        <div className="flex flex-none items-center gap-1">
           <IconButton
             type="button"
             size="sm"
