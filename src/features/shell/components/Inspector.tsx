@@ -56,19 +56,26 @@ export function Kv({ name, value }: { name: string; value: React.ReactNode }) {
 
 function InspectorShell({ children }: { children: React.ReactNode }) {
   const { t } = useI18n();
+  const inspectorOpen = useStore((state) => state.inspectorOpen);
   const toggleInspector = useStore((state) => state.toggleInspector);
 
   return (
-    <aside className="pulso-inspector pulso-pane w-[316px] flex-none flex-col gap-4 overflow-auto border-l border-line bg-night px-4 py-4">
-      <div className="-mb-2.5 flex justify-end">
-        <IconTool
-          icon={SidebarSimpleIcon}
-          label={t("hideInspector")}
-          onClick={toggleInspector}
-          size={12}
-        />
+    <aside
+      className="pulso-inspector flex-none border-l border-line bg-night"
+      inert={!inspectorOpen}
+    >
+      <div className="pulso-inspector__inner pulso-pane flex flex-col gap-4 px-4 py-4">
+        <div className="-mb-2.5 flex justify-end">
+          <IconTool
+            icon={SidebarSimpleIcon}
+            label={t("hideInspector")}
+            onClick={toggleInspector}
+            size={12}
+            mirrored
+          />
+        </div>
+        {children}
       </div>
-      {children}
     </aside>
   );
 }

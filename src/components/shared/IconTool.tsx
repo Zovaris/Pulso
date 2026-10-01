@@ -7,6 +7,7 @@ export function IconTool({
   onClick,
   disabled,
   active,
+  mirrored,
   size = 14,
 }: {
   icon: Icon;
@@ -14,6 +15,7 @@ export function IconTool({
   onClick: () => void;
   disabled?: boolean;
   active?: boolean;
+  mirrored?: boolean;
   size?: number;
 }) {
   return (
@@ -25,7 +27,9 @@ export function IconTool({
       aria-pressed={active === undefined ? undefined : active}
       disabled={disabled}
       onClick={onClick}
-      icon={<Icon size={size} />}
+      icon={
+        <Icon size={size} className={mirrored ? "-scale-x-100" : undefined} />
+      }
       style={{ width: 26, height: 26 }}
     />
   );

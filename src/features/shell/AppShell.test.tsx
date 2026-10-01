@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useStore } from "@/app/store";
 import { AppShell } from "@/features/shell/AppShell";
+import en from "@/lib/i18n/locales/en/common.json";
 import type { Execution, Project } from "@/lib/types";
 
 vi.mock("@/services/api/history", () => ({
@@ -55,6 +56,8 @@ beforeEach(() => {
     selectedExecutionId: null,
     selectedProjectId: null,
     paletteOpen: false,
+    sidebarOpen: true,
+    inspectorOpen: true,
     confirmingStop: null,
     confirmingHistory: false,
   });
@@ -78,6 +81,20 @@ describe("AppShell", () => {
       expect(screen.getByRole("button", { name: "Overview" })).toBeTruthy();
     },
   );
+
+  it("closes the section rail from the rail or from the titlebar", () => {
+    const { container } = render(<AppShell />);
+    const shell = container.querySelector("[data-sidebar]");
+    const rail = container.querySelector(".pulso-sidebar") as HTMLElement;
+
+    expect(shell?.getAttribute("data-sidebar")).toBe("open");
+
+    fireEvent.click(within(rail).getByTitle(en.hideSidebar));
+    expect(shell?.getAttribute("data-sidebar")).toBe("closed");
+
+    fireEvent.click(screen.getByTitle(en.showSidebar));
+    expect(shell?.getAttribute("data-sidebar")).toBe("open");
+  });
 
   it("draws it with a project, a scan and a run in flight", () => {
     useStore.setState({

@@ -96,12 +96,14 @@ export function AppShell() {
   const section = useStore((state) => state.section);
   const error = useStore((state) => state.projectError);
   const dismissError = useStore((state) => state.dismissProjectError);
+  const sidebarOpen = useStore((state) => state.sidebarOpen);
   const inspectorOpen = useStore((state) => state.inspectorOpen);
   useShellKeyboard();
   useDesktopSync();
 
   return (
     <div
+      data-sidebar={sidebarOpen ? "open" : "closed"}
       data-inspector={inspectorOpen ? "open" : "closed"}
       className="pulso-window relative flex h-full flex-col bg-void text-paper"
     >

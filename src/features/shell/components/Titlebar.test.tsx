@@ -5,7 +5,7 @@ import { Titlebar } from "@/features/shell/components/Titlebar";
 import en from "@/lib/i18n/locales/en/common.json";
 
 beforeEach(() => {
-  useStore.setState({ locale: "en", inspectorOpen: true });
+  useStore.setState({ locale: "en", sidebarOpen: true, inspectorOpen: true });
 });
 
 describe("Titlebar", () => {
@@ -20,5 +20,18 @@ describe("Titlebar", () => {
 
     fireEvent.click(screen.getByTitle(en.showInspector));
     expect(useStore.getState().inspectorOpen).toBe(true);
+  });
+
+  it("closes the section rail and brings it back", () => {
+    render(<Titlebar />);
+
+    const toggle = screen.getByTitle(en.hideSidebar);
+    expect(toggle.getAttribute("aria-pressed")).toBe("true");
+
+    fireEvent.click(toggle);
+    expect(useStore.getState().sidebarOpen).toBe(false);
+
+    fireEvent.click(screen.getByTitle(en.showSidebar));
+    expect(useStore.getState().sidebarOpen).toBe(true);
   });
 });
