@@ -29,3 +29,38 @@ export function menubarCommands(
       ),
   );
 }
+
+export type CustomCommandGroup = {
+  key: string;
+  projectId: number | null;
+  cwd: string;
+  commands: CustomCommand[];
+};
+
+export function groupCustomCommands(
+  commands: CustomCommand[],
+): CustomCommandGroup[] {
+  const groups = new Map<string, CustomCommandGroup>();
+
+  for (const command of commands) {
+    const key =
+      command.projectId === null
+        ? `cwd:${command.cwd}`
+        : `project:${command.projectId}`;
+    const existing = groups.get(key);
+
+    if (existing) {
+      existing.commands.push(command);
+      continue;
+    }
+
+    groups.set(key, {
+      key,
+      projectId: command.projectId,
+      cwd: command.cwd,
+      commands: [command],
+    });
+  }
+
+  return [...groups.values()];
+}
