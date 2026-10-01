@@ -19,6 +19,11 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .setup(|app| {
+            // A menubar app carries `LSUIElement` in its bundle, which macOS only
+            // reads from a packaged `.app`: in `tauri dev` the binary runs on its
+            // own, so the same policy is asked for here instead.
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             let handle = app.handle().clone();
 
             let data_dir = handle.path().app_data_dir()?;
