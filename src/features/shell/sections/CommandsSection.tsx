@@ -42,6 +42,7 @@ export function CommandsSection() {
   const commands = useStore((s) => s.customCommands);
   const projects = useStore((s) => s.projects);
   const remove = useStore((s) => s.deleteCustomCommand);
+  const save = useStore((s) => s.saveCustomCommand);
   const groups = useMemo(() => groupCustomCommands(commands), [commands]);
   const [draft, setDraft] = useState<CustomCommand | null>(null);
   const [removing, setRemoving] = useState<CustomCommand | null>(null);
@@ -88,33 +89,64 @@ export function CommandsSection() {
         </div>
       ) : null}
       <div className="mt-5 flex flex-col gap-5">
-        {groups.map((group) => (
-          <section key={group.key}>
-            <header className="mb-2 flex items-center gap-2 text-[11px] text-mist">
-              <span>
-                {projects.find((p) => p.id === group.projectId)?.name ??
-                  t("personalCommands")}
-              </span>
-              <span
-                className="min-w-0 flex-1 truncate font-mono"
-                title={group.cwd}
-              >
-                {group.cwd}
-              </span>
-            </header>
-            <div className="flex flex-col gap-3">
-              {group.commands.map((command) => (
-                <CommandEntry
-                  key={command.id}
-                  command={command}
-                  editing={draft !== null}
-                  onEdit={(command) => setDraft({ ...command })}
-                  onRemove={setRemoving}
+        {groups.map((group) => {
+          const favorites = group.commands.filter(
+            (command) => command.favorite,
+          ).length;
+          const every = favorites === group.commands.length;
+          const favorite = !every;
+
+          return (
+            <section key={group.key}>
+              <header className="mb-2 flex items-center gap-2 text-[11px] text-mist">
+                <span>
+                  {projects.find((p) => p.id === group.projectId)?.name ??
+                    t("personalCommands")}
+                </span>
+                <span
+                  className="min-w-0 flex-1 truncate font-mono"
+                  title={group.cwd}
+                >
+                  {group.cwd}
+                </span>
+                <IconButton
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  label={t("menubarFavorite")}
+                  aria-pressed={every}
+                  disabled={draft !== null}
+                  onClick={() => {
+                    for (const command of group.commands) {
+                      if (command.favorite === favorite) continue;
+                      void save({ ...command, favorite });
+                    }
+                  }}
+                  icon={
+                    <StarIcon
+                      size={14}
+                      weight={
+                        every ? "fill" : favorites > 0 ? "duotone" : "regular"
+                      }
+                    />
+                  }
+                  className="text-accent-strong"
                 />
-              ))}
-            </div>
-          </section>
-        ))}
+              </header>
+              <div className="flex flex-col gap-3">
+                {group.commands.map((command) => (
+                  <CommandEntry
+                    key={command.id}
+                    command={command}
+                    editing={draft !== null}
+                    onEdit={(command) => setDraft({ ...command })}
+                    onRemove={setRemoving}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
       {removing ? (
         <ConfirmDialog
@@ -264,7 +296,6 @@ function CommandEntry({
 }) {
   const { t } = useI18n();
   const executions = useStore((s) => s.executions);
-  const save = useStore((s) => s.saveCustomCommand);
   const scope = command.projectId ?? 0;
   const detected = customDetected(command);
   const execution = latestExecution(executions, scope, detected.id);
@@ -276,24 +307,6 @@ function CommandEntry({
           <CommandRow projectId={scope} command={detected} />
         </div>
         <div className="flex flex-none items-center gap-1">
-          <IconButton
-            type="button"
-            size="sm"
-            variant="ghost"
-            label={t("menubarFavorite")}
-            aria-pressed={command.favorite}
-            disabled={active || editing}
-            onClick={() =>
-              void save({ ...command, favorite: !command.favorite })
-            }
-            icon={
-              <StarIcon
-                size={14}
-                weight={command.favorite ? "fill" : "regular"}
-              />
-            }
-            className="text-accent-strong"
-          />
           <IconTool
             icon={PencilSimpleIcon}
             label={t("editCommand")}
