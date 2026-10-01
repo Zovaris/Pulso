@@ -53,9 +53,8 @@ export async function applyWindowChrome(
   transparency: boolean,
 ) {
   try {
-    const { Effect, EffectState, getCurrentWindow } = await import(
-      "@tauri-apps/api/window"
-    );
+    const { Effect, EffectState, getCurrentWindow } =
+      await import("@tauri-apps/api/window");
     const { getCurrentWebview } = await import("@tauri-apps/api/webview");
     const win = getCurrentWindow();
     await win.setTheme(resolved);

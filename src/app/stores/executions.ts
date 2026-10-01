@@ -111,7 +111,7 @@ export const createExecutionsSlice: StateCreator<
     removeExecutions: (ids) => {
       for (const id of ids) removed.push([id, id]);
       removed.sort(([a], [b]) => a - b);
-      for (let index = 1; index < removed.length; ) {
+      for (let index = 1; index < removed.length;) {
         if (removed[index][0] <= removed[index - 1][1] + 1) {
           removed[index - 1][1] = Math.max(
             removed[index - 1][1],
