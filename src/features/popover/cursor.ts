@@ -1,4 +1,4 @@
-import { menubarCommands } from "@/features/desktop/customCommands";
+import { menubarFavourites } from "@/features/desktop/customCommands";
 import { groupBySource } from "@/features/popover/commandGroups";
 import type {
   CommandScan,
@@ -31,14 +31,17 @@ export function cursorRows(
   customCommands: CustomCommand[] = [],
   executions: Execution[] = [],
 ): CursorRow[] {
-  const rows: CursorRow[] = menubarCommands(customCommands, executions).map(
-    (command) => ({
-      kind: "command",
-      key: commandRowKey(command.projectId ?? 0, `custom:${command.id}`),
-      projectId: command.projectId ?? 0,
-      commandId: `custom:${command.id}`,
-    }),
-  );
+  const rows: CursorRow[] = menubarFavourites(
+    scans,
+    projects,
+    customCommands,
+    executions,
+  ).map((favourite) => ({
+    kind: "command",
+    key: commandRowKey(favourite.projectId, favourite.command.id),
+    projectId: favourite.projectId,
+    commandId: favourite.command.id,
+  }));
 
   for (const project of projects) {
     rows.push({
