@@ -31,6 +31,8 @@ fn running_a_project_is_not_the_same_as_serving_it() {
 #[test]
 fn the_tool_verbs_of_a_toolchain_land_where_a_user_expects_them() {
     assert_eq!(categorize("clippy"), CommandCategory::Lint);
+    assert_eq!(categorize("oxlint"), CommandCategory::Lint);
+    assert_eq!(categorize("oxfmt"), CommandCategory::Lint);
     assert_eq!(categorize("fmt"), CommandCategory::Lint);
 }
 
