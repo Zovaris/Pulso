@@ -165,6 +165,8 @@
   "invocation": "Invocation",
   "lastLines": "Last lines",
   "openFullLog": "Open the full log",
+  "showInspector": "Show the details panel",
+  "hideInspector": "Hide the details panel",
   "filesRead": "Files read",
   "noFilesRead": "No file has been read yet.",
   "scan": "Scan",

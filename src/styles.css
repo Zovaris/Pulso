@@ -873,6 +873,10 @@ button:not(:disabled) {
   }
 }
 
+.pulso-window[data-inspector="closed"] .pulso-inspector {
+  display: none;
+}
+
 .pulso-pane::-webkit-scrollbar,
 .pulso-stream::-webkit-scrollbar {
   width: 8px;

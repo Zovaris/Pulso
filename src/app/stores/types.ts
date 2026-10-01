@@ -72,6 +72,7 @@ export type StoreState = {
   logFilter: LogFilter;
   logAutoscroll: boolean;
   paletteOpen: boolean;
+  inspectorOpen: boolean;
   confirmingStop: number | null;
   argsFor: string | null;
   data: DataStatus | null;
@@ -168,6 +169,7 @@ export type StoreActions = {
   setLogAutoscroll: (value: boolean) => void;
   openPalette: () => void;
   closePalette: () => void;
+  toggleInspector: () => void;
   askStop: (executionId: number | null) => void;
   setArgsFor: (key: string | null) => void;
   note: (text: string) => void;

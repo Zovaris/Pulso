@@ -1,6 +1,7 @@
 import {
   ArrowsClockwiseIcon,
   MagnifyingGlassIcon,
+  SidebarSimpleIcon,
 } from "@phosphor-icons/react";
 import { Button, Kbd } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
@@ -12,6 +13,8 @@ export function Titlebar() {
   const rescanning = useStore((state) => state.rescanning);
   const rescanProjects = useStore((state) => state.rescanProjects);
   const openPalette = useStore((state) => state.openPalette);
+  const inspectorOpen = useStore((state) => state.inspectorOpen);
+  const toggleInspector = useStore((state) => state.toggleInspector);
 
   return (
     <header
@@ -35,6 +38,13 @@ export function Titlebar() {
         label={t("rescan")}
         active={rescanning}
         onClick={() => void rescanProjects()}
+      />
+
+      <IconTool
+        icon={SidebarSimpleIcon}
+        label={t(inspectorOpen ? "hideInspector" : "showInspector")}
+        active={inspectorOpen}
+        onClick={toggleInspector}
       />
     </header>
   );

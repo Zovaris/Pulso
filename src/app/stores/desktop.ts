@@ -26,6 +26,7 @@ export type DesktopSlice = Pick<
   | "logFilter"
   | "logAutoscroll"
   | "paletteOpen"
+  | "inspectorOpen"
   | "confirmingStop"
   | "argsFor"
   | "data"
@@ -59,6 +60,7 @@ export type DesktopSlice = Pick<
   | "setLogAutoscroll"
   | "openPalette"
   | "closePalette"
+  | "toggleInspector"
   | "askStop"
   | "setArgsFor"
   | "note"
@@ -104,6 +106,7 @@ export const createDesktopSlice: StateCreator<
     logFilter: NO_FILTER,
     logAutoscroll: true,
     paletteOpen: false,
+    inspectorOpen: true,
     confirmingStop: null,
     argsFor: null,
     data: null,
@@ -261,6 +264,9 @@ export const createDesktopSlice: StateCreator<
     openPalette: () => set({ paletteOpen: true }),
 
     closePalette: () => set({ paletteOpen: false }),
+
+    toggleInspector: () =>
+      set((state) => ({ inspectorOpen: !state.inspectorOpen })),
 
     askStop: (executionId) => set({ confirmingStop: executionId }),
 
