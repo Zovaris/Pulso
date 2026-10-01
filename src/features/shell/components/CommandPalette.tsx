@@ -3,13 +3,16 @@ import {
   type CommandItem,
   CommandPalette as SephiroPalette,
 } from "@zovaris/sephiro";
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { type PaletteHit, rankAll, rowsFrom } from "@/features/desktop/palette";
+import {
+  type PaletteHit,
+  rankAll,
+  rowsFrom,
+  SUGGESTIONS,
+} from "@/features/desktop/palette";
 import { latestExecution } from "@/features/executions/execution";
-
-const KEYS: Record<string, PaletteHit> = {};
 
 export function CommandPalette() {
   const { t } = useI18n();
@@ -30,23 +33,20 @@ export function CommandPalette() {
   );
 
   const items = useMemo<CommandItem[]>(() => {
-    for (const key of Object.keys(KEYS)) delete KEYS[key];
+    const ranked = rankAll(rows, "");
 
-    return rankAll(rows, "").map((hit) => {
-      const key = `${hit.project.id}:${hit.commandId}`;
-      KEYS[key] = hit;
-
-      const running = latestExecution(
+    return ranked.map((hit) => {
+      const execution = latestExecution(
         executions,
         hit.project.id,
         hit.commandId,
       );
       const active =
-        running?.state === "running" || running?.state === "starting";
+        execution?.state === "running" || execution?.state === "starting";
 
       return {
-        id: key,
-        value: key,
+        id: key(hit),
+        value: key(hit),
         label: hit.label,
         keywords: `${hit.invocation} ${hit.project.name}`,
         icon: hit.favorite ? (
@@ -61,8 +61,36 @@ export function CommandPalette() {
     });
   }, [rows, executions, t]);
 
+  /**
+   * The palette only offers the favourites-first shortlist until something is
+   * typed, then every command of every project. Sephiro owns the query, so the
+   * cap and the full ranking are both resolved here, once per keystroke.
+   */
+  const ranked = useRef(new Map<string, Set<string>>());
+
+  const filter = useCallback(
+    (item: CommandItem, query: string) => {
+      if (!ranked.current.has(query)) {
+        const hits = rankAll(rows, query);
+        ranked.current.set(
+          query,
+          new Set(
+            (query.trim() === "" ? hits.slice(0, SUGGESTIONS) : hits).map(
+              (hit) => key(hit),
+            ),
+          ),
+        );
+      }
+
+      return ranked.current.get(query)?.has(String(item.id)) === true;
+    },
+    [rows],
+  );
+
   const run = (item: CommandItem) => {
-    const hit = KEYS[String(item.value)];
+    const hit = rows.find(
+      (row) => `${row.project.id}:${row.commandId}` === item.id,
+    );
     if (!hit) return;
 
     const execution = latestExecution(
@@ -89,10 +117,15 @@ export function CommandPalette() {
         if (next !== open) setOpen();
       }}
       items={items}
+      filter={filter}
       onSelect={run}
       placeholder={t("palettePlaceholder")}
       emptyMessage={t("paletteEmpty")}
       ariaLabel={t("palettePlaceholder")}
     />
   );
+}
+
+function key(hit: PaletteHit): string {
+  return `${hit.project.id}:${hit.commandId}`;
 }
