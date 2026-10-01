@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useStore } from "@/app/store";
 import { AppShell } from "@/features/shell/AppShell";
@@ -82,14 +82,15 @@ describe("AppShell", () => {
     },
   );
 
-  it("closes the section rail from the rail or from the titlebar", () => {
+  it("closes the section rail from the titlebar alone", () => {
     const { container } = render(<AppShell />);
     const shell = container.querySelector("[data-sidebar]");
-    const rail = container.querySelector(".pulso-sidebar") as HTMLElement;
 
+    expect(screen.getAllByTitle(en.hideSidebar)).toHaveLength(1);
+    expect(screen.getAllByTitle(en.hideInspector)).toHaveLength(1);
     expect(shell?.getAttribute("data-sidebar")).toBe("open");
 
-    fireEvent.click(within(rail).getByTitle(en.hideSidebar));
+    fireEvent.click(screen.getByTitle(en.hideSidebar));
     expect(shell?.getAttribute("data-sidebar")).toBe("closed");
 
     fireEvent.click(screen.getByTitle(en.showSidebar));

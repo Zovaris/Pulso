@@ -2,7 +2,6 @@ import {
   FolderSimpleIcon,
   GearSixIcon,
   ListBulletsIcon,
-  SidebarSimpleIcon,
   SquaresFourIcon,
   TerminalWindowIcon,
   TextAlignLeftIcon,
@@ -11,7 +10,6 @@ import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import type { SectionId } from "@/app/stores/types";
-import { IconTool } from "@/components/shared/IconTool";
 import { formatMemory, totalMemory } from "@/features/desktop/metrics";
 import { failures, liveExecutions } from "@/features/desktop/session";
 import { SECTIONS } from "@/features/shell/sections";
@@ -34,7 +32,6 @@ export function Sidebar() {
   const metrics = useStore((state) => state.metrics);
   const seenAt = useStore((state) => state.seenFailuresAt);
   const sidebarOpen = useStore((state) => state.sidebarOpen);
-  const toggleSidebar = useStore((state) => state.toggleSidebar);
 
   const live = liveExecutions(executions);
   const unseen = failures(executions).filter(
@@ -54,17 +51,9 @@ export function Sidebar() {
     >
       <div className="pulso-sidebar__inner flex flex-col gap-0.5 px-2.5 pt-3.5 pb-2.5">
         <div className="px-1.5 pb-3">
-          <div className="flex items-center gap-2">
-            <p className="min-w-0 flex-1 truncate text-[12.5px] font-semibold tracking-[-0.01em]">
-              {t("appName")}
-            </p>
-            <IconTool
-              icon={SidebarSimpleIcon}
-              label={t("hideSidebar")}
-              onClick={toggleSidebar}
-              size={12}
-            />
-          </div>
+          <p className="truncate text-[12.5px] font-semibold tracking-[-0.01em]">
+            {t("appName")}
+          </p>
           <p className="mt-1 truncate text-[11px] text-faint">
             {live.length === 0
               ? t("noneRunning")

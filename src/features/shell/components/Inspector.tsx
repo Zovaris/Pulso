@@ -1,13 +1,8 @@
-import {
-  ArrowSquareOutIcon,
-  FolderOpenIcon,
-  SidebarSimpleIcon,
-} from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, FolderOpenIcon } from "@phosphor-icons/react";
 import { Button } from "@zovaris/sephiro";
 import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { IconTool } from "@/components/shared/IconTool";
 import { sourcesOf } from "@/features/desktop/commands";
 import {
   type RunBadge,
@@ -55,9 +50,7 @@ export function Kv({ name, value }: { name: string; value: React.ReactNode }) {
 }
 
 function InspectorShell({ children }: { children: React.ReactNode }) {
-  const { t } = useI18n();
   const inspectorOpen = useStore((state) => state.inspectorOpen);
-  const toggleInspector = useStore((state) => state.toggleInspector);
 
   return (
     <aside
@@ -65,15 +58,6 @@ function InspectorShell({ children }: { children: React.ReactNode }) {
       inert={!inspectorOpen}
     >
       <div className="pulso-inspector__inner pulso-pane flex flex-col gap-4 px-4 py-4">
-        <div className="-mb-2.5 flex justify-end">
-          <IconTool
-            icon={SidebarSimpleIcon}
-            label={t("hideInspector")}
-            onClick={toggleInspector}
-            size={12}
-            mirrored
-          />
-        </div>
         {children}
       </div>
     </aside>
