@@ -13,12 +13,15 @@ import {
   Select,
   Textarea,
 } from "@zovaris/sephiro";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { IconTool } from "@/components/shared/IconTool";
-import { customDetected } from "@/features/desktop/customCommands";
+import {
+  customDetected,
+  groupCustomCommands,
+} from "@/features/desktop/customCommands";
 import {
   isActiveState,
   latestExecution,
@@ -37,7 +40,9 @@ const EMPTY: CustomCommand = {
 export function CommandsSection() {
   const { t } = useI18n();
   const commands = useStore((s) => s.customCommands);
+  const projects = useStore((s) => s.projects);
   const remove = useStore((s) => s.deleteCustomCommand);
+  const groups = useMemo(() => groupCustomCommands(commands), [commands]);
   const [draft, setDraft] = useState<CustomCommand | null>(null);
   const [removing, setRemoving] = useState<CustomCommand | null>(null);
 
@@ -82,15 +87,33 @@ export function CommandsSection() {
           </Button>
         </div>
       ) : null}
-      <div className="mt-5 flex flex-col gap-3">
-        {commands.map((command) => (
-          <CommandEntry
-            key={command.id}
-            command={command}
-            editing={draft !== null}
-            onEdit={(command) => setDraft({ ...command })}
-            onRemove={setRemoving}
-          />
+      <div className="mt-5 flex flex-col gap-5">
+        {groups.map((group) => (
+          <section key={group.key}>
+            <header className="mb-2 flex items-center gap-2 text-[11px] text-mist">
+              <span>
+                {projects.find((p) => p.id === group.projectId)?.name ??
+                  t("personalCommands")}
+              </span>
+              <span
+                className="min-w-0 flex-1 truncate font-mono"
+                title={group.cwd}
+              >
+                {group.cwd}
+              </span>
+            </header>
+            <div className="flex flex-col gap-3">
+              {group.commands.map((command) => (
+                <CommandEntry
+                  key={command.id}
+                  command={command}
+                  editing={draft !== null}
+                  onEdit={(command) => setDraft({ ...command })}
+                  onRemove={setRemoving}
+                />
+              ))}
+            </div>
+          </section>
         ))}
       </div>
       {removing ? (
@@ -240,7 +263,6 @@ function CommandEntry({
   onRemove: (command: CustomCommand) => void;
 }) {
   const { t } = useI18n();
-  const projects = useStore((s) => s.projects);
   const executions = useStore((s) => s.executions);
   const save = useStore((s) => s.saveCustomCommand);
   const scope = command.projectId ?? 0;
@@ -248,45 +270,44 @@ function CommandEntry({
   const execution = latestExecution(executions, scope, detected.id);
   const active = execution ? isActiveState(execution.state) : false;
   return (
-    <div className="border-b border-hairline pb-3">
-      <div className="mb-1 flex items-center gap-2 text-[11px] text-mist">
-        <span>
-          {projects.find((p) => p.id === command.projectId)?.name ??
-            t("personalCommands")}
-        </span>
-        <span className="min-w-0 flex-1 truncate font-mono" title={command.cwd}>
-          {command.cwd}
-        </span>
-        <IconButton
-          type="button"
-          size="sm"
-          variant="ghost"
-          label={t("menubarFavorite")}
-          aria-pressed={command.favorite}
-          disabled={active || editing}
-          onClick={() => void save({ ...command, favorite: !command.favorite })}
-          icon={
-            <StarIcon
-              size={14}
-              weight={command.favorite ? "fill" : "regular"}
-            />
-          }
-          className="text-accent-strong"
-        />
-        <IconTool
-          icon={PencilSimpleIcon}
-          label={t("editCommand")}
-          disabled={active || editing}
-          onClick={() => onEdit(command)}
-        />
-        <IconTool
-          icon={TrashIcon}
-          label={t("deleteCommand")}
-          disabled={active}
-          onClick={() => onRemove(command)}
-        />
+    <div className="border-b border-hairline pb-3 last:border-b-0">
+      <div className="flex items-start gap-1">
+        <div className="min-w-0 flex-1">
+          <CommandRow projectId={scope} command={detected} />
+        </div>
+        <div className="flex flex-none items-center gap-1 pt-1">
+          <IconButton
+            type="button"
+            size="sm"
+            variant="ghost"
+            label={t("menubarFavorite")}
+            aria-pressed={command.favorite}
+            disabled={active || editing}
+            onClick={() =>
+              void save({ ...command, favorite: !command.favorite })
+            }
+            icon={
+              <StarIcon
+                size={14}
+                weight={command.favorite ? "fill" : "regular"}
+              />
+            }
+            className="text-accent-strong"
+          />
+          <IconTool
+            icon={PencilSimpleIcon}
+            label={t("editCommand")}
+            disabled={active || editing}
+            onClick={() => onEdit(command)}
+          />
+          <IconTool
+            icon={TrashIcon}
+            label={t("deleteCommand")}
+            disabled={active}
+            onClick={() => onRemove(command)}
+          />
+        </div>
       </div>
-      <CommandRow projectId={scope} command={detected} />
     </div>
   );
 }
