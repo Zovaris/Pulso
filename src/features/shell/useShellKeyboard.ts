@@ -50,6 +50,12 @@ export function useShellKeyboard() {
 
       if (command && event.shiftKey) return;
 
+      if (command && event.key === "b") {
+        event.preventDefault();
+        useStore.getState().toggleSidebar();
+        return;
+      }
+
       if (command && event.key === "r") {
         event.preventDefault();
         void useStore.getState().rescanProjects();

@@ -9,7 +9,7 @@ function Harness() {
 }
 
 beforeEach(() => {
-  useStore.setState({ section: "overview" });
+  useStore.setState({ section: "overview", sidebarOpen: true });
 });
 
 function press(key: string, init: KeyboardEventInit = {}) {
@@ -53,6 +53,16 @@ describe("useShellKeyboard", () => {
 
     press("k", { metaKey: true });
     expect(useStore.getState().paletteOpen).toBe(false);
+  });
+
+  it("hides and brings back the section rail with the command key", () => {
+    render(<Harness />);
+
+    press("b", { metaKey: true });
+    expect(useStore.getState().sidebarOpen).toBe(false);
+
+    press("b", { metaKey: true });
+    expect(useStore.getState().sidebarOpen).toBe(true);
   });
 
   it("closes the palette with escape", () => {

@@ -13,6 +13,8 @@ export function Titlebar() {
   const rescanning = useStore((state) => state.rescanning);
   const rescanProjects = useStore((state) => state.rescanProjects);
   const openPalette = useStore((state) => state.openPalette);
+  const sidebarOpen = useStore((state) => state.sidebarOpen);
+  const toggleSidebar = useStore((state) => state.toggleSidebar);
   const inspectorOpen = useStore((state) => state.inspectorOpen);
   const toggleInspector = useStore((state) => state.toggleInspector);
 
@@ -21,6 +23,13 @@ export function Titlebar() {
       data-tauri-drag-region
       className="flex h-[46px] flex-none items-center gap-3 border-b border-line bg-night pr-3 pl-[80px]"
     >
+      <IconTool
+        icon={SidebarSimpleIcon}
+        label={t(sidebarOpen ? "hideSidebar" : "showSidebar")}
+        active={sidebarOpen}
+        onClick={toggleSidebar}
+      />
+
       <Button
         type="button"
         size="sm"
@@ -45,6 +54,7 @@ export function Titlebar() {
         label={t(inspectorOpen ? "hideInspector" : "showInspector")}
         active={inspectorOpen}
         onClick={toggleInspector}
+        mirrored
       />
     </header>
   );

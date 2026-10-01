@@ -14,7 +14,7 @@
         "@tauri-apps/plugin-dialog": "^2.8.0",
         "@tauri-apps/plugin-notification": "^2.5.0",
         "@tauri-apps/plugin-opener": "^2.7.0",
-        "@zovaris/sephiro": "0.8.1",
+        "@zovaris/sephiro": "0.9.0",
         "react": "19.3.0",
         "react-dom": "19.3.0",
         "tailwindcss": "4.3.3",
@@ -315,7 +315,7 @@
 
     "@vitest/spy": ["@vitest/spy@5.0.3", "", {}, "sha512-XhFysQTB8AZ+P4gMi+Lpo99vg2AZi0qKpaB9yXQl37+CaMEAPO3iH/wGVnSyL5MPERiLezpqTVtrR6UZH5GCXg=="],
 
-    "@zovaris/sephiro": ["@zovaris/sephiro@0.8.1", "", { "dependencies": { "@phosphor-icons/react": "2.1.10", "cn": "0.4.0", "sonner": "2.0.8" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" }, "optionalPeers": ["react", "react-dom"] }, "sha512-x4pWYVp/QReu6Alh0kFSoxf8PxKdmgjzWsik5yudyVIEOiIQas5uiwSthR8KDbQdM33apkhb6uToR5KIEYtZ6g=="],
+    "@zovaris/sephiro": ["@zovaris/sephiro@0.9.0", "", { "dependencies": { "@phosphor-icons/react": "2.1.10", "cn": "0.4.0", "sonner": "2.0.8" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" }, "optionalPeers": ["react", "react-dom"] }, "sha512-HvuRdoHzCs2C7Wwr+wy3hME0qixiGBJw1IKOGZBOzv8Zgp77LqZucRsec6eGSxHvpIfCFZlDFgJY8jMiBqsSJA=="],
 
     "ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
 

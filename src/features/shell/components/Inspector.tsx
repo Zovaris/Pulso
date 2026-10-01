@@ -1,13 +1,8 @@
-import {
-  ArrowSquareOutIcon,
-  FolderOpenIcon,
-  SidebarSimpleIcon,
-} from "@phosphor-icons/react";
-import { Button } from "@zovaris/sephiro";
+import { ArrowSquareOutIcon, FolderOpenIcon } from "@phosphor-icons/react";
+import { Button, SidePanel } from "@zovaris/sephiro";
 import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { IconTool } from "@/components/shared/IconTool";
 import { sourcesOf } from "@/features/desktop/commands";
 import {
   type RunBadge,
@@ -55,21 +50,20 @@ export function Kv({ name, value }: { name: string; value: React.ReactNode }) {
 }
 
 function InspectorShell({ children }: { children: React.ReactNode }) {
-  const { t } = useI18n();
-  const toggleInspector = useStore((state) => state.toggleInspector);
+  const inspectorOpen = useStore((state) => state.inspectorOpen);
 
   return (
-    <aside className="pulso-inspector pulso-pane w-[316px] flex-none flex-col gap-4 overflow-auto border-l border-line bg-night px-4 py-4">
-      <div className="-mb-2.5 flex justify-end">
-        <IconTool
-          icon={SidebarSimpleIcon}
-          label={t("hideInspector")}
-          onClick={toggleInspector}
-          size={12}
-        />
+    <SidePanel
+      side="right"
+      width={316}
+      collapsed={!inspectorOpen}
+      className="pulso-inspector"
+      inert={!inspectorOpen}
+    >
+      <div className="pulso-pane flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-4 py-4">
+        {children}
       </div>
-      {children}
-    </aside>
+    </SidePanel>
   );
 }
 
