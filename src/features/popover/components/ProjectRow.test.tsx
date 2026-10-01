@@ -7,7 +7,7 @@ import type { CommandScan, DetectedCommand, Project } from "@/lib/types";
 const project: Project = {
   id: 1,
   name: "Apex",
-  path: "/Users/sthbryan/Documents/Codes/Apex",
+  path: "/Users/example/Apex",
   availability: "available",
 };
 
