@@ -117,10 +117,12 @@ export function CommandsSection() {
                   aria-pressed={every}
                   disabled={draft !== null}
                   onClick={() => {
-                    for (const command of group.commands) {
-                      if (command.favorite === favorite) continue;
-                      void save({ ...command, favorite });
-                    }
+                    void (async () => {
+                      for (const command of group.commands) {
+                        if (command.favorite === favorite) continue;
+                        await save({ ...command, favorite });
+                      }
+                    })();
                   }}
                   icon={
                     <StarIcon
