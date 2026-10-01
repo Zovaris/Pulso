@@ -1,4 +1,5 @@
 import { ArrowSquareOutIcon, FolderOpenIcon } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -65,11 +66,13 @@ function EditorList({ projectId }: { projectId: number }) {
   return (
     <Section title={t("openIn")}>
       {editors.map((editor) => (
-        <button
+        <Button
+          size="sm"
+          variant="quiet"
           key={editor.id}
           type="button"
           onClick={() => void openProjectIn(projectId, editor.id)}
-          className="flex h-[27px] items-center gap-2 rounded-[7px] px-1.5 text-left text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+          className="pulso-row-fill"
         >
           <AppIcon id={editor.id} name={editor.name} />
           <span className="truncate">{editor.name}</span>
@@ -79,16 +82,18 @@ function EditorList({ projectId }: { projectId: number }) {
               {t("defaultEditor")}
             </span>
           ) : null}
-        </button>
+        </Button>
       ))}
-      <button
+      <Button
+        size="sm"
+        variant="quiet"
         type="button"
         onClick={() => void openProjectIn(projectId, "finder")}
-        className="flex h-[27px] items-center gap-2 rounded-[7px] px-1.5 text-left text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+        className="pulso-row-fill"
       >
         <AppIcon id="finder" name="Finder" />
         {t("revealInFinder")}
-      </button>
+      </Button>
       <p className="mt-1 text-[11px] leading-5 text-faint">
         {t("onlyInstalled")}
       </p>
@@ -211,14 +216,16 @@ export function ProcessInspector() {
             ))}
           </div>
         )}
-        <button
+        <Button
+          size="sm"
+          variant="secondary"
           type="button"
           onClick={() => openLogs("logs")}
-          className="mt-2 flex h-[26px] w-full items-center justify-center gap-1.5 rounded-[7px] border border-line text-[11.5px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+          className="pulso-control-block mt-2"
         >
           <ArrowSquareOutIcon size={12} />
           {t("openFullLog")}
-        </button>
+        </Button>
       </Section>
 
       <EditorList projectId={projectId} />
@@ -268,14 +275,14 @@ function ProjectTimeline({ projectId }: { projectId: number }) {
 
         return (
           <div key={run.key}>
-            <button
+            <Button
+              size="sm"
+              variant="quiet"
               type="button"
               disabled={!stored}
               title={stored ? t("openStoredLog") : (run.detail ?? undefined)}
               onClick={() => void toggleHistoryLog(run.id)}
-              className={`flex w-full items-center gap-2 rounded-[7px] px-1.5 py-1 text-left transition-colors duration-[120ms] ${
-                stored ? "cursor-pointer hover:bg-hover" : "cursor-default"
-              }`}
+              className="pulso-row-fill-bare pulso-row-fill px-1.5 py-1"
             >
               <i className="pulso-dot" data-s={run.state} />
               <span className="min-w-0 flex-1 truncate text-[11.5px]">
@@ -288,7 +295,7 @@ function ProjectTimeline({ projectId }: { projectId: number }) {
                 {runDuration(run, now)}
               </span>
               <span className={badgeClass(badge.tone)}>{badge.text}</span>
-            </button>
+            </Button>
 
             {historyLog?.id === run.id ? (
               <div className="pulso-stream mb-1.5 max-h-[176px] overflow-auto rounded-[7px] border border-hairline py-1">
@@ -385,14 +392,16 @@ export function ProjectInspector({ project }: { project: Project }) {
 
       <Section title={t("environment")}>
         {environment === null ? (
-          <button
+          <Button
+            size="sm"
+            variant="secondary"
             type="button"
             onClick={() => void useStore.getState().loadEnvironment(project.id)}
-            className="flex h-[26px] items-center justify-center gap-1.5 rounded-[7px] border border-line text-[11.5px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+            className="pulso-control-block"
           >
             <FolderOpenIcon size={12} />
             {t("checkEnvironment")}
-          </button>
+          </Button>
         ) : (
           <>
             <dl className="flex flex-col gap-1">

@@ -1,4 +1,4 @@
-import { Select, Toggle } from "@zovaris/sephiro";
+import { Button, Kbd, Select, Toggle } from "@zovaris/sephiro";
 import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -47,32 +47,27 @@ function Action({
   label,
   onClick,
   disabled,
-  primary,
 }: {
   label: string;
   onClick: () => void;
   disabled?: boolean;
-  primary?: boolean;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      size="md"
+      variant="secondary"
       disabled={disabled}
       onClick={onClick}
-      className={`h-[28px] rounded-[7px] px-3 text-[11.5px] transition-colors duration-[120ms] disabled:cursor-default disabled:opacity-40 ${
-        primary
-          ? "bg-accent text-white hover:bg-accent-hover"
-          : "border border-line text-mist hover:bg-hover hover:text-paper"
-      }`}
     >
       {label}
-    </button>
+    </Button>
   );
 }
 
 const SHORTCUTS = [
   { key: "shortcutPalette", keys: "⌘K" },
-  { key: "shortcutSections", keys: "⌘1…⌘5" },
+  { key: "shortcutSections", keys: "⌘1…⌘6" },
   { key: "shortcutRescan", keys: "⌘R" },
   { key: "shortcutOpenEditor", keys: "⌘O" },
   { key: "shortcutStop", keys: "⌘." },
@@ -345,9 +340,7 @@ export function SettingsSection() {
                 className="flex items-baseline justify-between gap-4 text-[12px]"
               >
                 <span className="text-mist">{t(shortcut.key)}</span>
-                <kbd className="rounded-[5px] border border-line px-1.5 py-0.5 font-mono text-[11px] text-faint">
-                  {shortcut.keys}
-                </kbd>
+                <Kbd keys={shortcut.keys} />
               </div>
             ))}
           </div>

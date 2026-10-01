@@ -75,6 +75,8 @@ pub async fn remove_project(
     }
 
     events::broadcast_projects(&app).await;
+    let commands = in_database(&db, repositories::custom_commands::list).await?;
+    let _ = tauri::Emitter::emit(&app, "custom-command://changed", &commands);
 
     Ok(())
 }
@@ -122,6 +124,20 @@ pub async fn set_command_flag(
     hidden: bool,
 ) -> Result<FlagsByCommand> {
     let flags = in_database(&db, move |conn| {
+        if let Some(id) = command_id
+            .strip_prefix("custom:")
+            .and_then(|id| id.parse::<i64>().ok())
+        {
+            let mut command = repositories::custom_commands::by_id(conn, id)?;
+            if command.project_id != Some(project_id) {
+                return Err(BackendError::new(
+                    ErrorKind::InvalidInput,
+                    "That command does not belong to this project.",
+                ));
+            }
+            command.favorite = favorite;
+            repositories::custom_commands::save(conn, &command)?;
+        }
         repositories::flags::set(
             conn,
             project_id,
@@ -134,6 +150,8 @@ pub async fn set_command_flag(
     .await?;
 
     events::command_flags_changed(&app, project_id, &flags);
+    let commands = in_database(&db, repositories::custom_commands::list).await?;
+    let _ = tauri::Emitter::emit(&app, "custom-command://changed", &commands);
 
     Ok(flags)
 }
@@ -153,5 +171,9 @@ async fn scan_project(db: &State<'_, Arc<Database>>, project_id: i64) -> Result<
     })
     .await?;
 
-    Ok(scan.with_flags(flags))
+    let scan = scan.with_flags(flags);
+    in_database(db, move |conn| {
+        repositories::custom_commands::augment_scan(conn, scan)
+    })
+    .await
 }

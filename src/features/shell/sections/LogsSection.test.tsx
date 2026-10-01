@@ -58,7 +58,7 @@ describe("LogsSection", () => {
       value: { writeText: copy },
     });
     render(<LogsSection />);
-    fireEvent.click(screen.getByRole("button", { name: "stderr" }));
+    fireEvent.click(screen.getByRole("radio", { name: "stderr" }));
     expect(screen.queryByText("normal output")).toBeNull();
     expect(screen.getByText("error output")).toBeTruthy();
     await act(async () =>

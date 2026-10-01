@@ -1,3 +1,4 @@
+import { Button } from "@zovaris/sephiro";
 import { useEffect } from "react";
 
 /** Only shown when the user asked to be asked, so it stays out of the way. */
@@ -38,20 +39,23 @@ export function ConfirmDialog({
         <h3 className="text-[13px] font-medium">{title}</h3>
         <p className="mt-1.5 text-[12px] leading-5 text-mist">{body}</p>
         <div className="mt-4 flex justify-end gap-2">
-          <button
+          <Button
             type="button"
+            size="md"
+            variant="secondary"
             onClick={onCancel}
-            className="h-[28px] rounded-[7px] border border-line px-3 text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
           >
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="md"
+            variant="primary"
             onClick={onConfirm}
-            className="h-[28px] rounded-[7px] bg-alarm px-3 text-[12px] text-white transition-opacity duration-[120ms] hover:opacity-88"
+            className="pulso-control-danger"
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

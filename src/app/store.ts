@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createCursorSlice } from "@/app/stores/cursor";
+import { createCustomCommandsSlice } from "@/app/stores/customCommands";
 import { createDesktopSlice } from "@/app/stores/desktop";
 import { createExecutionsSlice } from "@/app/stores/executions";
 import { createProjectsSlice } from "@/app/stores/projects";
@@ -14,4 +15,5 @@ export const useStore = create<AppStore>()((...args) => ({
   ...createExecutionsSlice(...args),
   ...createDesktopSlice(...args),
   ...createCursorSlice(...args),
+  ...createCustomCommandsSlice(...args),
 }));

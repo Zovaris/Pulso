@@ -3,6 +3,7 @@ import { useStore } from "@/app/store";
 import {
   onCommandFlagsChanged,
   onCommandsChanged,
+  onCustomCommandsChanged,
   onExecutionChanged,
   onExecutionsRemoved,
   onLogAppended,
@@ -11,6 +12,8 @@ import {
 } from "@/lib/events";
 
 export function useProjectSync() {
+  const loadCustomCommands = useStore((state) => state.loadCustomCommands);
+  const applyCustomCommands = useStore((state) => state.applyCustomCommands);
   const loadProjects = useStore((state) => state.loadProjects);
   const applyProjects = useStore((state) => state.applyProjects);
   const applyScan = useStore((state) => state.applyScan);
@@ -38,6 +41,7 @@ export function useProjectSync() {
     window.addEventListener("focus", refreshLogs);
     const subscriptions = [
       onProjectsChanged(applyProjects),
+      onCustomCommandsChanged(applyCustomCommands),
       onCommandsChanged(applyScan),
       onCommandFlagsChanged(applyFlags),
       onExecutionChanged(applyExecution),
@@ -49,11 +53,13 @@ export function useProjectSync() {
     void Promise.all(subscriptions)
       .then(() => {
         if (cancelled) return;
+        void loadCustomCommands();
         void loadProjects();
         void loadExecutions();
       })
       .catch(() => {
         if (!cancelled) {
+          void loadCustomCommands();
           void loadProjects();
           void loadExecutions();
         }
@@ -67,6 +73,8 @@ export function useProjectSync() {
       }
     };
   }, [
+    loadCustomCommands,
+    applyCustomCommands,
     loadProjects,
     loadExecutions,
     applyProjects,

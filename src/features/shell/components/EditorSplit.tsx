@@ -3,6 +3,7 @@ import {
   CaretDownIcon,
   FolderOpenIcon,
 } from "@phosphor-icons/react";
+import { Button, IconButton } from "@zovaris/sephiro";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -41,31 +42,39 @@ export function EditorSplit({ projectId }: { projectId: number }) {
   return (
     <div className="flex items-center gap-1.5">
       <div ref={box} className="relative flex">
-        <button
-          type="button"
+        <IconButton
+          size="md"
+          variant="outline"
+          className="pulso-split-start"
+          label={
+            chosen
+              ? t("openInEditor", { name: chosen.name })
+              : t("revealInFinder")
+          }
           title={
             chosen
               ? t("openInEditor", { name: chosen.name })
               : t("revealInFinder")
           }
           onClick={() => void openProjectIn(projectId, chosen?.id ?? null)}
-          className="flex h-[28px] items-center gap-1.5 rounded-l-[7px] border border-line px-2 text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
-        >
-          {chosen ? (
-            <AppIcon id={chosen.id} name={chosen.name} />
-          ) : (
-            <FolderOpenIcon size={14} />
-          )}
-        </button>
-        <button
-          type="button"
+          icon={
+            chosen ? (
+              <AppIcon id={chosen.id} name={chosen.name} />
+            ) : (
+              <FolderOpenIcon size={14} />
+            )
+          }
+        />
+        <IconButton
+          size="md"
+          variant="outline"
+          className="pulso-split-end"
+          label={t("openIn")}
           title={t("openIn")}
           aria-expanded={open}
           onClick={() => setOpen(!open)}
-          className="flex h-[28px] w-[20px] items-center justify-center rounded-r-[7px] border border-l-0 border-line text-faint transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
-        >
-          <CaretDownIcon size={10} />
-        </button>
+          icon={<CaretDownIcon size={10} />}
+        />
 
         {open ? (
           <div className="absolute top-[32px] left-0 z-30 w-[210px] rounded-[9px] border border-line bg-panel p-1 shadow-[0_16px_40px_rgb(0_0_0/0.42)]">
@@ -75,14 +84,16 @@ export function EditorSplit({ projectId }: { projectId: number }) {
               </p>
             ) : (
               editors.map((editor) => (
-                <button
+                <Button
+                  size="md"
+                  variant="quiet"
                   key={editor.id}
                   type="button"
                   onClick={() => {
                     setOpen(false);
                     void openProjectIn(projectId, editor.id);
                   }}
-                  className="flex h-[28px] w-full items-center gap-2 rounded-[6px] px-1.5 text-left text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+                  className="pulso-row-fill"
                 >
                   <AppIcon id={editor.id} name={editor.name} />
                   <span className="truncate">{editor.name}</span>
@@ -91,20 +102,22 @@ export function EditorSplit({ projectId }: { projectId: number }) {
                       {t("defaultEditor")}
                     </span>
                   ) : null}
-                </button>
+                </Button>
               ))
             )}
-            <button
+            <Button
+              size="md"
+              variant="quiet"
               type="button"
               onClick={() => {
                 setOpen(false);
                 void openProjectIn(projectId, "finder");
               }}
-              className="flex h-[28px] w-full items-center gap-2 rounded-[6px] px-1.5 text-left text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+              className="pulso-row-fill"
             >
               <AppIcon id="finder" name="Finder" />
               {t("revealInFinder")}
-            </button>
+            </Button>
           </div>
         ) : null}
       </div>

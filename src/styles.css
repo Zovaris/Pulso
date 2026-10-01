@@ -106,6 +106,109 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
+.sph-button__label {
+  gap: calc(var(--spacing, 0.25rem) * 1.5);
+}
+
+.sph-button[data-size="sm"],
+.sph-icon-button[data-size="sm"] {
+  height: 26px;
+}
+
+.sph-icon-button[data-size="sm"] {
+  width: 26px;
+}
+
+.sph-button[data-size="md"],
+.sph-icon-button[data-size="md"] {
+  height: 28px;
+}
+
+.sph-icon-button[data-size="md"] {
+  width: 28px;
+}
+
+.sph-segmented-control[data-size="sm"] {
+  height: 26px;
+}
+
+.pulso-control-xs.sph-button {
+  height: 24px;
+}
+
+.pulso-control-block.sph-button {
+  width: 100%;
+}
+
+.pulso-control-danger.sph-button[data-variant="primary"] {
+  background-color: var(--alarm);
+  color: #fff;
+}
+
+.pulso-control-danger.sph-button[data-variant="primary"]:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--alarm) 88%, #000);
+  box-shadow: none;
+}
+
+.pulso-control-danger.sph-button[data-variant="primary"]::after {
+  display: none;
+}
+
+.sph-kbd {
+  font-family: var(--font-mono);
+}
+
+.pulso-nav.sph-button {
+  width: 100%;
+  height: 30px;
+  justify-content: flex-start;
+  padding-inline: 8px;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.pulso-nav .sph-button__label {
+  width: 100%;
+  min-width: 0;
+}
+
+.pulso-nav-active.sph-button {
+  background-color: var(--fill);
+  font-weight: 500;
+}
+
+.pulso-search-trigger.sph-button {
+  justify-content: flex-start;
+  padding-inline: 8px;
+  font-size: 12px;
+  text-align: left;
+}
+
+.pulso-search-trigger .sph-button__label {
+  width: 100%;
+  min-width: 0;
+}
+
+.pulso-search-trigger .sph-kbd {
+  height: auto;
+  min-width: 0;
+  padding-inline: 0;
+  border-width: 0;
+  background-color: transparent;
+  font-size: 10.5px;
+}
+
+.pulso-split-start.sph-icon-button {
+  border-radius: 7px 0 0 7px;
+}
+
+.pulso-split-end.sph-icon-button {
+  width: 20px;
+  border-width: 0 0 0 0;
+  border-left-width: 0;
+  border-radius: 0 7px 7px 0;
+}
+
 .pulso-popover {
   background-color: var(--popover);
   border: 1px solid var(--popover-line);
@@ -121,6 +224,30 @@ button:not(:disabled) {
 .pulso-row .sph-button__label {
   gap: 10px;
   color: var(--mist);
+}
+
+.pulso-row-fill.sph-button {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.pulso-row-fill .sph-button__label {
+  width: 100%;
+  min-width: 0;
+}
+
+.pulso-row-fill-bare.sph-button {
+  height: auto;
+}
+
+.pulso-row-fill.sph-button:hover:not(:disabled),
+.pulso-row-fill.sph-button:active:not(:disabled) {
+  transform: none;
+}
+
+.pulso-row-fill-bare.sph-button[data-selected="true"] {
+  background-color: var(--fill);
 }
 
 .pulso-row__icon {
@@ -152,48 +279,18 @@ button:not(:disabled) {
   background-color: var(--accent-strong);
 }
 
-.pulso-rescan,
-.pulso-mute {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
+.pulso-header-tool.sph-icon-button {
   width: 22px;
   height: 22px;
   margin-block: -2px;
   border-radius: 6px;
-  color: var(--faint);
-  transition:
-    color var(--motion-fast) var(--ease-out),
-    background-color var(--motion-fast) var(--ease-out);
 }
 
-.pulso-rescan:hover,
-.pulso-mute:hover {
-  color: var(--paper);
-  background-color: var(--hover);
-}
-
-.pulso-rescan:focus-visible,
-.pulso-mute:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: 1px;
-}
-
-.pulso-rescan:disabled {
-  cursor: default;
-  color: var(--mist);
-}
-
-.pulso-mute {
-  color: var(--mist);
-}
-
-.pulso-mute[data-off="true"] {
+.pulso-header-tool[data-off="true"] {
   color: var(--faint);
 }
 
-.pulso-rescan[data-busy="true"] svg {
+.pulso-header-tool[data-busy="true"] svg {
   animation: pulso-turn 900ms linear infinite;
 }
 
@@ -214,6 +311,44 @@ button:not(:disabled) {
   letter-spacing: 0.01em;
 }
 
+.pulso-source__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pulso-section__caret {
+  flex: none;
+  margin-left: -4px;
+  color: currentcolor;
+  opacity: 0.7;
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.pulso-source__name[aria-expanded="true"] .pulso-section__caret {
+  transform: rotate(90deg);
+}
+
+.pulso-source__name:hover {
+  color: var(--mist);
+}
+
+.pulso-source__name:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.pulso-section__count {
+  color: var(--mist);
+}
+
 .pulso-source:first-child {
   margin-top: 2px;
 }
@@ -229,26 +364,23 @@ button:not(:disabled) {
   display: flex;
 }
 
-.pulso-project__open {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+.pulso-project__open.sph-button {
   width: 100%;
+  height: auto;
+  align-items: flex-start;
   padding: 6px 50px 6px 6px;
   border-radius: 8px;
-  text-align: left;
-  transition: background-color var(--motion-fast) var(--ease-out);
+}
+
+.pulso-project__open .sph-button__label {
+  width: 100%;
+  min-width: 0;
+  align-items: flex-start;
 }
 
 .pulso-project__open:hover,
 .pulso-project__open[aria-expanded="true"] {
   background-color: var(--hover);
-}
-
-.pulso-project__open:focus-visible,
-.pulso-project__forget:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: -2px;
 }
 
 .pulso-project__icon {
@@ -300,20 +432,14 @@ button:not(:disabled) {
   transform: rotate(90deg);
 }
 
-.pulso-project__forget {
+.pulso-project__forget.sph-icon-button {
   position: absolute;
   top: 5px;
   right: 26px;
-  display: grid;
-  place-items: center;
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  color: var(--mist);
   opacity: 0;
-  transition:
-    opacity var(--motion-fast) var(--ease-out),
-    background-color var(--motion-fast) var(--ease-out);
 }
 
 .pulso-project-row:hover .pulso-project__forget,
@@ -347,27 +473,18 @@ button:not(:disabled) {
   min-height: 26px;
 }
 
-.pulso-command__open {
-  display: flex;
+.pulso-command__open.sph-button {
   flex: 1;
-  gap: 8px;
-  align-items: center;
+  width: auto;
   min-width: 0;
-  min-height: 26px;
   margin-left: -6px;
   padding: 0 6px;
   border-radius: 6px;
-  text-align: left;
-  transition: background-color var(--motion-fast) var(--ease-out);
 }
 
-.pulso-command__open:hover {
-  background-color: var(--hover);
-}
-
-.pulso-command__open:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: -2px;
+.pulso-command__open .sph-button__label {
+  width: 100%;
+  min-width: 0;
 }
 
 .pulso-command__caret {
@@ -461,10 +578,13 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
   color: var(--paper);
   animation: pulso-port-in var(--motion-base) var(--ease-settle);
-  transition: background-color var(--motion-fast) var(--ease-out);
 }
 
-button.pulso-port:hover {
+.pulso-port.sph-button {
+  font-family: var(--font-mono);
+}
+
+.pulso-port.sph-button:hover {
   background-color: var(--line);
 }
 
@@ -472,32 +592,10 @@ button.pulso-port:hover {
   color: var(--mist);
 }
 
-.pulso-command__control {
-  display: grid;
-  flex: none;
-  place-items: center;
+.pulso-command__control.sph-icon-button {
   width: 22px;
   height: 22px;
   border-radius: 5px;
-  color: var(--faint);
-  transition:
-    color var(--motion-fast) var(--ease-out),
-    background-color var(--motion-fast) var(--ease-out);
-}
-
-.pulso-command__control:hover:not(:disabled) {
-  background-color: var(--fill);
-  color: var(--paper);
-}
-
-.pulso-command__control:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: -2px;
-}
-
-.pulso-command__control:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 .pulso-command__control[data-kind="stop"] {
@@ -712,24 +810,10 @@ button.pulso-port:hover {
   color: var(--mist);
 }
 
-.pulso-error__dismiss {
-  display: grid;
-  flex: none;
-  place-items: center;
+.pulso-dismiss.sph-icon-button {
   width: 20px;
   height: 20px;
-  border-radius: 6px;
   color: var(--mist);
-}
-
-.pulso-error__dismiss:hover {
-  background-color: var(--hover);
-  color: var(--paper);
-}
-
-.pulso-error__dismiss:focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: -2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -742,7 +826,7 @@ button.pulso-port:hover {
 
   .pulso-logs__empty[data-live="true"],
   .pulso-command[data-live="true"] .pulso-command__marker,
-  .pulso-rescan[data-busy="true"] svg {
+  .pulso-header-tool[data-busy="true"] svg {
     animation: none;
   }
 }

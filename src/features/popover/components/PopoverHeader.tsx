@@ -3,6 +3,7 @@ import {
   SpeakerHighIcon,
   SpeakerSlashIcon,
 } from "@phosphor-icons/react";
+import { IconButton } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 
 type PopoverHeaderProps = {
@@ -36,31 +37,36 @@ export function PopoverHeader({
             ? t("noneRunning")
             : t("runningCount", { count: runningCount })}
         </p>
-        <button
+        <IconButton
           type="button"
-          className="pulso-mute"
-          data-off={!sound}
-          aria-label={sound ? t("muteSound") : t("unmuteSound")}
+          size="sm"
+          variant="ghost"
+          label={sound ? t("muteSound") : t("unmuteSound")}
           title={sound ? t("muteHint") : t("unmuteHint")}
           onClick={onToggleSound}
-        >
-          {sound ? (
-            <SpeakerHighIcon size={13} weight="bold" />
-          ) : (
-            <SpeakerSlashIcon size={13} weight="bold" />
-          )}
-        </button>
-        <button
+          data-off={!sound}
+          icon={
+            sound ? (
+              <SpeakerHighIcon size={13} weight="bold" />
+            ) : (
+              <SpeakerSlashIcon size={13} weight="bold" />
+            )
+          }
+          className="pulso-header-tool"
+        />
+        <IconButton
           type="button"
-          className="pulso-rescan"
-          data-busy={rescanning}
-          aria-label={t("rescan")}
+          size="sm"
+          variant="ghost"
+          label={t("rescan")}
           title={t("rescanHint")}
           disabled={rescanning}
+          aria-busy={rescanning}
+          data-busy={rescanning}
           onClick={onRescan}
-        >
-          <ArrowClockwiseIcon size={13} weight="bold" />
-        </button>
+          icon={<ArrowClockwiseIcon size={13} weight="bold" />}
+          className="pulso-header-tool"
+        />
       </header>
       <div className="h-px bg-line" />
     </>

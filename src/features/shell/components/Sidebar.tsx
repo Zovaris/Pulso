@@ -3,8 +3,10 @@ import {
   GearSixIcon,
   ListBulletsIcon,
   SquaresFourIcon,
+  TerminalWindowIcon,
   TextAlignLeftIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import type { SectionId } from "@/app/stores/types";
@@ -18,6 +20,7 @@ const ICONS: Record<SectionId, typeof SquaresFourIcon> = {
   processes: ListBulletsIcon,
   logs: TextAlignLeftIcon,
   settings: GearSixIcon,
+  commands: TerminalWindowIcon,
 };
 
 export function Sidebar() {
@@ -60,16 +63,14 @@ export function Sidebar() {
         const flagged = item.id === "processes" && unseen > 0;
 
         return (
-          <button
+          <Button
             key={item.id}
             type="button"
+            size="md"
+            variant="quiet"
             aria-current={active ? "page" : undefined}
             onClick={() => setSection(item.id)}
-            className={`flex h-[30px] items-center gap-2.5 rounded-[7px] px-2 text-left text-[12.5px] transition-colors duration-[120ms] ${
-              active
-                ? "bg-fill font-medium text-paper"
-                : "text-mist hover:bg-hover hover:text-paper"
-            }`}
+            className={`pulso-nav ${active ? "pulso-nav-active" : ""}`}
           >
             <Icon size={14} className="flex-none" />
             {t(item.labelKey)}
@@ -85,7 +86,7 @@ export function Sidebar() {
                 {count}
               </span>
             ) : null}
-          </button>
+          </Button>
         );
       })}
 

@@ -1,4 +1,5 @@
 import { CaretRightIcon, PlayIcon, StopIcon } from "@phosphor-icons/react";
+import { Button, IconButton } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useIntoView } from "@/app/hooks/useIntoView";
 import { useStore } from "@/app/store";
@@ -40,26 +41,31 @@ export function CommandRow({
   const stopping = execution?.state === "stopping";
   const key = commandKey(projectId, command.id);
   const open = openLogKey === key;
+  const custom = command.detector === "custom";
 
   return (
     <div className="pulso-command-row" ref={row}>
       <div className="pulso-command" data-live={active} data-cursor={selected}>
-        <button
+        <Button
           type="button"
+          size="md"
+          variant="quiet"
           className="pulso-command__open"
-          aria-expanded={open}
-          onClick={() => toggleLogs(key, execution?.id ?? null)}
+          aria-expanded={execution ? open : undefined}
+          onClick={() => {
+            if (execution) toggleLogs(key, execution.id);
+          }}
         >
-          <CaretRightIcon
-            size={10}
-            className="pulso-command__caret"
-            data-quiet={execution === undefined}
-          />
-          <span
-            className="pulso-command__marker"
-            data-long-running={command.longRunning}
-            title={command.longRunning ? t("longRunningHint") : undefined}
-          />
+          {execution ? (
+            <CaretRightIcon size={10} className="pulso-command__caret" />
+          ) : null}
+          {custom ? null : (
+            <span
+              className="pulso-command__marker"
+              data-long-running={command.longRunning}
+              title={command.longRunning ? t("longRunningHint") : undefined}
+            />
+          )}
           <span className="pulso-command__label">{command.label}</span>
           <span
             className="pulso-command__value"
@@ -68,7 +74,7 @@ export function CommandRow({
           >
             {active ? elapsed : invocation}
           </span>
-        </button>
+        </Button>
 
         <span className="pulso-command__ports">
           {active
@@ -85,30 +91,32 @@ export function CommandRow({
         </span>
 
         {active ? (
-          <button
+          <IconButton
             type="button"
-            className="pulso-command__control"
-            data-kind="stop"
-            aria-label={t("stopCommand")}
+            size="sm"
+            variant="ghost"
+            label={t("stopCommand")}
             title={t("stopCommand")}
             disabled={stopping}
             onClick={() => {
               if (execution) void stopExecution(execution.id);
             }}
-          >
-            <StopIcon size={11} weight="fill" />
-          </button>
-        ) : (
-          <button
-            type="button"
+            icon={<StopIcon size={11} weight="fill" />}
             className="pulso-command__control"
-            aria-label={t("runCommand")}
+            data-kind="stop"
+          />
+        ) : (
+          <IconButton
+            type="button"
+            size="sm"
+            variant="ghost"
+            label={t("runCommand")}
             title={t("runCommand")}
             disabled={pendingCommandId === command.id}
             onClick={() => void startCommand(projectId, command.id)}
-          >
-            <PlayIcon size={11} weight="fill" />
-          </button>
+            icon={<PlayIcon size={11} weight="fill" />}
+            className="pulso-command__control"
+          />
         )}
       </div>
 

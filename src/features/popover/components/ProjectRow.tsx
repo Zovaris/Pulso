@@ -4,6 +4,7 @@ import {
   FolderSimpleIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
+import { Button, IconButton } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useIntoView } from "@/app/hooks/useIntoView";
 import { useReveal } from "@/app/hooks/useReveal";
@@ -34,8 +35,9 @@ export function ProjectRow({ project }: { project: Project }) {
     easing: REVEAL_EASE,
   });
 
-  // The menubar shows what the user kept: favourites first, hidden ones gone.
-  const visible = scan ? visibleCommands(scan) : [];
+  const visible = scan
+    ? visibleCommands(scan).filter((command) => command.detector !== "custom")
+    : [];
   const count = visible.length;
   const groups = groupBySource(visible);
   const split = groups.length > 1;
@@ -44,8 +46,10 @@ export function ProjectRow({ project }: { project: Project }) {
   return (
     <div className="pulso-project-row">
       <div className="pulso-project" data-cursor={selected} ref={row}>
-        <button
+        <Button
           type="button"
+          size="md"
+          variant="quiet"
           className="pulso-project__open"
           aria-expanded={expanded}
           onClick={() => toggleProject(project.id)}
@@ -66,18 +70,19 @@ export function ProjectRow({ project }: { project: Project }) {
                 : project.path}
             </span>
           </span>
-        </button>
+        </Button>
 
         <CaretRightIcon size={12} className="pulso-project__chevron" />
-        <button
+        <IconButton
           type="button"
-          className="pulso-project__forget"
-          aria-label={t("forgetProject")}
+          size="sm"
+          variant="ghost"
+          label={t("forgetProject")}
           title={t("forgetHint")}
           onClick={() => void removeProject(project.id)}
-        >
-          <TrashIcon size={13} />
-        </button>
+          icon={<TrashIcon size={13} />}
+          className="pulso-project__forget"
+        />
       </div>
 
       <div className="pulso-scan" ref={scanBox} inert={!expanded}>

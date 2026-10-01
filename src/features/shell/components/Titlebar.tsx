@@ -2,6 +2,7 @@ import {
   ArrowsClockwiseIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
+import { Button, Kbd } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { IconTool } from "@/components/shared/IconTool";
@@ -17,15 +18,17 @@ export function Titlebar() {
       data-tauri-drag-region
       className="flex h-[46px] flex-none items-center gap-3 border-b border-line bg-night pr-3 pl-[80px]"
     >
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant="secondary"
         onClick={openPalette}
-        className="ml-auto flex h-[26px] w-[260px] flex-none items-center gap-2 rounded-[7px] border border-line px-2 text-left text-[12px] text-faint transition-colors duration-[120ms] hover:bg-hover hover:text-mist"
+        className="pulso-search-trigger ml-auto w-[260px] flex-none"
       >
         <MagnifyingGlassIcon size={12} />
-        <span className="truncate">{t("palettePlaceholder")}</span>
-        <kbd className="ml-auto flex-none font-mono text-[10.5px]">⌘K</kbd>
-      </button>
+        <span className="truncate text-faint">{t("palettePlaceholder")}</span>
+        <Kbd keys="⌘K" className="ml-auto flex-none" />
+      </Button>
 
       <IconTool
         icon={ArrowsClockwiseIcon}

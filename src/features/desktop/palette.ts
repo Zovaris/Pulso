@@ -1,5 +1,5 @@
 import { flagsFor, invocationOf } from "@/features/desktop/commands";
-import type { CommandScan, Project } from "@/lib/types";
+import type { CommandScan, CustomCommand, Project } from "@/lib/types";
 
 export type PaletteRow = {
   project: Project;
@@ -41,6 +41,14 @@ export function searchCommands(
   rows: PaletteRow[],
   query: string,
 ): PaletteHit[] {
+  return rankAll(rows, query).slice(
+    0,
+    query.trim() === "" ? SUGGESTIONS : Number.POSITIVE_INFINITY,
+  );
+}
+
+/** The same ranking, without the cap on what an empty box offers. */
+export function rankAll(rows: PaletteRow[], query: string): PaletteHit[] {
   const needle = query.trim().toLowerCase();
 
   const hits: PaletteHit[] = [];
@@ -53,12 +61,14 @@ export function searchCommands(
 
   hits.sort((left, right) => left.score - right.score);
 
-  return needle === "" ? hits.slice(0, SUGGESTIONS) : hits;
+  return hits;
 }
 
 export function rowsFrom(
   projects: Project[],
   scans: Record<string, CommandScan>,
+  customCommands: CustomCommand[] = [],
+  personalName = "Personal commands",
 ): PaletteRow[] {
   const rows: PaletteRow[] = [];
 
@@ -81,5 +91,23 @@ export function rowsFrom(
     }
   }
 
+  for (const command of customCommands.filter(
+    (command) => command.projectId === null,
+  )) {
+    rows.push({
+      project: {
+        id: 0,
+        name: personalName,
+        path: command.cwd,
+        availability: "available",
+      },
+      scan: undefined,
+      commandId: `custom:${command.id}`,
+      label: command.label,
+      invocation: command.command,
+      favorite: command.favorite,
+      hidden: false,
+    });
+  }
   return rows;
 }

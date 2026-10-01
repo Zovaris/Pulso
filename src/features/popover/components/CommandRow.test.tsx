@@ -99,11 +99,19 @@ describe("CommandRow", () => {
   });
 
   it("opens its output when the row is clicked", () => {
+    useStore.setState({ executions: [execution({ state: "exited" })] });
     render(<CommandRow projectId={1} command={command} />);
 
     fireEvent.click(screen.getByRole("button", { expanded: false }));
 
     expect(useStore.getState().openLogKey).toBe("1:package.json:dev");
+  });
+
+  it("offers nothing to expand before the command has ever run", () => {
+    useStore.setState({ executions: [] });
+    render(<CommandRow projectId={1} command={command} />);
+
+    expect(screen.queryByRole("button", { expanded: false })).toBeNull();
   });
 
   it("keeps the whole failure reason, wrapped over two lines", () => {

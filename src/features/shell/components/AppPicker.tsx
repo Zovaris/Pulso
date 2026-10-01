@@ -1,4 +1,5 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -41,28 +42,32 @@ export function AppPicker() {
 
   return (
     <div ref={box} className="relative">
-      <button
+      <Button
         type="button"
+        size="md"
+        variant="secondary"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="flex h-[28px] w-[170px] items-center gap-2 rounded-[7px] border border-line px-2 text-left text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+        className="pulso-row-fill w-[170px] flex-none"
       >
         <AppIcon id={chosen.id} name={chosen.name} />
         <span className="truncate">{chosen.name}</span>
         <CaretDownIcon size={10} className="ml-auto flex-none text-faint" />
-      </button>
+      </Button>
 
       {open ? (
         <div className="absolute top-[32px] right-0 z-30 max-h-[280px] w-[220px] overflow-auto rounded-[9px] border border-line bg-panel p-1 shadow-[0_16px_40px_rgb(0_0_0/0.42)]">
           {editors.map((editor) => (
-            <button
+            <Button
               key={editor.id}
               type="button"
+              size="md"
+              variant="quiet"
               onClick={() => {
                 setOpen(false);
                 updatePreferences({ editor: editor.id });
               }}
-              className="flex h-[28px] w-full items-center gap-2 rounded-[6px] px-1.5 text-left text-[12px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+              className="pulso-row-fill"
             >
               <AppIcon id={editor.id} name={editor.name} />
               <span className="truncate">{editor.name}</span>
@@ -71,7 +76,7 @@ export function AppPicker() {
                   {t("defaultEditor")}
                 </span>
               ) : null}
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}

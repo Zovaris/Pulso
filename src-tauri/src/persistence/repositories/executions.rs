@@ -19,7 +19,7 @@ pub fn record(conn: &Connection, execution: &Execution, tail: &[LogLine]) -> Res
                 (project_id, command_id, label, program, args, cwd, state, started_at, ended_at, exit_code, detail)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
             params![
-                execution.project_id,
+                (execution.project_id != super::custom_commands::PERSONAL_SCOPE).then_some(execution.project_id),
                 execution.command_id,
                 execution.label,
                 execution.program,
@@ -70,7 +70,7 @@ pub fn recent(
                     e.state, e.started_at, e.ended_at, e.exit_code, e.detail,
                     (SELECT COUNT(*) FROM execution_logs l WHERE l.execution_id = e.id)
                FROM executions e
-              WHERE (?1 IS NULL OR e.project_id = ?1)
+              WHERE (?1 IS NULL OR COALESCE(e.project_id, 0) = ?1)
               ORDER BY e.started_at DESC, e.id DESC
               LIMIT ?2",
         )
@@ -83,7 +83,7 @@ pub fn recent(
 
             Ok(HistoryEntry {
                 id: row.get(0)?,
-                project_id: row.get(1)?,
+                project_id: row.get::<_, Option<i64>>(1)?.unwrap_or_default(),
                 command_id: row.get(2)?,
                 label: row.get(3)?,
                 program: row.get(4)?,

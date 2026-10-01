@@ -10,36 +10,52 @@ import {
   projectRowKey,
   rowAt,
 } from "@/features/popover/cursor";
+import { toggleSection } from "@/features/popover/sections";
 import type { AppStore } from "./types";
 
 export type CursorSlice = Pick<
   AppStore,
-  "cursor" | "setCursor" | "moveCursor" | "stepCursor" | "activateCursor"
+  | "cursor"
+  | "setCursor"
+  | "moveCursor"
+  | "stepCursor"
+  | "activateCursor"
+  | "collapsedSections"
+  | "toggleSection"
 >;
+
+const rowsFor = (state: AppStore) =>
+  cursorRows(
+    state.projects,
+    state.scans,
+    state.expandedProjectId,
+    state.customCommands,
+    state.executions,
+    state.collapsedSections,
+  );
 
 export const createCursorSlice: StateCreator<AppStore, [], [], CursorSlice> = (
   set,
   get,
 ) => ({
   cursor: null,
+  collapsedSections: [],
 
   setCursor: (key) => set({ cursor: key }),
 
+  toggleSection: (section) =>
+    set((state) => ({
+      collapsedSections: toggleSection(state.collapsedSections, section),
+    })),
+
   moveCursor: (delta) =>
     set((state) => ({
-      cursor: advance(
-        cursorRows(state.projects, state.scans, state.expandedProjectId),
-        state.cursor,
-        delta,
-      ),
+      cursor: advance(rowsFor(state), state.cursor, delta),
     })),
 
   stepCursor: (direction) => {
     const state = get();
-    const row = rowAt(
-      cursorRows(state.projects, state.scans, state.expandedProjectId),
-      state.cursor,
-    );
+    const row = rowAt(rowsFor(state), state.cursor);
     if (!row) return;
 
     if (row.kind === "project") {
@@ -76,10 +92,7 @@ export const createCursorSlice: StateCreator<AppStore, [], [], CursorSlice> = (
 
   activateCursor: () => {
     const state = get();
-    const row = rowAt(
-      cursorRows(state.projects, state.scans, state.expandedProjectId),
-      state.cursor,
-    );
+    const row = rowAt(rowsFor(state), state.cursor);
     if (!row) return;
 
     if (row.kind === "project") {

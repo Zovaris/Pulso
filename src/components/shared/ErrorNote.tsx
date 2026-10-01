@@ -1,4 +1,5 @@
 import { WarningCircleIcon, XIcon } from "@phosphor-icons/react";
+import { IconButton } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import type { BackendError, BackendErrorKind } from "@/lib/types";
 
@@ -30,14 +31,15 @@ export function ErrorNote({
           <span className="pulso-error__detail">{error.message}</span>
         ) : null}
       </span>
-      <button
+      <IconButton
         type="button"
-        className="pulso-error__dismiss"
-        aria-label={t("dismiss")}
+        size="sm"
+        variant="ghost"
+        label={t("dismiss")}
         onClick={onDismiss}
-      >
-        <XIcon size={12} />
-      </button>
+        icon={<XIcon size={12} />}
+        className="pulso-dismiss"
+      />
     </p>
   );
 }

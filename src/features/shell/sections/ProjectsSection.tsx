@@ -8,11 +8,11 @@ import {
   StopIcon,
   TextboxIcon,
 } from "@phosphor-icons/react";
+import { Button, IconButton, Input, SegmentedControl } from "@zovaris/sephiro";
 import { useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { Card, CardEmpty } from "@/components/shared/Card";
-import { Chip } from "@/components/shared/Chip";
 import { IconTool } from "@/components/shared/IconTool";
 import {
   type CommandFilter,
@@ -31,6 +31,15 @@ import { ProjectInspector } from "@/features/shell/components/Inspector";
 import { ProjectStrip } from "@/features/shell/components/ProjectStrip";
 import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
 import type { DetectedCommand } from "@/lib/types";
+
+const FILTERS = [
+  "all",
+  "favorites",
+  "dev",
+  "test",
+  "lint",
+  "hidden",
+] as CommandFilter[];
 
 const FILTER_ICONS: Partial<Record<CommandFilter, typeof StarIcon>> = {
   favorites: StarIcon,
@@ -70,21 +79,23 @@ function CommandRow({
         className="pulso-cmd pulso-row pulso-row-cmd px-2 py-1.5"
         data-hidden={flags.hidden}
       >
-        <button
-          type="button"
-          aria-pressed={flags.favorite}
+        <IconButton
+          size="sm"
+          variant="ghost"
+          label={t("favorite")}
           title={t("favorite")}
+          aria-pressed={flags.favorite}
           onClick={() =>
             void setCommandFlag(projectId, command.id, {
               favorite: !flags.favorite,
             })
           }
-          className={`flex h-[20px] w-[20px] items-center justify-center rounded-[5px] transition-colors duration-[120ms] ${
-            flags.favorite ? "text-accent-strong" : "text-faint hover:text-mist"
-          }`}
-        >
-          <StarIcon size={12} weight={flags.favorite ? "fill" : "regular"} />
-        </button>
+          icon={
+            <StarIcon size={12} weight={flags.favorite ? "fill" : "regular"} />
+          }
+          className={flags.favorite ? "text-accent-strong" : undefined}
+          style={{ width: 20, height: 20 }}
+        />
 
         <span className="pulso-cmd__name min-w-0 truncate text-[12.5px]">
           {command.label}
@@ -105,6 +116,7 @@ function CommandRow({
         <span className="flex items-center justify-end gap-0.5">
           <IconTool
             icon={TextboxIcon}
+            disabled={command.detector === "custom"}
             size={12}
             label={t("runWithArgs")}
             onClick={() => setArgsFor(open ? null : key)}
@@ -148,25 +160,25 @@ function CommandRow({
             );
           }}
         >
-          <input
+          <Input
+            size="sm"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={t("argumentsPlaceholder")}
-            className="h-[26px] min-w-0 flex-1 rounded-[6px] border border-line bg-void px-2 font-mono text-[11.5px] outline-none focus:border-accent"
+            aria-label={t("argumentsPlaceholder")}
+            className="min-w-0 flex-1 font-mono text-[11.5px]"
           />
-          <button
-            type="submit"
-            className="h-[26px] flex-none rounded-[6px] bg-accent px-2.5 text-[11.5px] text-white transition-colors duration-[120ms] hover:bg-accent-hover"
-          >
+          <Button size="sm" variant="primary" type="submit">
             {t("runCommand")}
-          </button>
-          <button
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
             type="button"
             onClick={() => setArgsFor(null)}
-            className="h-[26px] flex-none rounded-[6px] border border-line px-2.5 text-[11.5px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
           >
             {t("cancel")}
-          </button>
+          </Button>
         </form>
       ) : null}
     </>
@@ -200,14 +212,15 @@ export function ProjectsSection() {
     return (
       <div className="pulso-pane flex flex-1 flex-col items-center justify-center gap-3 text-center">
         <p className="text-[12.5px] text-mist">{t("emptyProjects")}</p>
-        <button
+        <Button
+          size="md"
+          variant="primary"
           type="button"
           onClick={() => void addProject()}
-          className="flex h-[28px] items-center gap-1.5 rounded-[7px] bg-accent px-3 text-[12px] text-white transition-colors duration-[120ms] hover:bg-accent-hover"
         >
           <FolderSimplePlusIcon size={13} />
           {t("addProject")}
-        </button>
+        </Button>
       </div>
     );
   }
@@ -226,14 +239,15 @@ export function ProjectsSection() {
           </div>
           <div className="ml-auto flex flex-none items-center gap-1.5">
             <EditorSplit projectId={project.id} />
-            <button
+            <Button
+              size="md"
+              variant="primary"
               type="button"
               onClick={() => void addProject()}
-              className="flex h-[28px] items-center gap-1.5 rounded-[7px] bg-accent px-3 text-[12px] text-white transition-colors duration-[120ms] hover:bg-accent-hover"
             >
               <FolderSimplePlusIcon size={13} />
               {t("addProject")}
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -248,25 +262,29 @@ export function ProjectsSection() {
 
         {scan && scan.commands.length > 0 ? (
           <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
-            {(
-              [
-                "all",
-                "favorites",
-                "dev",
-                "test",
-                "lint",
-                "hidden",
-              ] as CommandFilter[]
-            ).map((entry) => (
-              <Chip
-                key={entry}
-                label={t(`filter${entry[0].toUpperCase()}${entry.slice(1)}`)}
-                count={filterCount(scan, entry)}
-                icon={FILTER_ICONS[entry]}
-                active={filter === entry}
-                onClick={() => setCommandFilter(entry)}
-              />
-            ))}
+            <SegmentedControl
+              size="sm"
+              ariaLabel={t("commandFilters")}
+              value={filter}
+              onValueChange={(value) =>
+                setCommandFilter(value as CommandFilter)
+              }
+              options={FILTERS.map((entry) => {
+                const Icon = FILTER_ICONS[entry];
+                return {
+                  value: entry,
+                  icon: Icon ? <Icon size={12} /> : undefined,
+                  label: (
+                    <span className="inline-flex items-center gap-1.5">
+                      {t(`filter${entry[0].toUpperCase()}${entry.slice(1)}`)}
+                      <span className="text-faint tabular-nums">
+                        {filterCount(scan, entry)}
+                      </span>
+                    </span>
+                  ),
+                };
+              })}
+            />
           </div>
         ) : null}
 
@@ -320,13 +338,15 @@ export function ProjectsSection() {
             <p className="min-w-0 flex-1 text-[11.5px] text-mist">
               {error.message}
             </p>
-            <button
+            <Button
+              size="sm"
+              variant="secondary"
               type="button"
               onClick={dismissProjectError}
-              className="h-[24px] rounded-[6px] border border-line px-2 text-[11.5px] text-mist transition-colors duration-[120ms] hover:bg-hover hover:text-paper"
+              className="pulso-control-xs"
             >
               {t("dismiss")}
-            </button>
+            </Button>
           </div>
         ) : null}
       </div>

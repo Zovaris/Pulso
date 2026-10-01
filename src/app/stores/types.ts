@@ -1,10 +1,12 @@
 import type { CommandFilter } from "@/features/desktop/commands";
 import type { LogFilter } from "@/features/desktop/logs";
+import type { PopoverSection } from "@/features/popover/sections";
 import type { TplVars } from "@/lib/i18n";
 import type {
   BackendError,
   CommandFlags,
   CommandScan,
+  CustomCommand,
   DataStatus,
   EditorTarget,
   EnvironmentReport,
@@ -24,7 +26,8 @@ export type SectionId =
   | "projects"
   | "processes"
   | "logs"
-  | "settings";
+  | "settings"
+  | "commands";
 
 export type StoreState = {
   surface: Surface;
@@ -41,6 +44,7 @@ export type StoreState = {
   logLines: number;
 
   projects: Project[];
+  customCommands: CustomCommand[];
 
   scans: Record<string, CommandScan>;
   scanningProjectId: number | null;
@@ -58,6 +62,7 @@ export type StoreState = {
   openLogKey: string | null;
 
   cursor: string | null;
+  collapsedSections: PopoverSection[];
 
   editors: EditorTarget[];
   icons: Record<string, string>;
@@ -93,6 +98,10 @@ export type StoreActions = {
   applyPreferences: (preferences: Preferences) => void;
   t: (key: string, vars?: TplVars) => string;
 
+  loadCustomCommands: () => Promise<void>;
+  applyCustomCommands: (commands: CustomCommand[]) => void;
+  saveCustomCommand: (command: CustomCommand) => Promise<boolean>;
+  deleteCustomCommand: (id: number) => Promise<boolean>;
   loadProjects: () => Promise<void>;
   addProject: (path: string) => Promise<Project | null>;
   removeProject: (projectId: number) => Promise<void>;
@@ -126,6 +135,7 @@ export type StoreActions = {
   clearFinished: () => Promise<void>;
 
   setCursor: (key: string | null) => void;
+  toggleSection: (section: PopoverSection) => void;
   moveCursor: (delta: number) => void;
   stepCursor: (direction: "in" | "out") => void;
   activateCursor: () => void;

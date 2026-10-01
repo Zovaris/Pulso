@@ -4,6 +4,7 @@ import {
   FloppyDiskIcon,
   MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
+import { Button, Input, SegmentedControl } from "@zovaris/sephiro";
 import { useEffect, useMemo, useRef } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -162,62 +163,68 @@ export function LogsSection() {
     <div className="flex min-w-0 flex-1">
       <div className="pulso-pane flex w-[228px] flex-none flex-col gap-0.5 overflow-auto border-r border-line bg-night py-3">
         {ordered.map((execution) => (
-          <button
+          <Button
             key={execution.id}
             type="button"
+            size="md"
+            variant="quiet"
             onClick={() => select(execution.id)}
-            className={`flex items-center gap-2 px-3 py-1.5 text-left transition-colors duration-[120ms] ${
-              execution.id === selected.id ? "bg-fill" : "hover:bg-hover"
-            }`}
+            data-selected={execution.id === selected.id}
+            className="pulso-row-fill-bare pulso-row-fill px-3 py-1.5"
           >
             <i className="pulso-dot" data-s={stateOf(execution)} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[12px]">
                 {projects.find((entry) => entry.id === execution.projectId)
-                  ?.name ?? `#${execution.projectId}`}{" "}
+                  ?.name ??
+                  (execution.projectId === 0
+                    ? t("personalCommands")
+                    : `#${execution.projectId}`)}{" "}
                 · {execution.label}
               </span>
             </span>
             <span className="text-[11px] text-faint tabular-nums">
               {logs[execution.id]?.length ?? 0}
             </span>
-          </button>
+          </Button>
         ))}
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex flex-none items-center gap-2 border-b border-line px-3.5 py-2">
-          <label className="flex h-[26px] min-w-[220px] flex-1 items-center gap-2 rounded-[7px] border border-line px-2 focus-within:border-accent">
+          <div className="flex min-w-[220px] flex-1 items-center gap-2">
             <MagnifyingGlassIcon size={12} className="flex-none text-faint" />
-            <input
+            <Input
+              size="sm"
               value={filter.query}
               onChange={(event) =>
                 setLogFilter({ ...filter, query: event.target.value })
               }
               placeholder={t("searchLogs")}
-              className="min-w-0 flex-1 bg-transparent text-[12px] outline-none"
+              aria-label={t("searchLogs")}
+              className="min-w-0 flex-1 text-[12px]"
             />
             {filter.query.trim() === "" ? null : (
               <span className="flex-none text-[11px] text-faint tabular-nums">
                 {t("matchCount", { count: matches })}
               </span>
             )}
-          </label>
+          </div>
 
-          {(["all", "stdout", "stderr"] as StreamFilter[]).map((stream) => (
-            <button
-              key={stream}
-              type="button"
-              onClick={() => setLogFilter({ ...filter, stream })}
-              className={`h-[26px] rounded-[7px] border px-2.5 font-mono text-[11px] transition-colors duration-[120ms] ${
-                filter.stream === stream
-                  ? "border-transparent bg-accent text-white"
-                  : "border-line text-mist hover:bg-hover hover:text-paper"
-              }`}
-            >
-              {stream === "all" ? t("filterAll") : stream}
-            </button>
-          ))}
+          <SegmentedControl
+            size="sm"
+            ariaLabel={t("filterStreams")}
+            value={filter.stream}
+            onValueChange={(stream) =>
+              setLogFilter({ ...filter, stream: stream as StreamFilter })
+            }
+            options={(["all", "stdout", "stderr"] as StreamFilter[]).map(
+              (stream) => ({
+                value: stream,
+                label: stream === "all" ? t("filterAll") : stream,
+              }),
+            )}
+          />
 
           <span className="ml-auto flex-none text-[11px] text-faint tabular-nums">
             {t("lineCount", { count: shown })}
@@ -240,7 +247,11 @@ export function LogsSection() {
 
         <div className="flex flex-none items-center gap-2 border-b border-hairline px-3.5 py-1.5 text-[11px] text-faint">
           <span>
-            {project?.name ?? `#${selected.projectId}`} · {selected.label}
+            {project?.name ??
+              (selected.projectId === 0
+                ? t("personalCommands")
+                : `#${selected.projectId}`)}{" "}
+            · {selected.label}
           </span>
           <span className="h-[12px] w-px bg-line" />
           <span className="font-mono">
