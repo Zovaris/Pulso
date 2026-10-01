@@ -41,6 +41,7 @@ export function CommandRow({
   const stopping = execution?.state === "stopping";
   const key = commandKey(projectId, command.id);
   const open = openLogKey === key;
+  const custom = command.detector === "custom";
 
   return (
     <div className="pulso-command-row" ref={row}>
@@ -50,19 +51,21 @@ export function CommandRow({
           size="md"
           variant="quiet"
           className="pulso-command__open"
-          aria-expanded={open}
-          onClick={() => toggleLogs(key, execution?.id ?? null)}
+          aria-expanded={execution ? open : undefined}
+          onClick={() => {
+            if (execution) toggleLogs(key, execution.id);
+          }}
         >
-          <CaretRightIcon
-            size={10}
-            className="pulso-command__caret"
-            data-quiet={execution === undefined}
-          />
-          <span
-            className="pulso-command__marker"
-            data-long-running={command.longRunning}
-            title={command.longRunning ? t("longRunningHint") : undefined}
-          />
+          {execution ? (
+            <CaretRightIcon size={10} className="pulso-command__caret" />
+          ) : null}
+          {custom ? null : (
+            <span
+              className="pulso-command__marker"
+              data-long-running={command.longRunning}
+              title={command.longRunning ? t("longRunningHint") : undefined}
+            />
+          )}
           <span className="pulso-command__label">{command.label}</span>
           <span
             className="pulso-command__value"
