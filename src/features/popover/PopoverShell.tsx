@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { isActiveState } from "@/features/executions/execution";
@@ -5,6 +6,7 @@ import { useTrayBadge } from "@/features/executions/useTrayBadge";
 import { PopoverFooter } from "@/features/popover/components/PopoverFooter";
 import { PopoverHeader } from "@/features/popover/components/PopoverHeader";
 import { PopoverProjects } from "@/features/popover/components/PopoverProjects";
+import { readCollapsedSections } from "@/features/popover/sections";
 import { usePopoverActions } from "@/features/popover/usePopoverActions";
 import { usePopoverKeyboard } from "@/features/popover/usePopoverKeyboard";
 
@@ -12,6 +14,7 @@ export function PopoverShell() {
   const { t } = useI18n();
   useTrayBadge();
   const projects = useStore((state) => state.projects);
+  const collapsed = useStore((state) => state.collapsedSections);
   const runningCount = useStore(
     (state) =>
       state.executions.filter((execution) => isActiveState(execution.state))
@@ -23,6 +26,11 @@ export function PopoverShell() {
   const setSound = useStore((state) => state.setSound);
   const actions = usePopoverActions();
   usePopoverKeyboard();
+
+  useEffect(() => {
+    if (collapsed.length > 0) return;
+    useStore.setState({ collapsedSections: readCollapsedSections() });
+  }, [collapsed.length]);
 
   return (
     <div className="pulso-popover flex h-full flex-col overflow-hidden rounded-xl text-paper">

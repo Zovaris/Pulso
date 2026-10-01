@@ -311,6 +311,44 @@ button:not(:disabled) {
   letter-spacing: 0.01em;
 }
 
+.pulso-source__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pulso-section__caret {
+  flex: none;
+  margin-left: -4px;
+  color: currentcolor;
+  opacity: 0.7;
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.pulso-source__name[aria-expanded="true"] .pulso-section__caret {
+  transform: rotate(90deg);
+}
+
+.pulso-source__name:hover {
+  color: var(--mist);
+}
+
+.pulso-source__name:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.pulso-section__count {
+  color: var(--mist);
+}
+
 .pulso-source:first-child {
   margin-top: 2px;
 }
