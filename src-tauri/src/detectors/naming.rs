@@ -26,7 +26,7 @@ const TEST: [&str; 9] = [
     "cypress",
 ];
 
-const LINT: [&str; 11] = [
+const LINT: [&str; 13] = [
     "lint",
     "format",
     "fmt",
@@ -34,6 +34,8 @@ const LINT: [&str; 11] = [
     "typecheck",
     "types",
     "biome",
+    "oxlint",
+    "oxfmt",
     "clippy",
     "eslint",
     "prettier",
