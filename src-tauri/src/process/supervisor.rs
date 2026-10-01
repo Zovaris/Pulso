@@ -191,8 +191,6 @@ impl ProcessSupervisor {
             executions: Arc::clone(&self.executions),
             removed: self.removed.lock().ok().and_then(|handler| handler.clone()),
         };
-        self.notify(&execution);
-
         let resolver = Arc::clone(&self.environment);
         let cwd = command.cwd.clone();
         let environment =
