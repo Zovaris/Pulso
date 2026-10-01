@@ -1,5 +1,6 @@
 import { menubarFavourites } from "@/features/desktop/customCommands";
 import { groupBySource } from "@/features/popover/commandGroups";
+import type { PopoverSection } from "@/features/popover/sections";
 import type {
   CommandScan,
   CustomCommand,
@@ -30,41 +31,64 @@ export function cursorRows(
   expandedProjectId: number | null,
   customCommands: CustomCommand[] = [],
   executions: Execution[] = [],
+  collapsed: PopoverSection[] = [],
 ): CursorRow[] {
-  const rows: CursorRow[] = menubarFavourites(
-    scans,
-    projects,
-    customCommands,
-    executions,
-  ).map((favourite) => ({
-    kind: "command",
-    key: commandRowKey(favourite.projectId, favourite.command.id),
-    projectId: favourite.projectId,
-    commandId: favourite.command.id,
-  }));
+  const rows: CursorRow[] = [];
 
-  for (const project of projects) {
-    rows.push({
-      kind: "project",
-      key: projectRowKey(project.id),
-      projectId: project.id,
-    });
+  if (!collapsed.includes("projects")) {
+    for (const favourite of menubarFavourites(
+      scans,
+      projects,
+      customCommands,
+      executions,
+    )) {
+      rows.push({
+        kind: "command",
+        key: commandRowKey(favourite.projectId, favourite.command.id),
+        projectId: favourite.projectId,
+        commandId: favourite.command.id,
+      });
+    }
+  }
 
-    if (project.id !== expandedProjectId) continue;
+  if (!collapsed.includes("projects")) {
+    for (const project of projects) {
+      rows.push({
+        kind: "project",
+        key: projectRowKey(project.id),
+        projectId: project.id,
+      });
 
-    const scan = scans[String(project.id)];
-    if (!scan) continue;
+      if (project.id !== expandedProjectId) continue;
 
-    for (const group of groupBySource(scan.commands)) {
-      for (const command of group.commands) {
-        if (command.detector === "custom") continue;
-        rows.push({
-          kind: "command",
-          key: commandRowKey(project.id, command.id),
-          projectId: project.id,
-          commandId: command.id,
-        });
+      const scan = scans[String(project.id)];
+      if (!scan) continue;
+
+      for (const group of groupBySource(scan.commands)) {
+        for (const command of group.commands) {
+          if (command.detector === "custom") continue;
+          rows.push({
+            kind: "command",
+            key: commandRowKey(project.id, command.id),
+            projectId: project.id,
+            commandId: command.id,
+          });
+        }
       }
+    }
+  }
+
+  if (!collapsed.includes("commands")) {
+    for (const command of customCommands) {
+      // A favourite already sits at the top, and a repeated row would carry the
+      // same key twice, which the cursor cannot tell apart.
+      if (command.favorite) continue;
+      rows.push({
+        kind: "command",
+        key: commandRowKey(command.projectId ?? 0, `custom:${command.id}`),
+        projectId: command.projectId ?? 0,
+        commandId: `custom:${command.id}`,
+      });
     }
   }
 

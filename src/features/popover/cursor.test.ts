@@ -105,3 +105,36 @@ describe("moveCursor", () => {
     expect(moveCursor([], projectRowKey(1), 1)).toBeNull();
   });
 });
+
+describe("folded sections", () => {
+  const project = {
+    id: 1,
+    name: "Pulso",
+    path: "/tmp",
+    availability: "available",
+  } as const;
+
+  it("skips the rows of a folded section so the arrow cannot land in them", () => {
+    const open = cursorRows([project], {}, null, [], [], []);
+    const folded = cursorRows([project], {}, null, [], [], ["projects"]);
+
+    expect(open.length).toBeGreaterThan(folded.length);
+    expect(folded).toEqual([]);
+  });
+
+  it("walks the custom commands once, never twice for a favourite", () => {
+    const favorite = {
+      id: 1,
+      projectId: null,
+      label: "brew update",
+      command: "brew update",
+      cwd: "",
+      favorite: true,
+    };
+
+    const rows = cursorRows([], {}, null, [favorite], []);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].key).toBe("command:0:custom:1");
+  });
+});

@@ -1,5 +1,6 @@
 import type { CommandFilter } from "@/features/desktop/commands";
 import type { LogFilter } from "@/features/desktop/logs";
+import type { PopoverSection } from "@/features/popover/sections";
 import type { TplVars } from "@/lib/i18n";
 import type {
   BackendError,
@@ -61,6 +62,7 @@ export type StoreState = {
   openLogKey: string | null;
 
   cursor: string | null;
+  collapsedSections: PopoverSection[];
 
   editors: EditorTarget[];
   icons: Record<string, string>;
@@ -133,6 +135,7 @@ export type StoreActions = {
   clearFinished: () => Promise<void>;
 
   setCursor: (key: string | null) => void;
+  toggleSection: (section: PopoverSection) => void;
   moveCursor: (delta: number) => void;
   stepCursor: (direction: "in" | "out") => void;
   activateCursor: () => void;

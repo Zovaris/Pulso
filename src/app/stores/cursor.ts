@@ -10,11 +10,18 @@ import {
   projectRowKey,
   rowAt,
 } from "@/features/popover/cursor";
+import { toggleSection } from "@/features/popover/sections";
 import type { AppStore } from "./types";
 
 export type CursorSlice = Pick<
   AppStore,
-  "cursor" | "setCursor" | "moveCursor" | "stepCursor" | "activateCursor"
+  | "cursor"
+  | "setCursor"
+  | "moveCursor"
+  | "stepCursor"
+  | "activateCursor"
+  | "collapsedSections"
+  | "toggleSection"
 >;
 
 const rowsFor = (state: AppStore) =>
@@ -24,6 +31,7 @@ const rowsFor = (state: AppStore) =>
     state.expandedProjectId,
     state.customCommands,
     state.executions,
+    state.collapsedSections,
   );
 
 export const createCursorSlice: StateCreator<AppStore, [], [], CursorSlice> = (
@@ -31,8 +39,14 @@ export const createCursorSlice: StateCreator<AppStore, [], [], CursorSlice> = (
   get,
 ) => ({
   cursor: null,
+  collapsedSections: [],
 
   setCursor: (key) => set({ cursor: key }),
+
+  toggleSection: (section) =>
+    set((state) => ({
+      collapsedSections: toggleSection(state.collapsedSections, section),
+    })),
 
   moveCursor: (delta) =>
     set((state) => ({
