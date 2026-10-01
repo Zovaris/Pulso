@@ -9,6 +9,7 @@ export function IconTool({
   active,
   mirrored,
   size = 14,
+  className = "size-6",
 }: {
   icon: Icon;
   label: string;
@@ -17,10 +18,12 @@ export function IconTool({
   active?: boolean;
   mirrored?: boolean;
   size?: number;
+  className?: string;
 }) {
   return (
     <IconButton
       size="sm"
+      className={className}
       variant={active ? "outline" : "ghost"}
       label={label}
       title={label}
@@ -30,7 +33,6 @@ export function IconTool({
       icon={
         <Icon size={size} className={mirrored ? "-scale-x-100" : undefined} />
       }
-      style={{ width: 26, height: 26 }}
     />
   );
 }
