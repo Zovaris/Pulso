@@ -3,7 +3,8 @@ import { useStore } from "@/app/store";
 import { ErrorNote } from "@/components/shared/ErrorNote";
 import {
   customDetected,
-  menubarCommands,
+  groupCustomCommands,
+  menubarFavourites,
 } from "@/features/desktop/customCommands";
 import { CommandRow } from "@/features/popover/components/CommandRow";
 import { PopoverEmptyState } from "@/features/popover/components/PopoverEmptyState";
@@ -22,8 +23,13 @@ export function PopoverProjects({
   const dismissProjectError = useStore((state) => state.dismissProjectError);
   const commands = useStore((state) => state.customCommands);
   const executions = useStore((state) => state.executions);
-  const favorites = menubarCommands(commands, executions);
+  const scans = useStore((state) => state.scans);
+  const favorites = menubarFavourites(scans, projects, commands, executions);
+  const groups = groupCustomCommands(commands);
   const hasProjects = projects.length > 0;
+  const empty = hasProjects
+    ? favorites.length === 0 && groups.length === 0
+    : true;
 
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-auto px-4 py-3">
@@ -32,25 +38,55 @@ export function PopoverProjects({
           <p className="mb-2 text-[11px] font-medium text-mist">
             {t("filterFavorites")}
           </p>
-          {favorites.map((command) => (
+          {favorites.map((favourite) => (
             <CommandRow
-              key={command.id}
-              projectId={command.projectId ?? 0}
-              command={customDetected(command)}
+              key={`${favourite.projectId}:${favourite.command.id}`}
+              projectId={favourite.projectId}
+              command={favourite.command}
             />
           ))}
         </div>
       ) : null}
+
       {hasProjects ? (
-        <p className="mb-2 text-[11px] font-medium text-mist">
-          {t("projects")}
-        </p>
+        <>
+          <p className="mb-2 text-[11px] font-medium text-mist">
+            {t("projects")}
+          </p>
+          <ProjectList projects={projects} />
+        </>
       ) : null}
-      {hasProjects ? (
-        <ProjectList projects={projects} />
-      ) : favorites.length === 0 ? (
-        <PopoverEmptyState onAddProject={onAddProject} />
+
+      {groups.length > 0 ? (
+        <div className={hasProjects ? "mt-4" : ""}>
+          <p className="mb-2 text-[11px] font-medium text-mist">
+            {t("sectionCommands")}
+          </p>
+          <div className="flex flex-col gap-2">
+            {groups.map((group) => (
+              <div key={group.key}>
+                <p className="pulso-source">
+                  <span className="pulso-source__name">
+                    {projects.find((p) => p.id === group.projectId)?.name ??
+                      t("personalCommands")}
+                  </span>
+                  <span className="pulso-source__rule" />
+                </p>
+                {group.commands.map((command) => (
+                  <CommandRow
+                    key={command.id}
+                    projectId={command.projectId ?? 0}
+                    command={customDetected(command)}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       ) : null}
+
+      {empty ? <PopoverEmptyState onAddProject={onAddProject} /> : null}
+
       {error ? (
         <ErrorNote error={error} onDismiss={dismissProjectError} />
       ) : null}
