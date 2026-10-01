@@ -329,3 +329,27 @@ fn finished_executions_are_pruned_but_the_recent_ones_stay() {
     assert!(executions.contains_key(&(KEPT_FINISHED as i64 + 10)));
     assert!(!executions.contains_key(&1));
 }
+
+#[tokio::test]
+async fn the_process_is_launched_before_anything_is_notified() {
+    let notified = Arc::new(Mutex::new(Vec::new()));
+    let recorded = Arc::clone(&notified);
+    let supervisor = ProcessSupervisor::new(
+        Arc::new(move |execution: &Execution| {
+            recorded.lock().unwrap().push(execution.state);
+        }),
+        Arc::new(|_, _| {}),
+    );
+
+    let started = supervisor
+        .start(1, &command("quick", "/bin/sh", &["-c", "exit 0"]), None)
+        .await
+        .expect("the command starts");
+
+    assert_eq!(
+        notified.lock().unwrap().first().copied(),
+        Some(ExecutionState::Running),
+        "the UI is told about a process that is already running"
+    );
+    assert!(started.pid.is_some(), "the child is in its group");
+}

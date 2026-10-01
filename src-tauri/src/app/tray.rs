@@ -74,9 +74,9 @@ pub fn set_badge(app: &AppHandle, png: Option<&[u8]>) -> tauri::Result<()> {
 }
 
 pub fn sync(app: &AppHandle) {
-    let Some(tray) = app.tray_by_id(TRAY_ID) else {
+    if app.tray_by_id(TRAY_ID).is_none() {
         return;
-    };
+    }
 
     let running = running_count(app);
     let locale = stored_locale(app);
@@ -90,7 +90,12 @@ pub fn sync(app: &AppHandle) {
     *shown = Some(Shown { running, locale });
     drop(shown);
 
-    let _ = tray.set_tooltip(Some(label(running, locale)));
+    let app = app.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        if let Some(tray) = app.tray_by_id(TRAY_ID) {
+            let _ = tray.set_tooltip(Some(label(running, locale)));
+        }
+    });
 }
 
 pub fn label(running: usize, locale: Locale) -> String {
