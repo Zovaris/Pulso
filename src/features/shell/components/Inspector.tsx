@@ -1,5 +1,5 @@
 import { ArrowSquareOutIcon, FolderOpenIcon } from "@phosphor-icons/react";
-import { Button } from "@zovaris/sephiro";
+import { Button, SidePanel } from "@zovaris/sephiro";
 import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -53,14 +53,17 @@ function InspectorShell({ children }: { children: React.ReactNode }) {
   const inspectorOpen = useStore((state) => state.inspectorOpen);
 
   return (
-    <aside
-      className="pulso-inspector flex-none border-l border-line bg-night"
+    <SidePanel
+      side="right"
+      width={316}
+      collapsed={!inspectorOpen}
+      className="pulso-inspector"
       inert={!inspectorOpen}
     >
-      <div className="pulso-inspector__inner pulso-pane flex flex-col gap-4 px-4 py-4">
+      <div className="pulso-pane flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-4 py-4">
         {children}
       </div>
-    </aside>
+    </SidePanel>
   );
 }
 
