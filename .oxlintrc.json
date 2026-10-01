@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "settings": {
+    "react": {
+      "version": "19"
+    }
+  },
+  "ignorePatterns": [
+    "**/dist",
+    "**/node_modules",
+    "**/src-tauri",
+    "**/assets/brand",
+    "**/tests/fixtures"
+  ]
+}
