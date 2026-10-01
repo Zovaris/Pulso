@@ -22,7 +22,7 @@ test-watch:
 	node --test --watch
 
 lint:
-	biome check .
+	oxlint .
 
 deploy: build
 	kubectl apply -f k8s/

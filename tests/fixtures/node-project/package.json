@@ -7,7 +7,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:e2e": "playwright test",
-    "lint": "biome check .",
+    "lint": "oxlint .",
     "typecheck": "tsc --noEmit",
     "db:migrate": "prisma migrate dev",
     "deploy": "fly deploy",
