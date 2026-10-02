@@ -8,6 +8,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 const RESOLUTION_TIMEOUT: Duration = Duration::from_secs(5);
+const QUIET: Duration = Duration::from_millis(250);
 const CACHE_TTL: Duration = Duration::from_secs(60);
 const MAX_ENV_BYTES: u64 = 1024 * 1024;
 const DEFAULT_PATH: &str = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
@@ -127,7 +128,7 @@ fn resolve_with_shell(
     command.stdin(Stdio::null());
     command.stderr(Stdio::null());
     command.stdout(Stdio::piped());
-    command.process_group(0);
+    detach(&mut command);
 
     let mut child = command.spawn().ok()?;
     let stdout = child.stdout.take()?;
@@ -135,33 +136,65 @@ fn resolve_with_shell(
 
     let (sender, receiver) = mpsc::channel();
     let reader = std::thread::spawn(move || {
-        let mut bytes = Vec::new();
-        let result = stdout.take(MAX_ENV_BYTES + 1).read_to_end(&mut bytes);
-        let _ = sender.send(
-            result
-                .ok()
-                .filter(|_| bytes.len() <= MAX_ENV_BYTES as usize)
-                .map(|_| bytes),
-        );
+        let mut source = stdout.take(MAX_ENV_BYTES + 1);
+        let mut chunk = [0u8; 8192];
+
+        loop {
+            match source.read(&mut chunk) {
+                Ok(0) | Err(_) => break,
+                Ok(size) => {
+                    if sender.send(chunk[..size].to_vec()).is_err() {
+                        break;
+                    }
+                }
+            }
+        }
     });
 
-    let bytes = match receiver.recv_timeout(timeout) {
-        Ok(bytes) => bytes,
-        Err(_) => {
-            let _ = crate::process::signals::signal_group(pgid, libc::SIGKILL);
-            let _ = child.wait();
-            if reader.is_finished() {
-                let _ = reader.join();
-            }
-            return None;
+    let deadline = Instant::now() + timeout;
+    let mut bytes: Vec<u8> = Vec::new();
+
+    while bytes.len() < MAX_ENV_BYTES as usize {
+        let left = deadline.saturating_duration_since(Instant::now());
+        if left.is_zero() {
+            break;
         }
-    };
+
+        match receiver.recv_timeout(left.min(QUIET)) {
+            Ok(chunk) => bytes.extend_from_slice(&chunk),
+            Err(mpsc::RecvTimeoutError::Timeout) => {
+                if carries_path(&bytes) {
+                    break;
+                }
+            }
+            Err(mpsc::RecvTimeoutError::Disconnected) => break,
+        }
+    }
+
     let _ = crate::process::signals::signal_group(pgid, libc::SIGKILL);
     let _ = child.wait();
-    let _ = reader.join();
+    if reader.is_finished() {
+        let _ = reader.join();
+    }
 
-    let environment = parse(&bytes?);
+    let environment = parse(&bytes);
     environment.contains_key("PATH").then_some(environment)
+}
+
+fn detach(command: &mut Command) {
+    unsafe {
+        command.pre_exec(|| {
+            libc::setsid();
+            Ok(())
+        });
+    }
+}
+
+fn carries_path(bytes: &[u8]) -> bool {
+    bytes.last() == Some(&0)
+        && bytes
+            .split(|byte| *byte == 0)
+            .any(|entry| entry.len() > "PATH=".len() && entry.starts_with(b"PATH="))
 }
 
 fn parse(bytes: &[u8]) -> HashMap<String, String> {
