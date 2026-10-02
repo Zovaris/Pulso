@@ -65,6 +65,80 @@ fn the_environment_cache_expires() {
     assert!(resolver.cached(&dir).is_none());
 }
 
+fn fixture(name: &str, body: &str) -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "pulso-{name}-{}-{:?}",
+        crate::support::now_ms(),
+        std::thread::current().id()
+    ));
+    std::fs::create_dir_all(&dir).expect("the fixture dir exists");
+
+    let script = dir.join("shell.sh");
+    std::fs::write(&script, body).expect("the fixture script exists");
+    std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755))
+        .expect("the fixture script runs");
+
+    script
+}
+
+#[test]
+fn a_stray_child_holding_the_pipe_does_not_delay_the_resolve() {
+    let script = fixture("stray", "#!/bin/sh\n( /bin/sleep 30 ) &\nenv -0\n");
+    let started = Instant::now();
+
+    let resolved = resolve_with_shell(&std::env::temp_dir(), &script, RESOLUTION_TIMEOUT);
+
+    let elapsed = started.elapsed();
+    let _ = std::fs::remove_dir_all(script.parent().expect("the fixture dir"));
+    assert!(
+        elapsed < Duration::from_secs(2),
+        "the resolve waited {elapsed:?} on a stray child"
+    );
+    assert!(
+        resolved.is_some_and(|environment| environment.contains_key("PATH")),
+        "the environment was dropped because a stray child held the pipe"
+    );
+}
+
+#[test]
+fn a_shell_that_prints_and_then_hangs_still_resolves() {
+    let script = fixture("lingering", "#!/bin/sh\nenv -0\n/bin/sleep 30\n");
+    let started = Instant::now();
+
+    let resolved = resolve_with_shell(&std::env::temp_dir(), &script, RESOLUTION_TIMEOUT);
+
+    let elapsed = started.elapsed();
+    let _ = std::fs::remove_dir_all(script.parent().expect("the fixture dir"));
+    assert!(
+        elapsed < Duration::from_secs(2),
+        "the resolve waited {elapsed:?} on a shell that never exits"
+    );
+    assert!(
+        resolved.is_some_and(|environment| environment.contains_key("PATH")),
+        "the environment `env` printed was thrown away"
+    );
+}
+
+#[test]
+fn the_resolve_shell_leaves_the_session_of_the_launching_terminal() {
+    let mut command = Command::new("/bin/sh");
+    command.args(["-c", "/bin/sleep 30"]);
+    command.stdin(Stdio::null());
+    detach(&mut command);
+
+    let mut child = command.spawn().expect("the probe shell starts");
+    let pid = child.id() as i32;
+    let session = unsafe { libc::getsid(pid) };
+
+    let _ = crate::process::signals::signal_group(pid, libc::SIGKILL);
+    let _ = child.wait();
+
+    assert_eq!(
+        session, pid,
+        "the resolve shell stayed in the session of the terminal that launched the app, where taking that terminal stops it with SIGTTOU before it prints anything"
+    );
+}
+
 #[test]
 fn a_hanging_shell_is_reaped_on_timeout() {
     let dir = std::env::temp_dir().join(format!(
