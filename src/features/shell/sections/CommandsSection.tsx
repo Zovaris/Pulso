@@ -304,29 +304,30 @@ function CommandEntry({
   const active = execution ? isActiveState(execution.state) : false;
   return (
     <div className="border-b border-hairline pb-3 last:border-b-0">
-      <div className="flex items-start gap-1">
-        <div className="min-w-0 flex-1">
-          <CommandRow projectId={scope} command={detected} />
-        </div>
-        <div className="flex flex-none items-center gap-1 mt-0.75">
-          <IconTool
-            icon={PencilSimpleIcon}
-            label={t("editCommand")}
-            disabled={active || editing}
-            size={11}
-            className="size-5.5!"
-            onClick={() => onEdit(command)}
-          />
-          <IconTool
-            icon={TrashIcon}
-            label={t("deleteCommand")}
-            disabled={active}
-            size={11}
-            className="size-5.5!"
-            onClick={() => onRemove(command)}
-          />
-        </div>
-      </div>
+      <CommandRow
+        projectId={scope}
+        command={detected}
+        actions={
+          <>
+            <IconTool
+              icon={PencilSimpleIcon}
+              label={t("editCommand")}
+              disabled={active || editing}
+              size={11}
+              className="size-5.5!"
+              onClick={() => onEdit(command)}
+            />
+            <IconTool
+              icon={TrashIcon}
+              label={t("deleteCommand")}
+              disabled={active}
+              size={11}
+              className="size-5.5!"
+              onClick={() => onRemove(command)}
+            />
+          </>
+        }
+      />
     </div>
   );
 }

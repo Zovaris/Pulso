@@ -1,5 +1,6 @@
 import { CaretRightIcon, PlayIcon, StopIcon } from "@phosphor-icons/react";
 import { Button, IconButton } from "@zovaris/sephiro";
+import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useIntoView } from "@/app/hooks/useIntoView";
 import { useStore } from "@/app/store";
@@ -17,9 +18,11 @@ import type { DetectedCommand } from "@/lib/types";
 export function CommandRow({
   projectId,
   command,
+  actions,
 }: {
   projectId: number;
   command: DetectedCommand;
+  actions?: ReactNode;
 }) {
   const { t } = useI18n();
   const executions = useStore((state) => state.executions);
@@ -45,79 +48,89 @@ export function CommandRow({
 
   return (
     <div className="pulso-command-row" ref={row}>
-      <div className="pulso-command" data-live={active} data-cursor={selected}>
-        <Button
-          type="button"
-          size="md"
-          variant="quiet"
-          className="pulso-command__open"
-          aria-expanded={execution ? open : undefined}
-          onClick={() => {
-            if (execution) toggleLogs(key, execution.id);
-          }}
+      <div className="flex items-start gap-1">
+        <div
+          className="pulso-command min-w-0 flex-1"
+          data-live={active}
+          data-cursor={selected}
         >
-          {execution ? (
-            <CaretRightIcon size={10} className="pulso-command__caret" />
-          ) : null}
-          {custom ? null : (
+          <Button
+            type="button"
+            size="md"
+            variant="quiet"
+            className="pulso-command__open"
+            aria-expanded={execution ? open : undefined}
+            onClick={() => {
+              if (execution) toggleLogs(key, execution.id);
+            }}
+          >
+            {execution ? (
+              <CaretRightIcon size={10} className="pulso-command__caret" />
+            ) : null}
+            {custom ? null : (
+              <span
+                className="pulso-command__marker"
+                data-long-running={command.longRunning}
+                title={command.longRunning ? t("longRunningHint") : undefined}
+              />
+            )}
+            <span className="pulso-command__label">{command.label}</span>
             <span
-              className="pulso-command__marker"
-              data-long-running={command.longRunning}
-              title={command.longRunning ? t("longRunningHint") : undefined}
+              className="pulso-command__value"
+              data-active={active}
+              title={active ? undefined : invocation}
+            >
+              {active ? elapsed : invocation}
+            </span>
+          </Button>
+
+          <span className="pulso-command__ports">
+            {active
+              ? execution?.ports.map((port) => (
+                  <PortBadge
+                    key={port.id}
+                    port={port}
+                    onOpen={() => {
+                      if (execution) void openUrl(execution.id, port.id);
+                    }}
+                  />
+                ))
+              : null}
+          </span>
+
+          {active ? (
+            <IconButton
+              type="button"
+              size="sm"
+              variant="ghost"
+              label={t("stopCommand")}
+              title={t("stopCommand")}
+              disabled={stopping}
+              onClick={() => {
+                if (execution) void stopExecution(execution.id);
+              }}
+              icon={<StopIcon size={11} weight="fill" />}
+              className="pulso-command__control"
+              data-kind="stop"
+            />
+          ) : (
+            <IconButton
+              type="button"
+              size="sm"
+              variant="ghost"
+              label={t("runCommand")}
+              title={t("runCommand")}
+              disabled={pendingCommandId === command.id}
+              onClick={() => void startCommand(projectId, command.id)}
+              icon={<PlayIcon size={11} weight="fill" />}
+              className="pulso-command__control"
             />
           )}
-          <span className="pulso-command__label">{command.label}</span>
-          <span
-            className="pulso-command__value"
-            data-active={active}
-            title={active ? undefined : invocation}
-          >
-            {active ? elapsed : invocation}
-          </span>
-        </Button>
+        </div>
 
-        <span className="pulso-command__ports">
-          {active
-            ? execution?.ports.map((port) => (
-                <PortBadge
-                  key={port.id}
-                  port={port}
-                  onOpen={() => {
-                    if (execution) void openUrl(execution.id, port.id);
-                  }}
-                />
-              ))
-            : null}
-        </span>
-
-        {active ? (
-          <IconButton
-            type="button"
-            size="sm"
-            variant="ghost"
-            label={t("stopCommand")}
-            title={t("stopCommand")}
-            disabled={stopping}
-            onClick={() => {
-              if (execution) void stopExecution(execution.id);
-            }}
-            icon={<StopIcon size={11} weight="fill" />}
-            className="pulso-command__control"
-            data-kind="stop"
-          />
-        ) : (
-          <IconButton
-            type="button"
-            size="sm"
-            variant="ghost"
-            label={t("runCommand")}
-            title={t("runCommand")}
-            disabled={pendingCommandId === command.id}
-            onClick={() => void startCommand(projectId, command.id)}
-            icon={<PlayIcon size={11} weight="fill" />}
-            className="pulso-command__control"
-          />
-        )}
+        {actions ? (
+          <div className="flex h-7 flex-none items-center gap-1">{actions}</div>
+        ) : null}
       </div>
 
       {execution?.state === "failed" && execution.detail ? (
