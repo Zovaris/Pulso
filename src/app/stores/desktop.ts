@@ -13,6 +13,7 @@ import * as environmentApi from "@/services/api/environment";
 import { toBackendError } from "@/services/api/errors";
 import * as executionsApi from "@/services/api/executions";
 import * as historyApi from "@/services/api/history";
+import { transitionView } from "@/lib/motion";
 import type { AppStore } from "./types";
 
 export type DesktopSlice = Pick<
@@ -247,12 +248,18 @@ export const createDesktopSlice: StateCreator<
 
     select: (executionId) => set({ selectedExecutionId: executionId }),
 
-    selectProject: (projectId) =>
-      set({
-        selectedProjectId: projectId,
-        environment: null,
-        environmentFor: null,
-      }),
+    selectProject: (projectId) => {
+      const apply = () =>
+        set({
+          selectedProjectId: projectId,
+          environment: null,
+          environmentFor: null,
+        });
+      const state = get();
+      if (state.section === "projects" && state.selectedProjectId !== projectId)
+        transitionView(apply);
+      else apply();
+    },
 
     setLogFilter: (filter: LogFilter) => set({ logFilter: filter }),
 

@@ -1,4 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  type ComponentType,
+  type LazyExoticComponent,
+  lazy,
+  Suspense,
+  useEffect,
+} from "react";
 import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -8,16 +15,60 @@ import { CommandPalette } from "@/features/shell/components/CommandPalette";
 import { Sidebar } from "@/features/shell/components/Sidebar";
 import { StatusBar } from "@/features/shell/components/StatusBar";
 import { Titlebar } from "@/features/shell/components/Titlebar";
-import { CommandsSection } from "@/features/shell/sections/CommandsSection";
-import { LogsSection } from "@/features/shell/sections/LogsSection";
-import { OverviewSection } from "@/features/shell/sections/OverviewSection";
-import { ProcessesSection } from "@/features/shell/sections/ProcessesSection";
-import { PortsSection } from "@/features/shell/sections/PortsSection";
-import { ProjectsSection } from "@/features/shell/sections/ProjectsSection";
-import { SettingsSection } from "@/features/shell/sections/SettingsSection";
 import { useDesktopSync } from "@/features/shell/useDesktopSync";
 import { useShellKeyboard } from "@/features/shell/useShellKeyboard";
 import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
+import type { SectionId } from "@/app/stores/types";
+
+const LOADERS: Record<SectionId, () => Promise<{ default: ComponentType }>> = {
+  overview: () =>
+    import("@/features/shell/sections/OverviewSection").then((module) => ({
+      default: module.OverviewSection,
+    })),
+  projects: () =>
+    import("@/features/shell/sections/ProjectsSection").then((module) => ({
+      default: module.ProjectsSection,
+    })),
+  commands: () =>
+    import("@/features/shell/sections/CommandsSection").then((module) => ({
+      default: module.CommandsSection,
+    })),
+  processes: () =>
+    import("@/features/shell/sections/ProcessesSection").then((module) => ({
+      default: module.ProcessesSection,
+    })),
+  ports: () =>
+    import("@/features/shell/sections/PortsSection").then((module) => ({
+      default: module.PortsSection,
+    })),
+  logs: () =>
+    import("@/features/shell/sections/LogsSection").then((module) => ({
+      default: module.LogsSection,
+    })),
+  settings: () =>
+    import("@/features/shell/sections/SettingsSection").then((module) => ({
+      default: module.SettingsSection,
+    })),
+};
+
+const SECTION_VIEWS = Object.fromEntries(
+  Object.entries(LOADERS).map(([id, load]) => [id, lazy(load)]),
+) as Record<SectionId, LazyExoticComponent<ComponentType>>;
+
+/** Loads every section once the window is idle, so the first visit to one never waits. */
+function usePrefetchSections() {
+  useEffect(() => {
+    const prefetch = () => {
+      for (const load of Object.values(LOADERS)) void load();
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      const handle = window.requestIdleCallback(prefetch, { timeout: 2000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const handle = window.setTimeout(prefetch, 300);
+    return () => window.clearTimeout(handle);
+  }, []);
+}
 
 function Notice() {
   const notice = useStore((state) => state.notice);
@@ -99,8 +150,10 @@ export function AppShell() {
   const dismissError = useStore((state) => state.dismissProjectError);
   const sidebarOpen = useStore((state) => state.sidebarOpen);
   const inspectorOpen = useStore((state) => state.inspectorOpen);
+  const View = SECTION_VIEWS[section];
   useShellKeyboard();
   useDesktopSync();
+  usePrefetchSections();
 
   return (
     <div
@@ -112,13 +165,9 @@ export function AppShell() {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
         <main className="pulso-workspace flex min-h-0 min-w-0 flex-1 overflow-hidden">
-          {section === "overview" ? <OverviewSection /> : null}
-          {section === "projects" ? <ProjectsSection /> : null}
-          {section === "commands" ? <CommandsSection /> : null}
-          {section === "processes" ? <ProcessesSection /> : null}
-          {section === "ports" ? <PortsSection /> : null}
-          {section === "logs" ? <LogsSection /> : null}
-          {section === "settings" ? <SettingsSection /> : null}
+          <Suspense fallback={<div className="pulso-pane flex-1" />}>
+            <View />
+          </Suspense>
         </main>
       </div>
       {error && section !== "projects" ? (

@@ -1136,3 +1136,45 @@ html[data-material="menu"][data-theme="dark"] .pulso-menu {
     transform: none;
   }
 }
+
+.pulso-workspace {
+  view-transition-name: pulso-workspace;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(pulso-workspace) {
+  animation: pulso-view-out 90ms var(--ease-out) both;
+}
+
+::view-transition-new(pulso-workspace) {
+  animation: pulso-view-in 180ms var(--ease-out) both;
+}
+
+@keyframes pulso-view-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes pulso-view-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .pulso-command-palette.sph-palette {
+    animation: none;
+  }
+}
