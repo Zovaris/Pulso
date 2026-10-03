@@ -22,7 +22,7 @@
 
 Pulso lives in the macOS menu bar, one click from a command. Everything else — every project, its processes, its logs, the record of what has run — lives in a small window. Close the popover and the process keeps running. Quit Pulso and it takes down what it started, unless you have told it to leave your processes alone.
 
-No account. No cloud. No team. It only manages processes it launched.
+No account. No cloud. No team. Commands run under Pulso's supervision; the desktop port manager can also inspect and explicitly stop external listeners.
 
 ---
 
@@ -38,7 +38,7 @@ One click starts a command. Stop signals the whole process group, not just the p
 stdout and stderr stream into a window. Search, copy, or save the whole thing to a file. Autoscroll pauses when you scroll up.
 
 **Ports you can open**  
-Pulso watches logs for announced ports and HTTP(S) URLs. These are hints from process output, not verified listening sockets.
+Command badges show ports and HTTP(S) URLs announced in logs; these are hints, not verified sockets. The desktop **Ports** section separately reads actual TCP listeners on this Mac, including external processes. Search by port, process, PID or project, try a loopback HTTP URL, or stop the process after confirmation. Pulso commands stop through their supervisor; external processes receive only SIGTERM, without elevated permissions or automatic force-killing. Closing Pulso never stops external processes.
 
 **The count rides on the icon**  
 The menu bar icon carries how many processes are alive, so a glance tells you the state without opening anything. Behind it sits every project and everything each one can run.
