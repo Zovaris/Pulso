@@ -138,6 +138,17 @@ export function installDesignDemo() {
     pendingCommandId: null,
     projectError: null,
     notice: null,
+    commandGroups: [
+      {
+        id: 1,
+        label: "Stack Pulso",
+        members: [
+          { projectId: 1, commandId: "package_json:dev" },
+          { projectId: 2, commandId: "package_json:dev" },
+          { projectId: 3, commandId: "package_json:dev" },
+        ],
+      },
+    ],
     customCommands: [
       {
         id: 1,
@@ -195,6 +206,7 @@ export function installDesignDemo() {
     loadProjects: noop,
     loadCommands: noop,
     loadCustomCommands: noop,
+    loadCommandGroups: noop,
     loadExecutions: noop,
     hydratePreferences: noop,
     loadEditors: noop,
@@ -284,6 +296,33 @@ export function installDesignDemo() {
           },
         };
       });
+    },
+    saveCommandGroup: async (group) => {
+      useStore.setState((state) => ({
+        commandGroups:
+          group.id === null
+            ? [
+                ...state.commandGroups,
+                {
+                  ...group,
+                  id:
+                    Math.max(
+                      0,
+                      ...state.commandGroups.map((entry) => entry.id ?? 0),
+                    ) + 1,
+                },
+              ]
+            : state.commandGroups.map((entry) =>
+                entry.id === group.id ? group : entry,
+              ),
+      }));
+      return true;
+    },
+    deleteCommandGroup: async (id) => {
+      useStore.setState((state) => ({
+        commandGroups: state.commandGroups.filter((entry) => entry.id !== id),
+      }));
+      return true;
     },
     saveCustomCommand: async () => {
       note("save command");

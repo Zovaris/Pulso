@@ -7,6 +7,7 @@ import type { Execution } from "@/lib/types";
 
 vi.mock("@/lib/events", () => ({
   onProjectsChanged: vi.fn(),
+  onCommandGroupsChanged: vi.fn(),
   onCustomCommandsChanged: vi.fn(),
   onCommandsChanged: vi.fn(),
   onCommandFlagsChanged: vi.fn(),
@@ -64,7 +65,7 @@ describe("useProjectSync", () => {
     const { unmount } = renderHook(() => useProjectSync());
     unmount();
     await act(async () => resolve(unlisten));
-    expect(unlisten).toHaveBeenCalledTimes(8);
+    expect(unlisten).toHaveBeenCalledTimes(9);
     expect(loadExecutions).not.toHaveBeenCalled();
   });
 

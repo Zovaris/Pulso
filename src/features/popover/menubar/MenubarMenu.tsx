@@ -10,6 +10,7 @@ import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { ErrorNote } from "@/components/shared/ErrorNote";
 import { catalogRows } from "@/features/desktop/catalog";
+import { groupStatus } from "@/features/desktop/groups";
 import {
   customDetected,
   menubarFavourites,
@@ -28,13 +29,14 @@ import {
   MenuSeparator,
 } from "@/features/popover/menubar/MenuParts";
 import type { PopoverActions } from "@/features/popover/usePopoverActions";
-import type { DetectedCommand, Execution } from "@/lib/types";
+import type { CommandGroup, DetectedCommand, Execution } from "@/lib/types";
 
 export type MenuView =
   | { kind: "home" }
   | { kind: "projects" }
   | { kind: "project"; projectId: number }
   | { kind: "favorites" }
+  | { kind: "group"; groupId: number }
   | { kind: "execution"; executionId: number }
   | { kind: "search" };
 
@@ -231,6 +233,131 @@ function AppItems({ actions }: { actions: PopoverActions }) {
   );
 }
 
+function useGroupStatus(group: CommandGroup) {
+  const { t } = useI18n();
+  const projects = useStore((state) => state.projects);
+  const scans = useStore((state) => state.scans);
+  const custom = useStore((state) => state.customCommands);
+  const executions = useStore((state) => state.executions);
+  const rows = catalogRows(projects, scans, custom, t("personalCommands"));
+  return groupStatus(group, rows, executions);
+}
+
+function GroupItem({
+  group,
+  navigate,
+}: {
+  group: CommandGroup;
+  navigate: Navigate;
+}) {
+  const { t } = useI18n();
+  const startGroup = useStore((state) => state.startGroup);
+  const stopGroup = useStore((state) => state.stopGroup);
+  const confirmStop = useStore((state) => state.confirmStop);
+  const status = useGroupStatus(group);
+  const active = status.running > 0;
+  const open = () => navigate({ kind: "group", groupId: group.id ?? 0 });
+  return (
+    <MenuItem
+      lead={
+        active ? (
+          <span className="pulso-menu__dot" data-state="running" />
+        ) : (
+          <PlayIcon size={9} weight="fill" className="pulso-menu__glyph" />
+        )
+      }
+      label={group.label}
+      meta={active ? `${status.running}/${status.total}` : String(status.total)}
+      submenu={active}
+      disabled={status.total === 0}
+      onSelect={() => (active ? open() : void startGroup(group))}
+      action={
+        active
+          ? {
+              label: t("stopGroup"),
+              icon: <StopIcon size={10} weight="fill" />,
+              stops: true,
+              onSelect: () => (confirmStop ? open() : void stopGroup(group)),
+            }
+          : undefined
+      }
+    />
+  );
+}
+
+function GroupDetail({
+  groupId,
+  navigate,
+  actions,
+}: {
+  groupId: number;
+  navigate: Navigate;
+  actions: PopoverActions;
+}) {
+  const { t } = useI18n();
+  const group = useStore((state) =>
+    state.commandGroups.find((entry) => entry.id === groupId),
+  );
+  if (!group) {
+    return (
+      <MenuBack
+        label={t("menuBack")}
+        onBack={() => navigate({ kind: "home" })}
+      />
+    );
+  }
+  return <GroupMembers group={group} navigate={navigate} actions={actions} />;
+}
+
+function GroupMembers({
+  group,
+  navigate,
+  actions,
+}: {
+  group: CommandGroup;
+  navigate: Navigate;
+  actions: PopoverActions;
+}) {
+  const { t } = useI18n();
+  const startGroup = useStore((state) => state.startGroup);
+  const stopGroup = useStore((state) => state.stopGroup);
+  const status = useGroupStatus(group);
+  return (
+    <>
+      <MenuBack label={group.label} onBack={() => navigate({ kind: "home" })} />
+      <MenuSeparator />
+      {status.rows.map((row) => (
+        <CommandItem
+          key={row.key}
+          projectId={row.projectId}
+          command={row.command}
+          detail={row.projectName}
+          navigate={navigate}
+        />
+      ))}
+      <MenuSeparator />
+      {status.running < status.total ? (
+        <MenuItem
+          label={status.running ? t("startMissing") : t("runGroup")}
+          onSelect={() => void startGroup(group)}
+        />
+      ) : null}
+      {status.running ? (
+        <MenuItem
+          label={t("stopGroup")}
+          shortcut="⌘⌫"
+          onSelect={() => void stopGroup(group)}
+        />
+      ) : null}
+      <MenuItem
+        label={t("menuShowInApp")}
+        shortcut="⌘O"
+        onSelect={() => actions.openSection("commands")}
+      />
+    </>
+  );
+}
+
 function Home({
   navigate,
   actions,
@@ -245,6 +372,7 @@ function Home({
   const projects = useStore((state) => state.projects);
   const scans = useStore((state) => state.scans);
   const custom = useStore((state) => state.customCommands);
+  const groups = useStore((state) => state.commandGroups);
   const now = activity(executions, seenAt);
   const shown = new Set(
     now.map((execution) => `${execution.projectId}:${execution.commandId}`),
@@ -267,6 +395,15 @@ function Home({
               execution={execution}
               navigate={navigate}
             />
+          ))}
+        </>
+      ) : null}
+      {groups.length ? (
+        <>
+          <MenuSeparator />
+          <MenuHeading>{t("groupsTitle")}</MenuHeading>
+          {groups.map((group) => (
+            <GroupItem key={group.id} group={group} navigate={navigate} />
           ))}
         </>
       ) : null}
@@ -705,6 +842,13 @@ export function MenubarMenu({
         />
       ) : null}
       {view.kind === "favorites" ? <Favorites navigate={navigate} /> : null}
+      {view.kind === "group" ? (
+        <GroupDetail
+          groupId={view.groupId}
+          navigate={navigate}
+          actions={actions}
+        />
+      ) : null}
       {view.kind === "execution" ? (
         <ExecutionDetail
           executionId={view.executionId}

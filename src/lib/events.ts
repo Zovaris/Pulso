@@ -2,6 +2,7 @@ import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { isTauri } from "@/lib/tauri";
 import type {
   CommandFlags,
+  CommandGroup,
   CommandScan,
   CustomCommand,
   Execution,
@@ -85,6 +86,12 @@ async function subscribe<T>(
 ): Promise<UnlistenFn> {
   if (!isTauri()) return () => {};
   return listen<T>(event, (message) => handler(message.payload));
+}
+
+export function onCommandGroupsChanged(
+  handler: (groups: CommandGroup[]) => void,
+): Promise<UnlistenFn> {
+  return subscribe<CommandGroup[]>("command-group://changed", handler);
 }
 
 export function onCustomCommandsChanged(

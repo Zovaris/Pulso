@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { useStore } from "@/app/store";
 import { CommandPalette } from "@/features/shell/components/CommandPalette";
 import type { CommandScan, Execution, Project } from "@/lib/types";
@@ -199,5 +199,24 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "storybook" } });
 
     expect(loose).toBeGreaterThan(results().length);
+  });
+
+  it("runs a stopped group on Enter and opens a running one", () => {
+    const startGroup = vi.fn(async () => {});
+    const group = {
+      id: 1,
+      label: "Stack",
+      members: [
+        { projectId: 3, commandId: "3:dev" },
+        { projectId: 4, commandId: "4:test" },
+      ],
+    };
+    open();
+    act(() => useStore.setState({ commandGroups: [group], startGroup }));
+
+    fireEvent.click(
+      results().find((option) => option.textContent?.startsWith("Stack"))!,
+    );
+    expect(startGroup).toHaveBeenCalledWith(group);
   });
 });

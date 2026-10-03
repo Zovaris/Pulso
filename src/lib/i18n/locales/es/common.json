@@ -359,5 +359,30 @@
   "settingsGeneral": "General",
   "settingsRun": "Ejecución",
   "shortcutSettings": "Abrir Ajustes",
-  "shortcutSidebar": "Mostrar u ocultar la barra lateral"
+  "shortcutSidebar": "Mostrar u ocultar la barra lateral",
+  "groupsTitle": "Grupos",
+  "newGroup": "Nuevo grupo",
+  "editGroup": "Editar grupo",
+  "deleteGroup": "Eliminar grupo",
+  "deleteGroupBody": "¿Eliminar el grupo “{label}”? Los comandos no se tocan.",
+  "groupName": "Nombre del grupo",
+  "groupNamePlaceholder": "Stack de desarrollo",
+  "groupCommands": "Comandos del grupo",
+  "groupPick": "Elige los comandos en el orden en que deben arrancar.",
+  "groupSelected": {
+    "one": "{count} comando elegido",
+    "other": "{count} comandos elegidos"
+  },
+  "saveGroup": "Guardar grupo",
+  "runGroup": "Ejecutar grupo",
+  "stopGroup": "Detener grupo",
+  "startMissing": "Iniciar los que faltan",
+  "groupRunning": "{running} de {total} en ejecución",
+  "groupIdle": {
+    "one": "{count} comando",
+    "other": "{count} comandos"
+  },
+  "groupsEmpty": "Agrupa comandos que levantas juntos, como api, web y base de datos, y arráncalos con un clic.",
+  "groupMissing": "Un comando de este grupo ya no existe.",
+  "showProcesses": "Ver procesos"
 }

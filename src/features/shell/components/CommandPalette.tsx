@@ -5,6 +5,7 @@ import {
   FolderSimpleIcon,
   FolderSimplePlusIcon,
   PlayIcon,
+  StackIcon,
   StarIcon,
   StopIcon,
   TextAlignLeftIcon,
@@ -22,6 +23,8 @@ import {
   isActiveState,
   latestExecution,
 } from "@/features/executions/execution";
+import { catalogRows } from "@/features/desktop/catalog";
+import { groupStatus } from "@/features/desktop/groups";
 import { activity } from "@/features/popover/menubar/MenubarMenu";
 import { useAddProject } from "@/features/projects/useAddProject";
 import { SECTIONS, shortcutOf } from "@/features/shell/sections";
@@ -75,7 +78,12 @@ export function CommandPalette() {
   const scans = useStore((state) => state.scans);
   const executions = useStore((state) => state.executions);
   const seenAt = useStore((state) => state.seenFailuresAt);
+  const commandGroups = useStore((state) => state.commandGroups);
   const addProject = useAddProject();
+  const catalog = useMemo(
+    () => catalogRows(projects, scans, customCommands, t("personalCommands")),
+    [projects, scans, customCommands, t],
+  );
   const rows = useMemo(
     () =>
       rowsFrom(projects, scans, customCommands, t("personalCommands")).filter(
@@ -262,9 +270,56 @@ export function CommandPalette() {
       ),
     ];
 
+    const groupItems = commandGroups.map((group) => {
+      const status = groupStatus(group, catalog, executions);
+      const active = status.running > 0;
+      const children: CommandItem[] = [
+        ...(status.running < status.total
+          ? [
+              {
+                id: `group-start:${group.id}`,
+                label: t("startMissing"),
+                icon: <PlayIcon size={15} />,
+              },
+            ]
+          : []),
+        {
+          id: `group-stop:${group.id}`,
+          label: t("stopGroup"),
+          icon: <StopIcon size={15} />,
+        },
+        {
+          id: `group-show:${group.id}`,
+          label: t("showProcesses"),
+          icon: <TextAlignLeftIcon size={16} />,
+        },
+      ];
+      return put(
+        {
+          id: `group:${group.id}`,
+          label: active
+            ? `${group.label} · ${t("groupRunning", { running: status.running, total: status.total })}`
+            : group.label,
+          hint: active ? undefined : t("groupIdle", { count: status.total }),
+          icon: active ? (
+            <span className="pulso-dot" data-s="running" />
+          ) : (
+            <StackIcon size={16} />
+          ),
+          group: t("groupsTitle"),
+          ...(active ? { children } : {}),
+        },
+        {
+          home: true,
+          search: `${group.label} ${status.rows.map((row) => `${row.command.label} ${row.projectName}`).join(" ")}`,
+        },
+      );
+    });
+
     return {
       items: [
         ...running,
+        ...groupItems,
         ...favorites,
         ...recent,
         ...(needle ? ranked : unranked),
@@ -274,7 +329,7 @@ export function CommandPalette() {
       ],
       reach,
     };
-  }, [rows, executions, seenAt, projects, query, t]);
+  }, [rows, catalog, commandGroups, executions, seenAt, projects, query, t]);
 
   const filter = useCallback(
     (item: CommandItem, typed: string) => {
@@ -309,6 +364,15 @@ export function CommandPalette() {
     else if (kind === "project") {
       state.selectProject(Number(target));
       state.setSection("projects");
+    } else if (kind.startsWith("group")) {
+      const group = state.commandGroups.find(
+        (entry) => entry.id === Number(target),
+      );
+      if (!group) return;
+      if (kind === "group" || kind === "group-start")
+        void state.startGroup(group);
+      else if (kind === "group-stop") void state.stopGroup(group);
+      else state.setSection("processes");
     } else if (kind === "act") {
       if (target === "add-project") void addProject();
       else if (target === "rescan") void state.rescanProjects();

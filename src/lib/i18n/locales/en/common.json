@@ -359,5 +359,30 @@
   "settingsGeneral": "General",
   "settingsRun": "Running",
   "shortcutSettings": "Open Settings",
-  "shortcutSidebar": "Show or hide the sidebar"
+  "shortcutSidebar": "Show or hide the sidebar",
+  "groupsTitle": "Groups",
+  "newGroup": "New group",
+  "editGroup": "Edit group",
+  "deleteGroup": "Delete group",
+  "deleteGroupBody": "Delete the group “{label}”? The commands stay as they are.",
+  "groupName": "Group name",
+  "groupNamePlaceholder": "Dev stack",
+  "groupCommands": "Commands in the group",
+  "groupPick": "Pick the commands in the order they should start.",
+  "groupSelected": {
+    "one": "{count} command picked",
+    "other": "{count} commands picked"
+  },
+  "saveGroup": "Save group",
+  "runGroup": "Run group",
+  "stopGroup": "Stop group",
+  "startMissing": "Start the ones not running",
+  "groupRunning": "{running} of {total} running",
+  "groupIdle": {
+    "one": "{count} command",
+    "other": "{count} commands"
+  },
+  "groupsEmpty": "Group the commands you start together, like api, web and database, and run them with one click.",
+  "groupMissing": "A command in this group no longer exists.",
+  "showProcesses": "Show processes"
 }

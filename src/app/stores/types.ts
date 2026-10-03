@@ -4,6 +4,7 @@ import type {
   BackendError,
   CommandFlags,
   CommandScan,
+  CommandGroup,
   CustomCommand,
   DataStatus,
   EditorTarget,
@@ -44,6 +45,7 @@ export type StoreState = {
 
   projects: Project[];
   customCommands: CustomCommand[];
+  commandGroups: CommandGroup[];
 
   scans: Record<string, CommandScan>;
   scanningProjectId: number | null;
@@ -97,6 +99,12 @@ export type StoreActions = {
   applyCustomCommands: (commands: CustomCommand[]) => void;
   saveCustomCommand: (command: CustomCommand) => Promise<boolean>;
   deleteCustomCommand: (id: number) => Promise<boolean>;
+  loadCommandGroups: () => Promise<void>;
+  applyCommandGroups: (groups: CommandGroup[]) => void;
+  saveCommandGroup: (group: CommandGroup) => Promise<boolean>;
+  deleteCommandGroup: (id: number) => Promise<boolean>;
+  startGroup: (group: CommandGroup) => Promise<void>;
+  stopGroup: (group: CommandGroup) => Promise<void>;
   loadProjects: () => Promise<void>;
   addProject: (path: string) => Promise<Project | null>;
   removeProject: (projectId: number) => Promise<void>;

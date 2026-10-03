@@ -3,6 +3,7 @@ import { useStore } from "@/app/store";
 import {
   onCommandFlagsChanged,
   onCommandsChanged,
+  onCommandGroupsChanged,
   onCustomCommandsChanged,
   onExecutionChanged,
   onExecutionsRemoved,
@@ -14,6 +15,8 @@ import {
 export function useProjectSync() {
   const loadCustomCommands = useStore((state) => state.loadCustomCommands);
   const applyCustomCommands = useStore((state) => state.applyCustomCommands);
+  const loadCommandGroups = useStore((state) => state.loadCommandGroups);
+  const applyCommandGroups = useStore((state) => state.applyCommandGroups);
   const loadProjects = useStore((state) => state.loadProjects);
   const applyProjects = useStore((state) => state.applyProjects);
   const applyScan = useStore((state) => state.applyScan);
@@ -34,6 +37,7 @@ export function useProjectSync() {
     const subscriptions = [
       onProjectsChanged(applyProjects),
       onCustomCommandsChanged(applyCustomCommands),
+      onCommandGroupsChanged(applyCommandGroups),
       onCommandsChanged(applyScan),
       onCommandFlagsChanged(applyFlags),
       onExecutionChanged(applyExecution),
@@ -46,12 +50,14 @@ export function useProjectSync() {
       .then(() => {
         if (cancelled) return;
         void loadCustomCommands();
+        void loadCommandGroups();
         void loadProjects();
         void loadExecutions();
       })
       .catch(() => {
         if (!cancelled) {
           void loadCustomCommands();
+          void loadCommandGroups();
           void loadProjects();
           void loadExecutions();
         }
@@ -67,6 +73,8 @@ export function useProjectSync() {
   }, [
     loadCustomCommands,
     applyCustomCommands,
+    loadCommandGroups,
+    applyCommandGroups,
     loadProjects,
     loadExecutions,
     applyProjects,

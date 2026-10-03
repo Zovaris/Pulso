@@ -277,6 +277,38 @@ describe("menubar menu", () => {
   });
 });
 
+describe("menubar groups", () => {
+  const group = {
+    id: 4,
+    label: "Stack",
+    members: [
+      { projectId: 1, commandId: "package_json:dev" },
+      { projectId: 2, commandId: "package_json:dev" },
+    ],
+  };
+
+  it("runs a stopped group from its row", () => {
+    const startGroup = vi.fn(async () => {});
+    setup({ commandGroups: [group], startGroup });
+
+    fireEvent.click(item(/^Stack/));
+
+    expect(startGroup).toHaveBeenCalledWith(group);
+  });
+
+  it("opens a running group to start the rest or stop it", () => {
+    const stopGroup = vi.fn(async () => {});
+    setup({ commandGroups: [group], stopGroup, executions: [execution({})] });
+
+    expect(item(/^Stack/).textContent).toContain("1/2");
+    fireEvent.click(item(/^Stack/));
+    expect(item(/^Start the ones not running/)).toBeTruthy();
+    fireEvent.click(item(/^Stop group/));
+
+    expect(stopGroup).toHaveBeenCalledWith(group);
+  });
+});
+
 describe("menubar keyboard", () => {
   it("moves one highlight with the arrows and wraps around", () => {
     setup();

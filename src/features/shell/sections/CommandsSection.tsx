@@ -18,6 +18,8 @@ import {
 } from "@/features/desktop/catalog";
 import { useCommandEditor } from "@/features/shell/components/CommandEditor";
 import { CommandTable } from "@/features/shell/components/CommandTable";
+import { useGroupEditor } from "@/features/shell/components/GroupEditor";
+import { GroupList } from "@/features/shell/components/GroupList";
 
 const KINDS: CatalogKind[] = ["all", "detected", "custom", "favorites"];
 const ALL_PROJECTS = "all";
@@ -32,6 +34,8 @@ export function CommandsSection() {
   const scans = useStore((state) => state.scans);
   const customs = useStore((state) => state.customCommands);
   const editor = useCommandEditor();
+  const groups = useGroupEditor();
+  const commandGroups = useStore((state) => state.commandGroups);
   const [kind, setKind] = useState<CatalogKind>("all");
   const [scope, setScope] = useState(ALL_PROJECTS);
   const [text, setText] = useState("");
@@ -64,6 +68,10 @@ export function CommandsSection() {
           </h1>
           <p className="mt-1 text-[12px] text-mist">{t("catalogLede")}</p>
         </div>
+        <Button size="sm" variant="secondary" onClick={groups.create}>
+          <PlusIcon size={13} weight="bold" />
+          {t("newGroup")}
+        </Button>
         <Button
           size="sm"
           variant="primary"
@@ -75,6 +83,20 @@ export function CommandsSection() {
           {t("newCommand")}
         </Button>
       </header>
+
+      {commandGroups.length ? (
+        <section className="pulso-groups" aria-labelledby="groups-title">
+          <h2 id="groups-title" className="pulso-block-title">
+            {t("groupsTitle")}
+          </h2>
+          <GroupList
+            groups={commandGroups}
+            rows={rows}
+            onEdit={groups.edit}
+            onRemove={groups.remove}
+          />
+        </section>
+      ) : null}
 
       <div className="pulso-filter-bar">
         <SegmentedControl
@@ -160,6 +182,7 @@ export function CommandsSection() {
         {t("commandCount", { count: shown.length })}
       </footer>
       {editor.dialogs}
+      {groups.dialogs}
     </div>
   );
 }

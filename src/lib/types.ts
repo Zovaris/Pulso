@@ -206,6 +206,17 @@ export type BackendError = {
   path: string | null;
 };
 
+export type GroupMember = {
+  projectId: number;
+  commandId: string;
+};
+
+export type CommandGroup = {
+  id: number | null;
+  label: string;
+  members: GroupMember[];
+};
+
 export type CustomCommand = {
   id: number | null;
   projectId: number | null;
