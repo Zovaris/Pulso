@@ -105,4 +105,37 @@ describe("LogsSection", () => {
     fireEvent.scroll(stream);
     expect(useStore.getState().logAutoscroll).toBe(false);
   });
+
+  it("holds still while the reader is scrolled up and counts what arrives below", () => {
+    useStore.setState({ logAutoscroll: false });
+    render(<LogsSection />);
+
+    act(() =>
+      useStore.setState({
+        logs: {
+          500: [
+            line(1, "normal output"),
+            line(2, "error output", "stderr"),
+            line(3, "later"),
+            line(4, "latest"),
+          ],
+        },
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "2 new lines" }));
+    expect(useStore.getState().logAutoscroll).toBe(true);
+    expect(screen.queryByRole("button", { name: /new line/ })).toBeNull();
+  });
+
+  it("follows the output again from its own toggle", () => {
+    useStore.setState({ logAutoscroll: false });
+    render(<LogsSection />);
+
+    const follow = screen.getByRole("button", { name: "Follow output" });
+    expect(follow.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(follow);
+
+    expect(useStore.getState().logAutoscroll).toBe(true);
+  });
 });

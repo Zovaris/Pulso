@@ -9,7 +9,11 @@ function Harness() {
 }
 
 beforeEach(() => {
-  useStore.setState({ section: "overview", sidebarOpen: true });
+  useStore.setState({
+    section: "overview",
+    sidebarOpen: true,
+    paletteOpen: false,
+  });
 });
 
 function press(key: string, init: KeyboardEventInit = {}) {
@@ -23,8 +27,8 @@ describe("useShellKeyboard", () => {
     press("3", { metaKey: true });
     expect(useStore.getState().section).toBe("processes");
 
-    press("7", { metaKey: true });
-    expect(useStore.getState().section).toBe("ports");
+    press("6", { metaKey: true });
+    expect(useStore.getState().section).toBe("projects");
 
     press("1", { metaKey: true });
     expect(useStore.getState().section).toBe("overview");
@@ -68,13 +72,24 @@ describe("useShellKeyboard", () => {
     expect(useStore.getState().sidebarOpen).toBe(true);
   });
 
-  it("closes the palette with escape", () => {
+  it("leaves escape to the open palette, which clears, goes back, then closes", () => {
     render(<Harness />);
 
     press("k", { metaKey: true });
     press("Escape");
 
-    expect(useStore.getState().paletteOpen).toBe(false);
+    expect(useStore.getState().paletteOpen).toBe(true);
+  });
+
+  it("numbers the sections as the sidebar lists them", () => {
+    render(<Harness />);
+
+    press("2", { metaKey: true });
+    expect(useStore.getState().section).toBe("commands");
+    press("4", { metaKey: true });
+    expect(useStore.getState().section).toBe("ports");
+    press("7", { metaKey: true });
+    expect(useStore.getState().section).toBe("ports");
   });
 
   it("rescans the projects with the command key", () => {

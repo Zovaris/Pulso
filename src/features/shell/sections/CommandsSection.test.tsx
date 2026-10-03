@@ -1,141 +1,178 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, expect, it, vi } from "vitest";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useStore } from "@/app/store";
+import type { CommandScan, CustomCommand } from "@/lib/types";
 import { CommandsSection } from "./CommandsSection";
 
 const save = vi.fn();
+const setCommandFlag = vi.fn();
+const remove = vi.fn();
+
+const custom = (
+  id: number,
+  label: string,
+  projectId: number | null,
+  favorite = false,
+): CustomCommand => ({
+  id,
+  projectId,
+  label,
+  command: `echo ${label}`,
+  cwd: "",
+  favorite,
+});
+
+const scan: CommandScan = {
+  projectId: 5,
+  status: "detected",
+  detail: null,
+  commands: [
+    {
+      id: "package_json:dev",
+      label: "dev",
+      program: "bun",
+      args: ["run", "dev"],
+      cwd: "/tmp/pulso",
+      source: "package.json",
+      detector: "package_json",
+      category: "dev",
+      longRunning: true,
+    },
+  ],
+  flags: {},
+};
+
 beforeEach(() => {
   save.mockReset().mockResolvedValue(true);
+  setCommandFlag.mockReset().mockResolvedValue(undefined);
+  remove.mockReset().mockResolvedValue(true);
   useStore.setState({
     locale: "en",
     projects: [
       { id: 5, name: "Pulso", path: "/tmp/pulso", availability: "available" },
     ],
-    customCommands: [],
+    scans: { "5": scan },
+    customCommands: [custom(1, "brew", null)],
     executions: [],
+    argsFor: null,
     saveCustomCommand: save,
+    setCommandFlag,
+    deleteCustomCommand: remove,
   });
 });
-it("saves a personal favorite with home as the default and preserves shell quoting", async () => {
-  render(<CommandsSection />);
-  fireEvent.click(screen.getAllByRole("button", { name: "Add command" })[0]);
-  fireEvent.change(screen.getByLabelText("Name"), {
-    target: { value: "Upgrade" },
+
+const row = (name: string) =>
+  screen.getAllByRole("row").find((entry) => within(entry).queryByText(name))!;
+
+describe("commands catalog", () => {
+  it("lists detected and custom commands together, each with its source", () => {
+    render(<CommandsSection />);
+
+    expect(within(row("dev")).getByText("package.json")).toBeTruthy();
+    expect(within(row("dev")).getByText("Pulso")).toBeTruthy();
+    expect(within(row("brew")).getByText("Custom")).toBeTruthy();
+    expect(within(row("brew")).getByText("echo brew")).toBeTruthy();
   });
-  fireEvent.change(screen.getByLabelText("Shell command"), {
-    target: { value: "printf '%s' 'hello world'" },
+
+  it("narrows by kind and by what is typed", () => {
+    render(<CommandsSection />);
+
+    fireEvent.click(screen.getByRole("radio", { name: /^Custom/ }));
+    expect(screen.queryByText("dev")).toBeNull();
+    expect(row("brew")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("radio", { name: /^All/ }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Find a command…" }), {
+      target: { value: "bun run" },
+    });
+    expect(row("dev")).toBeTruthy();
+    expect(screen.queryByText("brew")).toBeNull();
   });
-  fireEvent.click(screen.getByRole("checkbox"));
-  fireEvent.click(screen.getByRole("button", { name: "Save command" }));
-  await waitFor(() =>
-    expect(save).toHaveBeenCalledWith({
-      id: null,
-      projectId: null,
-      label: "Upgrade",
-      command: "printf '%s' 'hello world'",
-      cwd: "",
+
+  it("stars a detected command through its flags and a custom one through itself", () => {
+    render(<CommandsSection />);
+
+    fireEvent.click(
+      within(row("dev")).getByRole("button", { name: /Add to favorites/ }),
+    );
+    expect(setCommandFlag).toHaveBeenCalledWith(5, "package_json:dev", {
       favorite: true,
-    }),
-  );
-  await waitFor(() => expect(screen.queryByLabelText("Name")).toBeNull());
-});
-it("keeps the draft visible when storage rejects the command", async () => {
-  save.mockResolvedValue(false);
-  render(<CommandsSection />);
-  fireEvent.click(screen.getAllByRole("button", { name: "Add command" })[0]);
-  fireEvent.change(screen.getByLabelText("Name"), {
-    target: { value: "Test" },
-  });
-  fireEvent.change(screen.getByLabelText("Shell command"), {
-    target: { value: "pwd" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Project" }));
-  fireEvent.click(screen.getByRole("option", { name: "Pulso" }));
-  fireEvent.click(screen.getByRole("button", { name: "Save command" }));
-  await waitFor(() =>
+    });
+
+    fireEvent.click(
+      within(row("brew")).getByRole("button", { name: /Add to favorites/ }),
+    );
     expect(save).toHaveBeenCalledWith(
-      expect.objectContaining({ projectId: 5, cwd: "" }),
-    ),
-  );
-  expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
-    "Test",
-  );
-});
+      expect.objectContaining({ id: 1, favorite: true }),
+    );
+  });
 
-const command = (
-  id: number,
-  label: string,
-  cwd: string,
-  favorite: boolean,
-) => ({
-  id,
-  projectId: null,
-  label,
-  command: label,
-  cwd,
-  favorite,
-});
+  it("offers edit and delete only for commands the user wrote", () => {
+    render(<CommandsSection />);
 
-const stars = () => screen.getAllByRole("button", { name: /favorite in the/i });
+    fireEvent.click(
+      within(row("dev")).getByRole("button", { name: /More actions/ }),
+    );
+    expect(screen.queryByRole("menuitem", { name: "Edit command" })).toBeNull();
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: "Escape",
+    });
 
-it("favourites every command of a group at once", async () => {
-  useStore.setState({
-    customCommands: [
-      command(1, "brew update", "/Users/example", false),
-      command(2, "brew upgrade", "/Users/example", false),
-    ],
-  } as never);
-  render(<CommandsSection />);
+    fireEvent.click(
+      within(row("brew")).getByRole("button", { name: /More actions/ }),
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: "Delete command" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete command" }));
 
-  fireEvent.click(stars()[0]);
+    expect(remove).toHaveBeenCalledWith(1);
+  });
 
-  await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
-  expect(save.mock.calls.map(([c]) => c.label)).toEqual([
-    "brew update",
-    "brew upgrade",
-  ]);
-  expect(save.mock.calls.every(([c]) => c.favorite === true)).toBe(true);
-});
+  it("saves a new personal favorite and preserves shell quoting", async () => {
+    render(<CommandsSection />);
+    fireEvent.click(screen.getByRole("button", { name: "New command" }));
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Upgrade" },
+    });
+    fireEvent.change(screen.getByLabelText("Shell command"), {
+      target: { value: "printf '%s' 'hello world'" },
+    });
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Save command" }));
 
-it("unfavourites the group only when every command is already one", async () => {
-  useStore.setState({
-    customCommands: [
-      command(1, "brew update", "/Users/example", true),
-      command(2, "brew upgrade", "/Users/example", false),
-    ],
-  } as never);
-  render(<CommandsSection />);
+    await waitFor(() =>
+      expect(save).toHaveBeenCalledWith({
+        id: null,
+        projectId: null,
+        label: "Upgrade",
+        command: "printf '%s' 'hello world'",
+        cwd: "",
+        favorite: true,
+      }),
+    );
+    await waitFor(() => expect(screen.queryByLabelText("Name")).toBeNull());
+  });
 
-  fireEvent.click(stars()[0]);
+  it("keeps the draft open when storage rejects the command", async () => {
+    save.mockResolvedValue(false);
+    render(<CommandsSection />);
+    fireEvent.click(screen.getByRole("button", { name: "New command" }));
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Test" },
+    });
+    fireEvent.change(screen.getByLabelText("Shell command"), {
+      target: { value: "pwd" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save command" }));
 
-  // Mixed group: only the one that is not a favorite yet gets written.
-  await waitFor(() => expect(save).toHaveBeenCalledTimes(1));
-  expect(save.mock.calls[0][0].label).toBe("brew upgrade");
-
-  save.mockClear();
-  useStore.setState({
-    customCommands: [
-      command(1, "brew update", "/Users/example", true),
-      command(2, "brew upgrade", "/Users/example", true),
-    ],
-  } as never);
-  render(<CommandsSection />);
-
-  fireEvent.click(stars()[1]);
-
-  await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
-  expect(save.mock.calls.every(([c]) => c.favorite === false)).toBe(true);
-});
-
-it("keeps one star per group, not one per command", () => {
-  useStore.setState({
-    customCommands: [
-      command(1, "brew update", "/Users/example", false),
-      command(2, "brew upgrade", "/Users/example", false),
-      command(3, "make test", "/tmp", false),
-    ],
-  } as never);
-  render(<CommandsSection />);
-
-  expect(stars()).toHaveLength(2);
+    await waitFor(() => expect(save).toHaveBeenCalled());
+    expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
+      "Test",
+    );
+  });
 });

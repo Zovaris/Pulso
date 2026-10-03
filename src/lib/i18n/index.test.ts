@@ -8,29 +8,27 @@ describe("translate", () => {
   });
 
   it("walks dotted keys straight to the template", () => {
-    expect(t("en", "runningCount.one")).toBe("{count} process running");
+    expect(t("en", "commandCount.one")).toBe("{count} command");
   });
 
   it("filters a plural through the locale rules", () => {
-    expect(t("en", "runningCount", { count: 1 })).toBe("1 process running");
-    expect(t("en", "runningCount", { count: 3 })).toBe("3 processes running");
-    expect(t("es", "runningCount", { count: 2 })).toBe("2 procesos activos");
+    expect(t("en", "commandCount", { count: 1 })).toBe("1 command");
+    expect(t("en", "commandCount", { count: 3 })).toBe("3 commands");
+    expect(t("es", "commandCount", { count: 2 })).toBe("2 comandos");
   });
 
   it("formats the numbers it interpolates", () => {
-    expect(t("en", "runningCount", { count: 1234 })).toBe(
-      "1,234 processes running",
-    );
+    expect(t("en", "commandCount", { count: 1234 })).toBe("1,234 commands");
   });
 
   it("fills in named values", () => {
-    expect(t("en", "openPort", { url: "http://localhost:4321" })).toBe(
-      "Open http://localhost:4321",
+    expect(t("en", "menuOpenPort", { port: "4321" })).toBe(
+      "Open localhost:4321",
     );
   });
 
   it("leaves an unknown placeholder alone", () => {
-    expect(t("en", "openPort", {})).toBe("Open {url}");
+    expect(t("en", "menuOpenPort", {})).toBe("Open localhost:{port}");
   });
 
   it("returns the key when nothing matches", () => {

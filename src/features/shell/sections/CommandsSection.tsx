@@ -1,333 +1,165 @@
-import {
-  PencilSimpleIcon,
-  PlusIcon,
-  StarIcon,
-  TrashIcon,
-} from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import {
   Button,
-  Checkbox,
-  Field,
-  IconButton,
+  EmptyState,
   Input,
+  SegmentedControl,
   Select,
-  Textarea,
 } from "@zovaris/sephiro";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { IconTool } from "@/components/shared/IconTool";
 import {
-  customDetected,
-  groupCustomCommands,
-} from "@/features/desktop/customCommands";
-import {
-  isActiveState,
-  latestExecution,
-} from "@/features/executions/execution";
-import { CommandRow } from "@/features/popover/components/CommandRow";
-import type { CustomCommand } from "@/lib/types";
+  type CatalogKind,
+  catalogRows,
+  filterCatalog,
+  kindCounts,
+  PERSONAL,
+} from "@/features/desktop/catalog";
+import { useCommandEditor } from "@/features/shell/components/CommandEditor";
+import { CommandTable } from "@/features/shell/components/CommandTable";
 
-const EMPTY: CustomCommand = {
-  id: null,
-  projectId: null,
-  label: "",
-  command: "",
-  cwd: "",
-  favorite: false,
-};
+const KINDS: CatalogKind[] = ["all", "detected", "custom", "favorites"];
+const ALL_PROJECTS = "all";
+
+/**
+ * One catalog of everything Pulso can run. Detected and custom commands sit
+ * side by side, told apart by their source; only the custom ones can be edited.
+ */
 export function CommandsSection() {
   const { t } = useI18n();
-  const commands = useStore((s) => s.customCommands);
-  const projects = useStore((s) => s.projects);
-  const remove = useStore((s) => s.deleteCustomCommand);
-  const save = useStore((s) => s.saveCustomCommand);
-  const groups = useMemo(() => groupCustomCommands(commands), [commands]);
-  const [draft, setDraft] = useState<CustomCommand | null>(null);
-  const [removing, setRemoving] = useState<CustomCommand | null>(null);
+  const projects = useStore((state) => state.projects);
+  const scans = useStore((state) => state.scans);
+  const customs = useStore((state) => state.customCommands);
+  const editor = useCommandEditor();
+  const [kind, setKind] = useState<CatalogKind>("all");
+  const [scope, setScope] = useState(ALL_PROJECTS);
+  const [text, setText] = useState("");
+
+  const rows = useMemo(
+    () => catalogRows(projects, scans, customs, t("personalCommands")),
+    [projects, scans, customs, t],
+  );
+  const projectId = scope === ALL_PROJECTS ? null : Number(scope);
+  const scoped = useMemo(
+    () => filterCatalog(rows, { kind: "all", projectId, text: "" }),
+    [rows, projectId],
+  );
+  const counts = kindCounts(scoped, KINDS);
+  const shown = filterCatalog(rows, { kind, projectId, text });
+  const filtered =
+    kind !== "all" || scope !== ALL_PROJECTS || text.trim() !== "";
+  const clear = () => {
+    setKind("all");
+    setScope(ALL_PROJECTS);
+    setText("");
+  };
 
   return (
-    <div className="pulso-pane flex min-w-0 flex-1 flex-col overflow-auto px-6 py-5">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[16px] font-semibold">{t("sectionCommands")}</h1>
-          <p className="mt-1 text-[12px] text-mist">
-            {t("customCommandsLede")}
-          </p>
+    <div className="pulso-pane flex min-h-0 min-w-0 flex-1 flex-col">
+      <header className="flex flex-none items-start gap-4 px-6 pt-5 pb-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-[16px] font-semibold tracking-[-0.015em]">
+            {t("sectionCommands")}
+          </h1>
+          <p className="mt-1 text-[12px] text-mist">{t("catalogLede")}</p>
         </div>
         <Button
           size="sm"
           variant="primary"
-          onClick={() => setDraft({ ...EMPTY })}
-          disabled={draft !== null}
+          onClick={() =>
+            editor.create(projectId === PERSONAL ? null : projectId)
+          }
         >
-          <PlusIcon size={14} />
-          {t("addCommand")}
+          <PlusIcon size={13} weight="bold" />
+          {t("newCommand")}
         </Button>
       </header>
-      {draft ? (
-        <CommandEditor
-          key={draft.id ?? "new"}
-          initial={draft}
-          onClose={() => setDraft(null)}
-        />
-      ) : null}
-      {commands.length === 0 && !draft ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center">
-          <h2 className="text-[14px] font-medium">{t("noCustomCommands")}</h2>
-          <p className="max-w-[340px] text-[12px] text-mist">
-            {t("customCommandsEmpty")}
-          </p>
-          <Button
-            size="sm"
-            variant="primary"
-            onClick={() => setDraft({ ...EMPTY })}
-          >
-            {t("addCommand")}
-          </Button>
-        </div>
-      ) : null}
-      <div className="mt-5 flex flex-col gap-5">
-        {groups.map((group) => {
-          const favorites = group.commands.filter(
-            (command) => command.favorite,
-          ).length;
-          const every = favorites === group.commands.length;
-          const favorite = !every;
 
-          return (
-            <section key={group.key}>
-              <header className="mb-2 flex items-center gap-2 text-[11px] text-mist">
-                <span>
-                  {projects.find((p) => p.id === group.projectId)?.name ??
-                    t("personalCommands")}
-                </span>
-                <span
-                  className="min-w-0 flex-1 truncate font-mono"
-                  title={group.cwd}
-                >
-                  {group.cwd}
-                </span>
-                <IconButton
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  label={t("menubarFavorite")}
-                  aria-pressed={every}
-                  disabled={draft !== null}
-                  onClick={() => {
-                    void (async () => {
-                      for (const command of group.commands) {
-                        if (command.favorite === favorite) continue;
-                        await save({ ...command, favorite });
-                      }
-                    })();
-                  }}
-                  icon={
-                    <StarIcon
-                      size={14}
-                      weight={
-                        every ? "fill" : favorites > 0 ? "duotone" : "regular"
-                      }
-                    />
-                  }
-                  className="text-accent-strong"
-                />
-              </header>
-              <div className="flex flex-col gap-3">
-                {group.commands.map((command) => (
-                  <CommandEntry
-                    key={command.id}
-                    command={command}
-                    editing={draft !== null}
-                    onEdit={(command) => setDraft({ ...command })}
-                    onRemove={setRemoving}
-                  />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-      </div>
-      {removing ? (
-        <ConfirmDialog
-          title={t("deleteCommand")}
-          body={t("deleteCommandBody", { label: removing.label })}
-          confirmLabel={t("deleteCommand")}
-          cancelLabel={t("cancel")}
-          onCancel={() => setRemoving(null)}
-          onConfirm={() => {
-            if (removing.id !== null)
-              void remove(removing.id).then((ok) => {
-                if (ok) {
-                  setRemoving(null);
-                  if (draft?.id === removing.id) setDraft(null);
-                }
-              });
-          }}
+      <div className="pulso-filter-bar">
+        <SegmentedControl
+          size="sm"
+          ariaLabel={t("commandFilters")}
+          value={kind}
+          onValueChange={(value) => setKind(value as CatalogKind)}
+          options={KINDS.map((entry) => ({
+            value: entry,
+            label: (
+              <>
+                {t(`kind${entry[0].toUpperCase()}${entry.slice(1)}`)}
+                <span className="pulso-count">{counts[entry]}</span>
+              </>
+            ),
+          }))}
         />
-      ) : null}
-    </div>
-  );
-}
-
-function CommandEditor({
-  initial,
-  onClose,
-}: {
-  initial: CustomCommand;
-  onClose: () => void;
-}) {
-  const { t } = useI18n();
-  const projects = useStore((s) => s.projects);
-  const save = useStore((s) => s.saveCustomCommand);
-  const [draft, setDraft] = useState(initial);
-  const [saving, setSaving] = useState(false);
-  const change = (patch: Partial<CustomCommand>) =>
-    setDraft((current) => ({ ...current, ...patch }));
-  return (
-    <form
-      className="my-5 max-w-[600px] border-b border-line pb-5 text-[12px]"
-      onSubmit={(event) => {
-        event.preventDefault();
-        setSaving(true);
-        void save(draft)
-          .then((ok) => {
-            if (ok) onClose();
-          })
-          .finally(() => setSaving(false));
-      }}
-    >
-      <h2 className="mb-4 font-medium">
-        {t(draft.id === null ? "addCommand" : "editCommand")}
-      </h2>
-      <Field label={t("commandName")} htmlFor="command-label">
-        <Input
-          id="command-label"
-          value={draft.label}
-          required
-          maxLength={160}
-          onChange={(e) => change({ label: e.target.value })}
-        />
-      </Field>
-      <Field label={t("shellCommand")} htmlFor="command-shell" className="mt-3">
-        <Textarea
-          id="command-shell"
-          className="min-h-[74px] font-mono"
-          value={draft.command}
-          required
-          placeholder="brew upgrade"
-          spellCheck={false}
-          onChange={(e) => change({ command: e.target.value })}
-        />
-      </Field>
-      <Field
-        label={t("commandProject")}
-        htmlFor="command-project"
-        className="mt-3"
-      >
         <Select
-          id="command-project"
-          value={draft.projectId === null ? "" : String(draft.projectId)}
-          onValueChange={(value) =>
-            change({
-              projectId: value === "" ? null : Number(value),
-              cwd: "",
-            })
-          }
+          size="sm"
+          ariaLabel={t("catalogScope")}
+          value={scope}
+          onValueChange={setScope}
           options={[
-            { value: "", label: t("personalCommands") },
+            { value: ALL_PROJECTS, label: t("catalogAllProjects") },
             ...projects.map((project) => ({
               value: String(project.id),
               label: project.name,
             })),
+            { value: String(PERSONAL), label: t("personalCommands") },
           ]}
-          ariaLabel={t("commandProject")}
         />
-      </Field>
-      <Field label={t("workingFolder")} htmlFor="command-cwd" className="mt-3">
-        <Input
-          id="command-cwd"
-          className="font-mono"
-          value={draft.cwd}
-          placeholder={
-            draft.projectId === null
-              ? "~"
-              : projects.find((p) => p.id === draft.projectId)?.path
-          }
-          onChange={(e) => change({ cwd: e.target.value })}
-        />
-      </Field>
-      <p className="mt-1.5 text-mist">
-        {t(draft.projectId === null ? "homeFolderHint" : "projectFolderHint")}
-      </p>
-      <Checkbox
-        className="mt-4"
-        label={t("menubarFavorite")}
-        checked={draft.favorite}
-        onChange={(e) => change({ favorite: e.target.checked })}
-      />
-      <p className="mt-3 text-mist">{t("shellCommandHint")}</p>
-      <div className="mt-4 flex gap-2">
-        <Button
-          size="sm"
-          variant="primary"
-          type="submit"
-          disabled={saving || !draft.label.trim() || !draft.command.trim()}
-        >
-          {t(saving ? "savingCommand" : "saveCommand")}
-        </Button>
-        <Button size="sm" type="button" disabled={saving} onClick={onClose}>
-          {t("cancel")}
-        </Button>
+        <label className="pulso-search ml-auto">
+          <MagnifyingGlassIcon size={13} aria-hidden />
+          <Input
+            size="sm"
+            aria-label={t("searchCommands")}
+            placeholder={t("searchCommands")}
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+          />
+        </label>
       </div>
-    </form>
-  );
-}
-function CommandEntry({
-  command,
-  editing,
-  onEdit,
-  onRemove,
-}: {
-  command: CustomCommand;
-  editing: boolean;
-  onEdit: (command: CustomCommand) => void;
-  onRemove: (command: CustomCommand) => void;
-}) {
-  const { t } = useI18n();
-  const executions = useStore((s) => s.executions);
-  const scope = command.projectId ?? 0;
-  const detected = customDetected(command);
-  const execution = latestExecution(executions, scope, detected.id);
-  const active = execution ? isActiveState(execution.state) : false;
-  return (
-    <div className="border-b border-hairline pb-3 last:border-b-0">
-      <CommandRow
-        projectId={scope}
-        command={detected}
-        actions={
-          <>
-            <IconTool
-              icon={PencilSimpleIcon}
-              label={t("editCommand")}
-              disabled={active || editing}
-              size={11}
-              className="size-5.5!"
-              onClick={() => onEdit(command)}
-            />
-            <IconTool
-              icon={TrashIcon}
-              label={t("deleteCommand")}
-              disabled={active}
-              size={11}
-              className="size-5.5!"
-              onClick={() => onRemove(command)}
-            />
-          </>
-        }
-      />
+
+      <div className="min-h-0 flex-1 overflow-auto px-5 pb-4">
+        {rows.length === 0 ? (
+          <EmptyState
+            title={t("noCustomCommands")}
+            description={t("customCommandsEmpty")}
+            action={
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => editor.create()}
+              >
+                {t("newCommand")}
+              </Button>
+            }
+          />
+        ) : (
+          <CommandTable
+            rows={shown}
+            showProject={projectId === null}
+            onEdit={editor.edit}
+            onRemove={editor.remove}
+            empty={
+              <EmptyState
+                compact
+                title={t("nothingInFilter")}
+                action={
+                  filtered ? (
+                    <Button size="sm" variant="quiet" onClick={clear}>
+                      {t("clearSearch")}
+                    </Button>
+                  ) : undefined
+                }
+              />
+            }
+          />
+        )}
+      </div>
+
+      <footer className="pulso-section-footer">
+        {t("commandCount", { count: shown.length })}
+      </footer>
+      {editor.dialogs}
     </div>
   );
 }

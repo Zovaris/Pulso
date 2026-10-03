@@ -35,7 +35,7 @@ function Notice() {
       {notice ? (
         <Button
           type="button"
-          size="md"
+          size="sm"
           variant="secondary"
           onClick={dismissNotice}
           className="pulso-row-fill-bare pointer-events-auto max-w-[420px] items-start px-3 py-2 text-left text-[11.5px] shadow-[0_12px_32px_rgb(0_0_0/0.4)]"
@@ -111,7 +111,7 @@ export function AppShell() {
       <Titlebar />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+        <main className="pulso-workspace flex min-h-0 min-w-0 flex-1 overflow-hidden">
           {section === "overview" ? <OverviewSection /> : null}
           {section === "projects" ? <ProjectsSection /> : null}
           {section === "commands" ? <CommandsSection /> : null}

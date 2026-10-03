@@ -1,26 +1,20 @@
-import { Button, Kbd, Select, Toggle } from "@zovaris/sephiro";
-import { useEffect } from "react";
+import {
+  Button,
+  Kbd,
+  SegmentedControl,
+  Select,
+  Toggle,
+} from "@zovaris/sephiro";
+import { useEffect, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { AppPicker } from "@/features/shell/components/AppPicker";
 import type { Locale, ThemePref } from "@/lib/types";
 import { LOG_LINE_CHOICES } from "@/lib/types";
 
-function Group({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-6 first:mt-0">
-      <h2 className="text-[10.5px] font-medium tracking-[0.03em] text-faint uppercase">
-        {title}
-      </h2>
-      <div className="mt-1">{children}</div>
-    </section>
-  );
+/** One inset group of rows, as in System Settings. */
+function Group({ children }: { children: React.ReactNode }) {
+  return <section className="pulso-settings-group">{children}</section>;
 }
 
 function Row({
@@ -33,7 +27,7 @@ function Row({
   control: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-4 border-b border-hairline py-3 last:border-b-0">
+    <div className="pulso-settings-row">
       <div className="min-w-0">
         <p className="text-[12.5px]">{label}</p>
         {hint ? <p className="mt-0.5 text-[11px] text-faint">{hint}</p> : null}
@@ -55,7 +49,7 @@ function Action({
   return (
     <Button
       type="button"
-      size="md"
+      size="sm"
       variant="secondary"
       disabled={disabled}
       onClick={onClick}
@@ -67,12 +61,23 @@ function Action({
 
 const SHORTCUTS = [
   { key: "shortcutPalette", keys: "⌘K" },
-  { key: "shortcutSections", keys: "⌘1…⌘7" },
+  { key: "shortcutSections", keys: "⌘1…⌘6" },
+  { key: "shortcutSettings", keys: "⌘," },
+  { key: "shortcutSidebar", keys: "⌘B" },
   { key: "shortcutRescan", keys: "⌘R" },
   { key: "shortcutOpenEditor", keys: "⌘O" },
   { key: "shortcutStop", keys: "⌘." },
   { key: "shortcutCopyLog", keys: "⌘⇧L" },
   { key: "shortcutClosePopover", keys: "Esc" },
+];
+
+type Category = "general" | "appearance" | "run" | "data" | "shortcuts";
+const CATEGORIES: { value: Category; labelKey: string }[] = [
+  { value: "general", labelKey: "settingsGeneral" },
+  { value: "appearance", labelKey: "appearance" },
+  { value: "run", labelKey: "settingsRun" },
+  { value: "data", labelKey: "data" },
+  { value: "shortcuts", labelKey: "shortcuts" },
 ];
 
 export function SettingsSection() {
@@ -93,258 +98,263 @@ export function SettingsSection() {
   const importProjects = useStore((state) => state.importProjects);
   const revealDataFolder = useStore((state) => state.revealDataFolder);
   const makeDiagnosticBundle = useStore((state) => state.makeDiagnosticBundle);
-  const clearFinished = useStore((state) => state.clearFinished);
   const askClearHistory = useStore((state) => state.askClearHistory);
+
+  const [category, setCategory] = useState<Category>("general");
 
   useEffect(() => {
     void loadDataStatus();
   }, [loadDataStatus]);
 
+  const toggle = (
+    label: string,
+    checked: boolean,
+    change: (checked: boolean) => void,
+  ) => (
+    <Toggle
+      checked={checked}
+      onCheckedChange={change}
+      label={label}
+      size="sm"
+    />
+  );
+
   return (
-    <div className="pulso-pane flex min-w-0 flex-1 flex-col overflow-auto px-6 py-5">
-      <header>
+    <div className="pulso-pane flex min-h-0 min-w-0 flex-1 flex-col">
+      <header className="flex-none px-6 pt-5 pb-4">
         <h1 className="text-[16px] font-semibold tracking-[-0.015em]">
           {t("sectionSettings")}
         </h1>
         <p className="mt-1 text-[12px] text-mist">{t("settingsLede")}</p>
       </header>
 
-      <div className="mt-5 max-w-[640px]">
-        <Group title={t("appearance")}>
-          <Row
-            label={t("theme")}
-            hint={t("themeHint")}
-            control={
-              <Select
-                value={themePref}
-                onValueChange={(value) =>
-                  updatePreferences({ theme: value as ThemePref })
+      <div className="pulso-filter-bar">
+        <SegmentedControl
+          size="sm"
+          ariaLabel={t("sectionSettings")}
+          value={category}
+          onValueChange={(value) => setCategory(value as Category)}
+          options={CATEGORIES.map((entry) => ({
+            value: entry.value,
+            label: t(entry.labelKey),
+          }))}
+        />
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-auto px-6 pb-6">
+        <div className="flex max-w-[640px] flex-col gap-4">
+          {category === "general" ? (
+            <>
+              <Group>
+                <Row
+                  label={t("language")}
+                  hint={t("languageHint")}
+                  control={
+                    <Select
+                      value={locale}
+                      onValueChange={(value) =>
+                        updatePreferences({ locale: value as Locale })
+                      }
+                      options={[
+                        { value: "es", label: "Español" },
+                        { value: "en", label: "English" },
+                      ]}
+                      ariaLabel={t("language")}
+                      size="sm"
+                    />
+                  }
+                />
+                <Row
+                  label={t("openAtLogin")}
+                  hint={t("openAtLoginHint")}
+                  control={toggle(t("openAtLogin"), openAtLogin, (checked) =>
+                    updatePreferences({ openAtLogin: checked }),
+                  )}
+                />
+              </Group>
+              <Group>
+                <Row
+                  label={t("defaultEditorLabel")}
+                  hint={t("defaultEditorHint")}
+                  control={<AppPicker />}
+                />
+                <Row
+                  label={t("keepRunning")}
+                  hint={t("keepRunningHint")}
+                  control={toggle(t("keepRunning"), keepRunning, (checked) =>
+                    updatePreferences({ keepRunning: checked }),
+                  )}
+                />
+              </Group>
+            </>
+          ) : null}
+
+          {category === "appearance" ? (
+            <Group>
+              <Row
+                label={t("theme")}
+                hint={t("themeHint")}
+                control={
+                  <Select
+                    value={themePref}
+                    onValueChange={(value) =>
+                      updatePreferences({ theme: value as ThemePref })
+                    }
+                    options={[
+                      { value: "system", label: t("themeSystem") },
+                      { value: "dark", label: t("themeDark") },
+                      { value: "light", label: t("themeLight") },
+                    ]}
+                    ariaLabel={t("theme")}
+                    size="sm"
+                  />
                 }
-                options={[
-                  { value: "system", label: t("themeSystem") },
-                  { value: "dark", label: t("themeDark") },
-                  { value: "light", label: t("themeLight") },
-                ]}
-                ariaLabel={t("theme")}
-                size="sm"
               />
-            }
-          />
-          <Row
-            label={t("language")}
-            hint={t("languageHint")}
-            control={
-              <Select
-                value={locale}
-                onValueChange={(value) =>
-                  updatePreferences({ locale: value as Locale })
-                }
-                options={[
-                  { value: "en", label: "English" },
-                  { value: "es", label: "Espanol" },
-                ]}
-                ariaLabel={t("language")}
-                size="sm"
-              />
-            }
-          />
-          <Row
-            label={t("transparency")}
-            hint={t("transparencyHint")}
-            control={
-              <Toggle
-                checked={transparency}
-                onCheckedChange={(checked) =>
-                  updatePreferences({ transparency: checked })
-                }
+              <Row
                 label={t("transparency")}
-                size="sm"
+                hint={t("transparencyHint")}
+                control={toggle(t("transparency"), transparency, (checked) =>
+                  updatePreferences({ transparency: checked }),
+                )}
               />
-            }
-          />
-          <Row
-            label={t("soundCues")}
-            hint={t("soundCuesHint")}
-            control={
-              <Toggle
-                checked={sound}
-                onCheckedChange={(checked) =>
-                  updatePreferences({ sound: checked })
-                }
-                label={t("soundCues")}
-                size="sm"
-              />
-            }
-          />
-        </Group>
+            </Group>
+          ) : null}
 
-        <Group title={t("behavior")}>
-          <Row
-            label={t("openAtLogin")}
-            hint={t("openAtLoginHint")}
-            control={
-              <Toggle
-                checked={openAtLogin}
-                onCheckedChange={(checked) =>
-                  updatePreferences({ openAtLogin: checked })
-                }
-                label={t("openAtLogin")}
-                size="sm"
-              />
-            }
-          />
-          <Row
-            label={t("defaultEditorLabel")}
-            hint={t("defaultEditorHint")}
-            control={<AppPicker />}
-          />
-          <Row
-            label={t("keepRunning")}
-            hint={t("keepRunningHint")}
-            control={
-              <Toggle
-                checked={keepRunning}
-                onCheckedChange={(checked) =>
-                  updatePreferences({ keepRunning: checked })
-                }
-                label={t("keepRunning")}
-                size="sm"
-              />
-            }
-          />
-          <Row
-            label={t("confirmStop")}
-            hint={t("confirmStopHint")}
-            control={
-              <Toggle
-                checked={confirmStop}
-                onCheckedChange={(checked) =>
-                  updatePreferences({ confirmStop: checked })
-                }
-                label={t("confirmStop")}
-                size="sm"
-              />
-            }
-          />
-          <Row
-            label={t("logLinesLabel")}
-            hint={t("logLinesHint")}
-            control={
-              <Select
-                value={String(logLines)}
-                onValueChange={(value) =>
-                  updatePreferences({ logLines: Number(value) })
-                }
-                options={LOG_LINE_CHOICES.map((lines) => ({
-                  value: String(lines),
-                  label: lines.toLocaleString(locale),
-                }))}
-                ariaLabel={t("logLinesLabel")}
-                size="sm"
-              />
-            }
-          />
-          <Row
-            label={t("notifyOnFailure")}
-            hint={t("notifyOnFailureHint")}
-            control={
-              <Toggle
-                checked={notifyOnFailure}
-                onCheckedChange={(checked) =>
-                  updatePreferences({ notifyOnFailure: checked })
-                }
-                label={t("notifyOnFailure")}
-                size="sm"
-              />
-            }
-          />
-        </Group>
+          {category === "run" ? (
+            <>
+              <Group>
+                <Row
+                  label={t("confirmStop")}
+                  hint={t("confirmStopHint")}
+                  control={toggle(t("confirmStop"), confirmStop, (checked) =>
+                    updatePreferences({ confirmStop: checked }),
+                  )}
+                />
+                <Row
+                  label={t("notifyOnFailure")}
+                  hint={t("notifyOnFailureHint")}
+                  control={toggle(
+                    t("notifyOnFailure"),
+                    notifyOnFailure,
+                    (checked) =>
+                      updatePreferences({ notifyOnFailure: checked }),
+                  )}
+                />
+                <Row
+                  label={t("soundCues")}
+                  hint={t("soundCuesHint")}
+                  control={toggle(t("soundCues"), sound, (checked) =>
+                    updatePreferences({ sound: checked }),
+                  )}
+                />
+              </Group>
+              <Group>
+                <Row
+                  label={t("logLinesLabel")}
+                  hint={t("logLinesHint")}
+                  control={
+                    <Select
+                      value={String(logLines)}
+                      onValueChange={(value) =>
+                        updatePreferences({ logLines: Number(value) })
+                      }
+                      options={LOG_LINE_CHOICES.map((lines) => ({
+                        value: String(lines),
+                        label: lines.toLocaleString(locale),
+                      }))}
+                      ariaLabel={t("logLinesLabel")}
+                      size="sm"
+                    />
+                  }
+                />
+              </Group>
+            </>
+          ) : null}
 
-        <Group title={t("data")}>
-          <Row
-            label={t("database")}
-            hint={data?.database ?? t("readingShort")}
-            control={
-              <Action
-                label={t("reveal")}
-                onClick={() => void revealDataFolder()}
-              />
-            }
-          />
-          <Row
-            label={t("projectsStored")}
-            hint={
-              data
-                ? t("projectsMissing", {
-                    count: data.projects,
-                    missing: data.missing,
-                  })
-                : t("readingShort")
-            }
-            control={
-              <>
-                <Action
-                  label={t("exportProjects")}
-                  disabled={working !== null}
-                  onClick={() => void exportProjects()}
+          {category === "data" ? (
+            <>
+              <Group>
+                <Row
+                  label={t("database")}
+                  hint={data?.database ?? t("readingShort")}
+                  control={
+                    <Action
+                      label={t("reveal")}
+                      onClick={() => void revealDataFolder()}
+                    />
+                  }
                 />
-                <Action
-                  label={t("importProjects")}
-                  disabled={working !== null}
-                  onClick={() => void importProjects()}
+                <Row
+                  label={t("projectsStored")}
+                  hint={
+                    data
+                      ? t("projectsMissing", {
+                          count: data.projects,
+                          missing: data.missing,
+                        })
+                      : t("readingShort")
+                  }
+                  control={
+                    <>
+                      <Action
+                        label={t("exportProjects")}
+                        disabled={working !== null}
+                        onClick={() => void exportProjects()}
+                      />
+                      <Action
+                        label={t("importProjects")}
+                        disabled={working !== null}
+                        onClick={() => void importProjects()}
+                      />
+                    </>
+                  }
                 />
-              </>
-            }
-          />
-          <Row
-            label={t("sessionLog")}
-            hint={t("sessionLogHint")}
-            control={
-              <>
-                <Action
-                  label={t("clearFinished")}
-                  onClick={() => void clearFinished()}
+              </Group>
+              <Group>
+                <Row
+                  label={t("sessionLog")}
+                  hint={t("sessionLogHint")}
+                  control={
+                    <Action
+                      label={t("makeBundle")}
+                      disabled={working !== null}
+                      onClick={() => void makeDiagnosticBundle()}
+                    />
+                  }
                 />
-                <Action
-                  label={t("makeBundle")}
-                  disabled={working !== null}
-                  onClick={() => void makeDiagnosticBundle()}
+                <Row
+                  label={t("executionHistory")}
+                  hint={
+                    data === null
+                      ? t("readingShort")
+                      : data.runs === 0
+                        ? t("executionHistoryEmpty")
+                        : t("executionHistoryHint", { count: data.runs })
+                  }
+                  control={
+                    <Action
+                      label={t("clearHistory")}
+                      disabled={working !== null || (data?.runs ?? 0) === 0}
+                      onClick={() => askClearHistory(true)}
+                    />
+                  }
                 />
-              </>
-            }
-          />
-          <Row
-            label={t("executionHistory")}
-            hint={
-              data === null
-                ? t("readingShort")
-                : data.runs === 0
-                  ? t("executionHistoryEmpty")
-                  : t("executionHistoryHint", { count: data.runs })
-            }
-            control={
-              <Action
-                label={t("clearHistory")}
-                disabled={working !== null || (data?.runs ?? 0) === 0}
-                onClick={() => askClearHistory(true)}
-              />
-            }
-          />
-        </Group>
+              </Group>
+            </>
+          ) : null}
 
-        <Group title={t("shortcuts")}>
-          <div className="flex flex-col gap-1.5 py-2">
-            {SHORTCUTS.map((shortcut) => (
-              <div
-                key={shortcut.key}
-                className="flex items-baseline justify-between gap-4 text-[12px]"
-              >
-                <span className="text-mist">{t(shortcut.key)}</span>
-                <Kbd keys={shortcut.keys} />
-              </div>
-            ))}
-          </div>
-        </Group>
+          {category === "shortcuts" ? (
+            <Group>
+              {SHORTCUTS.map((shortcut) => (
+                <Row
+                  key={shortcut.key}
+                  label={t(shortcut.key)}
+                  control={<Kbd keys={shortcut.keys} />}
+                />
+              ))}
+            </Group>
+          ) : null}
+        </div>
       </div>
     </div>
   );
