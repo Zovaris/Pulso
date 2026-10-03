@@ -95,6 +95,20 @@ export type LogSnapshot = {
   lines: LogLine[];
 };
 
+export type PortTarget = {
+  pid: number;
+  port: number;
+  address: string;
+  startedAt: string | null;
+};
+
+/** Verified TCP listener, separate from ports announced in command logs. */
+export type ListeningPort = PortTarget & {
+  process: string;
+  executionId: number | null;
+  canStop: boolean;
+};
+
 export type DetectedPort = {
   id: string;
   port: number;

@@ -4,6 +4,7 @@ pub mod editors;
 pub mod environment;
 pub mod executions;
 pub mod history;
+pub mod ports;
 pub mod projects;
 pub mod settings;
 pub mod tray;
