@@ -1,8 +1,27 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { useStore } from "@/app/store";
 import { CommandPalette } from "@/features/shell/components/CommandPalette";
-import type { CommandScan, Project } from "@/lib/types";
+import type { CommandScan, Execution, Project } from "@/lib/types";
+
+const run = (overrides: Partial<Execution>): Execution => ({
+  id: 1,
+  projectId: 1,
+  commandId: "1:dev",
+  label: overrides.commandId?.split(":")[1] ?? "dev",
+  program: "make",
+  args: [],
+  cwd: "/p",
+  state: "running",
+  pid: 1,
+  startedAt: 1_000,
+  endedAt: null,
+  exitCode: null,
+  detail: null,
+  restartedFrom: null,
+  ports: [],
+  ...overrides,
+});
 
 const project = (id: number, name: string): Project =>
   ({ id, name, path: `/p/${name}`, availability: "available" }) as Project;
@@ -72,6 +91,7 @@ function open(): HTMLInputElement {
     scans: SCANS,
     customCommands: [],
     executions: [],
+    seenFailuresAt: 0,
   } as never);
   render(<CommandPalette />);
   return screen.getByRole("combobox");
@@ -80,11 +100,79 @@ function open(): HTMLInputElement {
 const results = () => screen.queryAllByRole("option");
 
 describe("CommandPalette", () => {
-  it("offers a short list until something is typed", () => {
+  it("offers places and actions until something is typed, not every command", () => {
+    open();
+
+    const labels = results().map((option) => option.textContent);
+    expect(labels.some((label) => label?.startsWith("Go to Projects"))).toBe(
+      true,
+    );
+    expect(labels.some((label) => label?.startsWith("Add project"))).toBe(true);
+    expect(labels.some((label) => label?.startsWith("dev"))).toBe(false);
+  });
+
+  it("puts favorites and recent runs in the empty box, once each", () => {
+    open();
+    act(() =>
+      useStore.setState({
+        scans: {
+          ...SCANS,
+          "2": {
+            ...SCANS["2"],
+            flags: { "2:lint": { favorite: true, hidden: false } },
+          },
+        },
+        executions: [
+          run({
+            id: 1,
+            projectId: 4,
+            commandId: "4:test",
+            state: "exited",
+            exitCode: 0,
+          }),
+        ],
+      }),
+    );
+
+    const labels = results().map((option) => option.textContent);
+    expect(labels.filter((label) => label?.startsWith("lint"))).toHaveLength(1);
+    expect(
+      labels.filter((label) => label?.startsWith("testGigi")),
+    ).toHaveLength(1);
+  });
+
+  it("never stops on Enter: a running command opens its own actions, logs first", () => {
+    open();
+    act(() =>
+      useStore.setState({
+        executions: [run({ id: 9, projectId: 3, commandId: "3:dev" })],
+      }),
+    );
+
+    fireEvent.click(
+      results().find((option) =>
+        option.textContent?.startsWith("dev · Pulso"),
+      )!,
+    );
+
+    const actions = results().map((option) => option.textContent);
+    expect(actions[0]).toBe("See logs");
+    expect(actions).toContain("Stop");
+    expect(useStore.getState().paletteOpen).toBe(true);
+  });
+
+  it("ranks the closest name first, whatever order the projects came in", async () => {
     const input = open();
 
-    expect(results()).toHaveLength(8);
-    expect(input).toBeTruthy();
+    fireEvent.change(input, { target: { value: "lint" } });
+    await act(async () => {});
+
+    expect(results()[0].textContent?.startsWith("lint")).toBe(true);
+    expect(
+      results().findIndex((option) =>
+        option.textContent?.startsWith("lint:fix"),
+      ),
+    ).toBeGreaterThan(0);
   });
 
   it("searches every project, not only the ones it suggests", () => {
@@ -92,7 +180,6 @@ describe("CommandPalette", () => {
 
     fireEvent.change(input, { target: { value: "check" } });
 
-    // design-atlas, Pulso and Gigi all have one, plus typecheck.
     expect(results()).toHaveLength(4);
   });
 
