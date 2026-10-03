@@ -7,6 +7,7 @@ import {
 import {
   Alert,
   Button,
+  IconButton,
   EmptyState,
   Input,
   SegmentedControl,
@@ -238,14 +239,15 @@ export function PortsSection() {
       key: "actions",
       label: <span className="sr-only">{t("portActions")}</span>,
       align: "end",
-      width: "220px",
+      width: "84px",
       render: (port) => (
         <div className="flex justify-end gap-1">
-          <Button
+          <IconButton
             size="sm"
-            variant="quiet"
-            motion="none"
-            title={t("openPortHttpHint")}
+            variant="ghost"
+            icon={<GlobeIcon size={15} />}
+            label={t("openPortHttp")}
+            title={`${t("openPortHttp")} · ${t("openPortHttpHint")}`}
             disabled={busy}
             onClick={() => {
               void openListeningPort(port).catch((cause) => {
@@ -253,22 +255,17 @@ export function PortsSection() {
                   setActionError(toBackendError(cause).message);
               });
             }}
-          >
-            <GlobeIcon size={13} />
-            {t("openPortHttp")}
-          </Button>
-          <Button
+          />
+          <IconButton
             size="sm"
-            variant="secondary"
-            motion="none"
+            variant="ghost"
             className="pulso-control-danger"
-            disabled={busy || !port.canStop}
+            icon={<StopIcon size={13} weight="fill" />}
+            label={t("stopPortProcess")}
             title={port.canStop ? t("stopPortProcess") : t("portProtected")}
+            disabled={busy || !port.canStop}
             onClick={() => setConfirming(port)}
-          >
-            <StopIcon size={11} weight="fill" />
-            {t("stopPortProcess")}
-          </Button>
+          />
         </div>
       ),
     },

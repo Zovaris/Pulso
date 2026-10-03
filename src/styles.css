@@ -116,6 +116,11 @@ button:not(:disabled) {
   width: 100%;
 }
 
+.pulso-control-danger.sph-icon-button:hover:not(:disabled),
+.pulso-control-danger.sph-icon-button:focus-visible {
+  color: var(--alarm);
+}
+
 .pulso-control-danger.sph-button[data-variant="primary"] {
   background-color: var(--alarm);
   color: #fff;
@@ -1115,4 +1120,19 @@ html[data-material="menu"][data-theme="dark"] .pulso-menu {
 
 .pulso-settings-row:first-child {
   border-top: 0;
+}
+
+.pulso-command-palette.sph-palette {
+  animation-name: pulso-palette-in;
+}
+
+@keyframes pulso-palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }

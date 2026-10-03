@@ -29,7 +29,7 @@ export function Titlebar() {
   return (
     <header
       data-tauri-drag-region
-      className="pulso-titlebar flex h-14 flex-none items-center pr-3 pl-[80px]"
+      className="pulso-titlebar flex h-10 flex-none items-center pr-3 pl-[80px]"
     >
       <Toolbar
         label={t("appName")}
