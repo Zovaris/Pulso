@@ -1,8 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  categoryKey,
-  filterCommands,
-  filterCount,
   flagsFor,
   invocationOf,
   orderedCommands,
@@ -104,61 +101,6 @@ describe("visibleCommands", () => {
       "dev",
       "seed",
     ]);
-  });
-});
-
-describe("filterCommands", () => {
-  it("shows everything, hidden included", () => {
-    expect(filterCommands(full, "all")).toHaveLength(4);
-  });
-
-  it("filters by what the user starred", () => {
-    expect(
-      filterCommands(full, "favorites").map((entry) => entry.label),
-    ).toEqual(["test"]);
-  });
-
-  it("filters by hidden", () => {
-    expect(filterCommands(full, "hidden").map((entry) => entry.label)).toEqual([
-      "lint",
-    ]);
-  });
-
-  it("filters by category", () => {
-    expect(filterCommands(full, "dev").map((entry) => entry.label)).toEqual([
-      "dev",
-    ]);
-    expect(filterCommands(full, "test").map((entry) => entry.label)).toEqual([
-      "test",
-    ]);
-    expect(filterCommands(full, "lint").map((entry) => entry.label)).toEqual([
-      "lint",
-    ]);
-  });
-
-  it("counts what each chip would show", () => {
-    expect(filterCount(full, "all")).toBe(4);
-    expect(filterCount(full, "favorites")).toBe(1);
-    expect(filterCount(full, "test")).toBe(1);
-    expect(filterCount(full, "hidden")).toBe(1);
-  });
-});
-
-describe("categoryKey", () => {
-  it("names every category the backend can send", () => {
-    const categories: CommandCategory[] = [
-      "dev",
-      "build",
-      "test",
-      "lint",
-      "database",
-      "infrastructure",
-      "other",
-    ];
-
-    for (const category of categories) {
-      expect(categoryKey(category)).toMatch(/^category[A-Z]/);
-    }
   });
 });
 

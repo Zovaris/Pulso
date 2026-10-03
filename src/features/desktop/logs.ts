@@ -59,12 +59,3 @@ export function logName(label: string, startedAt: number): string {
 export function tail(lines: LogLine[], count: number): LogLine[] {
   return lines.length <= count ? lines : lines.slice(-count);
 }
-
-/** Where the view should be pinned after new output arrives. */
-export function nextScroll(
-  pinned: boolean,
-  before: number,
-  after: number,
-): number | null {
-  return pinned ? after : before;
-}

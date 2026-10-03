@@ -2,12 +2,6 @@ import type { Locale } from "../types";
 
 export const LOCALE_KEY = "pulso:locale";
 
-export const SUPPORTED_LOCALES: readonly Locale[] = ["es", "en"];
-
-export function normalizeLocale(value: unknown): Locale {
-  return value === "es" ? "es" : "en";
-}
-
 export function detectLocale(): Locale {
   try {
     const language =

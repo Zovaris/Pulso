@@ -33,7 +33,6 @@ beforeEach(() => {
     loadLogs,
     executions: [],
     selectedExecutionId: null,
-    openLogKey: null,
   });
 });
 
@@ -69,7 +68,7 @@ describe("useProjectSync", () => {
     expect(loadExecutions).not.toHaveBeenCalled();
   });
 
-  it("recovers logs for the latest run on focus", async () => {
+  it("recovers the logs of the selected run on focus", async () => {
     const run = (id: number): Execution => ({
       id,
       projectId: 1,
@@ -89,7 +88,7 @@ describe("useProjectSync", () => {
     });
     useStore.setState({
       executions: [run(1), run(2)],
-      openLogKey: "1:test:dev",
+      selectedExecutionId: 2,
     });
     renderHook(() => useProjectSync());
     await act(async () => window.dispatchEvent(new Event("focus")));

@@ -23,13 +23,6 @@ export function formatMemory(bytes: number): string {
   return `${Math.max(1, Math.round(bytes / KILOBYTE))} KB`;
 }
 
-/** Memory in bytes as a 0…1 share of a gigabyte, which is what the bar draws. */
-export function memoryRatio(bytes: number, ceiling = GIGABYTE): number {
-  if (!Number.isFinite(bytes) || bytes <= 0) return 0;
-
-  return Math.min(1, bytes / ceiling);
-}
-
 export function pushSample(
   history: number[],
   value: number,

@@ -1,6 +1,4 @@
-import type { CommandFilter } from "@/features/desktop/commands";
 import type { LogFilter } from "@/features/desktop/logs";
-import type { PopoverSection } from "@/features/popover/sections";
 import type { TplVars } from "@/lib/i18n";
 import type {
   BackendError,
@@ -51,7 +49,6 @@ export type StoreState = {
   scanningProjectId: number | null;
   rescanning: boolean;
 
-  expandedProjectId: number | null;
   projectError: BackendError | null;
 
   executions: Execution[];
@@ -60,16 +57,11 @@ export type StoreState = {
   histories: Record<number, number[]>;
 
   logs: Record<number, LogLine[]>;
-  openLogKey: string | null;
-
-  cursor: string | null;
-  collapsedSections: PopoverSection[];
 
   editors: EditorTarget[];
   icons: Record<string, string>;
   selectedExecutionId: number | null;
   selectedProjectId: number | null;
-  commandFilter: CommandFilter;
   logFilter: LogFilter;
   logAutoscroll: boolean;
   paletteOpen: boolean;
@@ -111,7 +103,6 @@ export type StoreActions = {
   loadCommands: (projectId: number) => Promise<void>;
   rescanProjects: () => Promise<void>;
   rescanProject: (projectId: number) => Promise<void>;
-  toggleProject: (projectId: number) => void;
 
   applyProjects: (projects: Project[]) => void;
 
@@ -137,16 +128,8 @@ export type StoreActions = {
   restartExecution: (executionId: number) => Promise<void>;
   clearFinished: () => Promise<void>;
 
-  setCursor: (key: string | null) => void;
-  toggleSection: (section: PopoverSection) => void;
-  moveCursor: (delta: number) => void;
-  stepCursor: (direction: "in" | "out") => void;
-  activateCursor: () => void;
-
   applyLogs: (executionId: number, lines: LogLine[]) => void;
   loadLogs: (executionId: number) => Promise<void>;
-  toggleLogs: (key: string, executionId: number | null) => void;
-  closeLogs: () => void;
   openUrl: (executionId: number, portId: string) => Promise<void>;
 
   loadEditors: () => Promise<void>;
@@ -166,7 +149,6 @@ export type StoreActions = {
 
   select: (executionId: number | null) => void;
   selectProject: (projectId: number | null) => void;
-  setCommandFilter: (filter: CommandFilter) => void;
   setLogFilter: (filter: LogFilter) => void;
   setLogAutoscroll: (value: boolean) => void;
   openPalette: () => void;

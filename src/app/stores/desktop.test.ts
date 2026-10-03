@@ -103,7 +103,6 @@ beforeEach(() => {
     projects: [],
     selectedExecutionId: null,
     selectedProjectId: null,
-    commandFilter: "all",
     logFilter: { query: "", stream: "all" },
     paletteOpen: false,
     confirmingStop: null,

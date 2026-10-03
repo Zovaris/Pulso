@@ -1,5 +1,4 @@
 import type { StateCreator } from "zustand";
-import type { CommandFilter } from "@/features/desktop/commands";
 import { HISTORY_RUNS } from "@/features/desktop/history";
 import {
   filterLines,
@@ -22,7 +21,6 @@ export type DesktopSlice = Pick<
   | "icons"
   | "selectedExecutionId"
   | "selectedProjectId"
-  | "commandFilter"
   | "logFilter"
   | "logAutoscroll"
   | "paletteOpen"
@@ -56,7 +54,6 @@ export type DesktopSlice = Pick<
   | "clearHistory"
   | "select"
   | "selectProject"
-  | "setCommandFilter"
   | "setLogFilter"
   | "setLogAutoscroll"
   | "openPalette"
@@ -104,7 +101,6 @@ export const createDesktopSlice: StateCreator<
     icons: {},
     selectedExecutionId: null,
     selectedProjectId: null,
-    commandFilter: "all",
     logFilter: NO_FILTER,
     logAutoscroll: true,
     paletteOpen: false,
@@ -257,8 +253,6 @@ export const createDesktopSlice: StateCreator<
         environment: null,
         environmentFor: null,
       }),
-
-    setCommandFilter: (filter: CommandFilter) => set({ commandFilter: filter }),
 
     setLogFilter: (filter: LogFilter) => set({ logFilter: filter }),
 

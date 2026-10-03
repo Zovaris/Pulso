@@ -27,16 +27,8 @@ export function useProjectSync() {
     let cancelled = false;
     const refreshLogs = () => {
       const state = useStore.getState();
-      const selected = state.selectedExecutionId;
-      const open = [...state.executions]
-        .reverse()
-        .find(
-          (execution) =>
-            `${execution.projectId}:${execution.commandId}` ===
-            state.openLogKey,
-        );
-      if (selected !== null) void state.loadLogs(selected);
-      if (open) void state.loadLogs(open.id);
+      if (state.selectedExecutionId !== null)
+        void state.loadLogs(state.selectedExecutionId);
     };
     window.addEventListener("focus", refreshLogs);
     const subscriptions = [
