@@ -71,16 +71,32 @@ describe("AppShell", () => {
     expect(screen.getByRole("button", { name: "Settings" })).toBeTruthy();
   });
 
-  it.each(["overview", "projects", "processes", "logs", "settings"] as const)(
-    "draws the %s section empty",
-    (section) => {
-      useStore.setState({ section });
+  it.each([
+    "overview",
+    "projects",
+    "processes",
+    "logs",
+    "settings",
+    "ports",
+  ] as const)("draws the %s section empty", (section) => {
+    useStore.setState({ section });
 
-      render(<AppShell />);
+    render(<AppShell />);
 
-      expect(screen.getByRole("button", { name: "Overview" })).toBeTruthy();
-    },
-  );
+    expect(screen.getByRole("button", { name: "Overview" })).toBeTruthy();
+  });
+
+  it("bounds the shell and main pane so only section content can scroll", () => {
+    const { container } = render(<AppShell />);
+    const shell = container.querySelector(".pulso-window");
+    const main = screen.getByRole("main");
+    expect(shell?.classList.contains("overflow-hidden")).toBe(true);
+    expect(main.classList.contains("overflow-hidden")).toBe(true);
+    expect(main.classList.contains("min-h-0")).toBe(true);
+    expect(main.parentElement?.classList.contains("overflow-hidden")).toBe(
+      true,
+    );
+  });
 
   it("closes the section rail from the titlebar alone", () => {
     const { container } = render(<AppShell />);

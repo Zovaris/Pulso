@@ -27,7 +27,8 @@ export type SectionId =
   | "processes"
   | "logs"
   | "settings"
-  | "commands";
+  | "commands"
+  | "ports";
 
 export type StoreState = {
   surface: Surface;

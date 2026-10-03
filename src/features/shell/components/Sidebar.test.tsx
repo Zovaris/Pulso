@@ -44,7 +44,7 @@ describe("Sidebar", () => {
 
     render(<Sidebar />);
 
-    expect(screen.getAllByRole("button")).toHaveLength(6);
+    expect(screen.getAllByRole("button")).toHaveLength(7);
     expect(
       screen.getByRole("button", { name: "Commands" }).getAttribute("title"),
     ).toBe("Commands");

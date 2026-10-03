@@ -23,6 +23,9 @@ describe("useShellKeyboard", () => {
     press("3", { metaKey: true });
     expect(useStore.getState().section).toBe("processes");
 
+    press("7", { metaKey: true });
+    expect(useStore.getState().section).toBe("ports");
+
     press("1", { metaKey: true });
     expect(useStore.getState().section).toBe("overview");
   });
