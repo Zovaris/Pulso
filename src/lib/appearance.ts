@@ -4,7 +4,8 @@ export type ResolvedTheme = "dark" | "light";
 
 const THEME_KEY = "pulso:theme";
 const GLASS_KEY = "pulso:transparency";
-const POPOVER_RADIUS = 12;
+/** Matches `.pulso-menu`, so the material and the drawn rim share one corner. */
+const POPOVER_RADIUS = 10;
 
 export function readStoredTheme(): ThemePref {
   try {
@@ -70,16 +71,12 @@ export async function applyWindowChrome(
     if (win.label === "popover") {
       await clearWebviewBackground();
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
-
-      if (transparency) {
-        await win.setEffects({
-          effects: material,
-          state: EffectState.Active,
-          radius: POPOVER_RADIUS,
-        });
-      } else {
-        await win.clearEffects();
-      }
+      await win.setEffects({
+        effects: [Effect.Menu],
+        state: EffectState.Active,
+        radius: POPOVER_RADIUS,
+      });
+      document.documentElement.dataset.material = "menu";
 
       return;
     }

@@ -1,49 +1,132 @@
-import { useEffect } from "react";
-import { useI18n } from "@/app/hooks/useI18n";
-import { useStore } from "@/app/store";
-import { isActiveState } from "@/features/executions/execution";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTrayBadge } from "@/features/executions/useTrayBadge";
-import { PopoverFooter } from "@/features/popover/components/PopoverFooter";
-import { PopoverHeader } from "@/features/popover/components/PopoverHeader";
-import { PopoverProjects } from "@/features/popover/components/PopoverProjects";
-import { readCollapsedSections } from "@/features/popover/sections";
+import {
+  MenubarMenu,
+  type MenuView,
+} from "@/features/popover/menubar/MenubarMenu";
+import { useMenuKeyboard } from "@/features/popover/menubar/useMenuKeyboard";
 import { usePopoverActions } from "@/features/popover/usePopoverActions";
-import { usePopoverKeyboard } from "@/features/popover/usePopoverKeyboard";
+import { onPopoverPrepare } from "@/lib/events";
+import { fitPopover } from "@/lib/tauri";
+
+const HOME: MenuView = { kind: "home" };
+
+/** Where Left and Escape lead from each view. */
+function parentOf(view: MenuView): MenuView {
+  return view.kind === "project" ? { kind: "projects" } : HOME;
+}
 
 export function PopoverShell() {
-  const { t } = useI18n();
   useTrayBadge();
-  const projects = useStore((state) => state.projects);
-  const collapsed = useStore((state) => state.collapsedSections);
-  const runningCount = useStore(
-    (state) =>
-      state.executions.filter((execution) => isActiveState(execution.state))
-        .length,
-  );
-  const rescanning = useStore((state) => state.rescanning);
-  const rescanProjects = useStore((state) => state.rescanProjects);
-  const sound = useStore((state) => state.sound);
-  const setSound = useStore((state) => state.setSound);
   const actions = usePopoverActions();
-  usePopoverKeyboard();
+  const [view, setView] = useState<MenuView>(HOME);
+  const [query, setQuery] = useState("");
+  const root = useRef<HTMLDivElement>(null);
+  const viaKeyboard = useRef(false);
+  const trail = useRef<number[]>([]);
+  const restore = useRef<number | null>(null);
+
+  const navigate = useCallback(
+    (next: MenuView) => {
+      const items = [
+        ...(root.current?.querySelectorAll<HTMLButtonElement>(
+          ".pulso-menu__item:not(:disabled)",
+        ) ?? []),
+      ];
+      if (next.kind === "home") {
+        restore.current = trail.current[0] ?? null;
+        trail.current = [];
+      } else if (next.kind === parentOf(view).kind)
+        restore.current = trail.current.pop() ?? null;
+      else
+        trail.current.push(
+          items.indexOf(document.activeElement as HTMLButtonElement),
+        );
+      if (next.kind !== "search") setQuery("");
+      setView(next);
+    },
+    [view],
+  );
+  const openSearch = useCallback((seed = "") => {
+    setQuery((current) => current + seed);
+    setView({ kind: "search" });
+  }, []);
+
+  useMenuKeyboard(root, {
+    view,
+    back: () => navigate(parentOf(view)),
+    openSearch,
+    query,
+    setQuery,
+    actions,
+  });
+
+  useLayoutEffect(() => {
+    const menu = root.current;
+    if (menu) menu.scrollTop = 0;
+    const index = restore.current;
+    restore.current = null;
+    if (!menu || view.kind === "search" || !viaKeyboard.current) return;
+    const items = [
+      ...menu.querySelectorAll<HTMLButtonElement>(
+        ".pulso-menu__item:not(:disabled)",
+      ),
+    ];
+    (index !== null && index >= 0
+      ? items[index]
+      : items.find((item) => !item.dataset.back)
+    )?.focus();
+  }, [view]);
 
   useEffect(() => {
-    if (collapsed.length > 0) return;
-    useStore.setState({ collapsedSections: readCollapsedSections() });
-  }, [collapsed.length]);
+    const menu = root.current;
+    if (!menu) return;
+    const observer = new ResizeObserver(() => {
+      const box = menu.getBoundingClientRect();
+      void fitPopover(box.width, box.height);
+    });
+    observer.observe(menu);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const prepared = onPopoverPrepare(() => navigate(HOME));
+    return () => void prepared.then((unlisten) => unlisten());
+  }, [navigate]);
 
   return (
-    <div className="pulso-popover flex h-full flex-col overflow-hidden rounded-xl text-paper">
-      <PopoverHeader
-        title={t("appName")}
-        runningCount={runningCount}
-        rescanning={rescanning}
-        sound={sound}
-        onRescan={() => void rescanProjects()}
-        onToggleSound={() => setSound(!sound)}
+    <div
+      ref={root}
+      role="menu"
+      aria-orientation="vertical"
+      className="pulso-menu"
+      onKeyDownCapture={() => {
+        viaKeyboard.current = true;
+      }}
+      onPointerMove={() => {
+        viaKeyboard.current = false;
+      }}
+      onPointerLeave={() => {
+        if (
+          root.current?.contains(document.activeElement) &&
+          document.activeElement instanceof HTMLButtonElement
+        )
+          document.activeElement.blur();
+      }}
+    >
+      <MenubarMenu
+        view={view}
+        navigate={navigate}
+        query={query}
+        setQuery={setQuery}
+        actions={actions}
       />
-      <PopoverProjects projects={projects} onAddProject={actions.addProject} />
-      <PopoverFooter {...actions} showAddProject={projects.length > 0} />
     </div>
   );
 }
