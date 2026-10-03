@@ -2,6 +2,7 @@ import {
   FolderSimpleIcon,
   GearSixIcon,
   ListBulletsIcon,
+  PlugsConnectedIcon,
   SquaresFourIcon,
   TerminalWindowIcon,
   TextAlignLeftIcon,
@@ -21,6 +22,7 @@ const ICONS: Record<SectionId, typeof SquaresFourIcon> = {
   logs: TextAlignLeftIcon,
   settings: GearSixIcon,
   commands: TerminalWindowIcon,
+  ports: PlugsConnectedIcon,
 };
 
 export function Sidebar() {

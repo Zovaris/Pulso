@@ -12,6 +12,7 @@ export const SECTIONS: Section[] = [
   { id: "logs", labelKey: "sectionLogs" },
   { id: "settings", labelKey: "sectionSettings" },
   { id: "commands", labelKey: "sectionCommands" },
+  { id: "ports", labelKey: "sectionPorts" },
 ];
 
 export function sectionAt(index: number): Section | null {

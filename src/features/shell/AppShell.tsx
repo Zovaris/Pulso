@@ -12,6 +12,7 @@ import { CommandsSection } from "@/features/shell/sections/CommandsSection";
 import { LogsSection } from "@/features/shell/sections/LogsSection";
 import { OverviewSection } from "@/features/shell/sections/OverviewSection";
 import { ProcessesSection } from "@/features/shell/sections/ProcessesSection";
+import { PortsSection } from "@/features/shell/sections/PortsSection";
 import { ProjectsSection } from "@/features/shell/sections/ProjectsSection";
 import { SettingsSection } from "@/features/shell/sections/SettingsSection";
 import { useDesktopSync } from "@/features/shell/useDesktopSync";
@@ -105,16 +106,17 @@ export function AppShell() {
     <div
       data-sidebar={sidebarOpen ? "open" : "closed"}
       data-inspector={inspectorOpen ? "open" : "closed"}
-      className="pulso-window relative flex h-full flex-col bg-void text-paper"
+      className="pulso-window relative flex h-full min-h-0 flex-col overflow-hidden bg-void text-paper"
     >
       <Titlebar />
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex min-w-0 flex-1">
+        <main className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
           {section === "overview" ? <OverviewSection /> : null}
           {section === "projects" ? <ProjectsSection /> : null}
           {section === "commands" ? <CommandsSection /> : null}
           {section === "processes" ? <ProcessesSection /> : null}
+          {section === "ports" ? <PortsSection /> : null}
           {section === "logs" ? <LogsSection /> : null}
           {section === "settings" ? <SettingsSection /> : null}
         </main>
