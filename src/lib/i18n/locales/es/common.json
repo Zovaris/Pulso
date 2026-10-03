@@ -109,8 +109,6 @@
   "folderState": "Carpeta",
   "available": "presente y legible",
   "missing": "ya no está",
-  "whatPopoverSees": "Qué ve la barra",
-  "popoverRule": "Los favoritos primero, los ocultos fuera de la lista. La misma elección manda en el menú de la barra.",
   "lastRuns": "Ejecuciones",
   "nothingRan": "Todavía no corre nada.",
   "openStoredLog": "Ver la salida que se guardó de esta ejecución",

@@ -461,15 +461,9 @@ button:not(:disabled) {
   border-inline-start-color: var(--line);
 }
 
-@container (min-width: 1360px) {
+@container (min-width: 1120px) {
   .pulso-inspector.sph-side-panel {
     display: flex;
-  }
-}
-
-@container (max-width: 1359px) {
-  .pulso-inspector-toggle {
-    display: none;
   }
 }
 

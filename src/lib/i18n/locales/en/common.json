@@ -109,8 +109,6 @@
   "folderState": "Folder",
   "available": "there and readable",
   "missing": "gone",
-  "whatPopoverSees": "What the menu bar sees",
-  "popoverRule": "Favorites first, hidden commands out of the list. The same choice drives the menu bar menu.",
   "lastRuns": "Runs",
   "nothingRan": "Nothing has run yet.",
   "openStoredLog": "Read the output this run saved",

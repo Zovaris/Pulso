@@ -1,5 +1,5 @@
 import { ArrowSquareOutIcon, FolderOpenIcon } from "@phosphor-icons/react";
-import { Button, SidePanel } from "@zovaris/sephiro";
+import { Button, MetadataList, SidePanel } from "@zovaris/sephiro";
 import { useEffect } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
@@ -31,20 +31,9 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <h4 className="text-[10.5px] font-medium tracking-[0.03em] text-faint uppercase">
-        {title}
-      </h4>
+    <div className="flex flex-col gap-2">
+      <h4 className="text-[12px] font-medium text-mist">{title}</h4>
       {children}
-    </div>
-  );
-}
-
-export function Kv({ name, value }: { name: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 text-[11.5px]">
-      <dt className="text-faint">{name}</dt>
-      <dd className="min-w-0 truncate text-right tabular-nums">{value}</dd>
     </div>
   );
 }
@@ -161,41 +150,46 @@ export function ProcessInspector() {
       </div>
 
       <Section title={t("process")}>
-        <dl className="flex flex-col gap-1">
-          <Kv name={t("pid")} value={execution.pid ?? "—"} />
-          <Kv
-            name={t("state")}
-            value={
-              <span className={exit.tone === "bad" ? "text-alarm" : undefined}>
-                {t(
-                  `state${execution.state[0].toUpperCase()}${execution.state.slice(1)}`,
-                )}
-              </span>
-            }
-          />
-          <Kv name={t("cpu")} value={metrics ? formatCpu(metrics.cpu) : "—"} />
-          <Kv
-            name={t("memory")}
-            value={metrics ? formatMemory(metrics.memory) : "—"}
-          />
-          <Kv name={t("children")} value={metrics ? metrics.processes : "—"} />
-          <Kv
-            name={t("uptime")}
-            value={
-              running
+        <MetadataList
+          size="sm"
+          className="pulso-facts"
+          items={[
+            { label: t("pid"), value: execution.pid ?? "—" },
+            {
+              label: t("state"),
+              value: (
+                <span
+                  className={exit.tone === "bad" ? "text-alarm" : undefined}
+                >
+                  {t(
+                    `state${execution.state[0].toUpperCase()}${execution.state.slice(1)}`,
+                  )}
+                </span>
+              ),
+            },
+            { label: t("cpu"), value: metrics ? formatCpu(metrics.cpu) : "—" },
+            {
+              label: t("memory"),
+              value: metrics ? formatMemory(metrics.memory) : "—",
+            },
+            { label: t("children"), value: metrics ? metrics.processes : "—" },
+            {
+              label: t("uptime"),
+              value: running
                 ? elapsed
-                : formatDuration((execution.endedAt ?? 0) - execution.startedAt)
-            }
-          />
-          <Kv
-            name={t("port")}
-            value={
-              execution.ports.length === 0
-                ? "—"
-                : execution.ports.map((port) => port.port).join(", ")
-            }
-          />
-        </dl>
+                : formatDuration(
+                    (execution.endedAt ?? 0) - execution.startedAt,
+                  ),
+            },
+            {
+              label: t("port"),
+              value:
+                execution.ports.length === 0
+                  ? "—"
+                  : execution.ports.map((port) => port.port).join(", "),
+            },
+          ]}
+        />
       </Section>
 
       <Section title={t("invocation")}>
@@ -344,56 +338,51 @@ export function ProjectInspector({ project }: { project: Project }) {
 
   return (
     <InspectorShell>
-      <div>
-        <h3 className="truncate text-[12.5px] font-medium">{project.name}</h3>
-        <p
-          className="mt-0.5 truncate font-mono text-[11px] text-faint"
-          title={project.path}
-        >
-          {project.path}
-        </p>
-      </div>
-
       <Section title={t("filesRead")}>
         {sources.length === 0 ? (
           <p className="text-[11.5px] text-faint">
             {scanning ? t("readingManifest") : t("noFilesRead")}
           </p>
         ) : (
-          <dl className="flex flex-col gap-1">
-            {sources.map((source) => (
-              <Kv key={source.label} name={source.label} value={source.count} />
-            ))}
-          </dl>
+          <MetadataList
+            size="sm"
+            className="pulso-facts"
+            items={sources.map((source) => ({
+              id: source.label,
+              label: source.label,
+              value: source.count,
+            }))}
+          />
         )}
       </Section>
 
       <Section title={t("scan")}>
-        <dl className="flex flex-col gap-1">
-          <Kv
-            name={t("state")}
-            value={
-              message ? t(message.key) : scanning ? t("readingManifest") : "—"
-            }
-          />
-          <Kv
-            name={t("folderState")}
-            value={
-              project.availability === "available"
-                ? t("available")
-                : t("missing")
-            }
-          />
-        </dl>
+        <MetadataList
+          size="sm"
+          className="pulso-facts"
+          items={[
+            {
+              label: t("state"),
+              value: message
+                ? t(message.key)
+                : scanning
+                  ? t("readingManifest")
+                  : "—",
+            },
+            {
+              label: t("folderState"),
+              value:
+                project.availability === "available"
+                  ? t("available")
+                  : t("missing"),
+            },
+          ]}
+        />
         {message ? (
           <p className="mt-1 text-[11px] leading-5 text-faint">
             {t(message.key)} {message.detail}
           </p>
         ) : null}
-      </Section>
-
-      <Section title={t("whatPopoverSees")}>
-        <p className="text-[11px] leading-5 text-faint">{t("popoverRule")}</p>
       </Section>
 
       <Section title={t("lastRuns")}>
@@ -414,23 +403,21 @@ export function ProjectInspector({ project }: { project: Project }) {
           </Button>
         ) : (
           <>
-            <dl className="flex flex-col gap-1">
-              {environment.programs.map((program) => (
-                <Kv
-                  key={program.name}
-                  name={program.name}
-                  value={
-                    <span
-                      className={
-                        program.path === null ? "text-alarm" : undefined
-                      }
-                    >
-                      {program.path === null ? t("notFound") : program.path}
-                    </span>
-                  }
-                />
-              ))}
-            </dl>
+            <MetadataList
+              size="sm"
+              className="pulso-facts"
+              items={environment.programs.map((program) => ({
+                id: program.name,
+                label: program.name,
+                value: (
+                  <span
+                    className={program.path === null ? "text-alarm" : undefined}
+                  >
+                    {program.path === null ? t("notFound") : program.path}
+                  </span>
+                ),
+              }))}
+            />
             <p className="mt-1 font-mono text-[10.5px] break-all text-faint">
               {environment.shell}
             </p>
@@ -442,8 +429,6 @@ export function ProjectInspector({ project }: { project: Project }) {
           </>
         )}
       </Section>
-
-      <EditorList projectId={project.id} />
     </InspectorShell>
   );
 }
