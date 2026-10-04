@@ -33,6 +33,8 @@ export type SessionSlice = Pick<
   | "keepRunning"
   | "confirmStop"
   | "notifyOnFailure"
+  | "notifyOnDone"
+  | "notifyOnReady"
   | "logLines"
   | "setLocale"
   | "setThemePref"
@@ -126,6 +128,8 @@ export const createSessionSlice: StateCreator<
       keepRunning: state.keepRunning,
       confirmStop: state.confirmStop,
       notifyOnFailure: state.notifyOnFailure,
+      notifyOnDone: state.notifyOnDone,
+      notifyOnReady: state.notifyOnReady,
       logLines: state.logLines,
     };
   };
@@ -149,6 +153,8 @@ export const createSessionSlice: StateCreator<
       keepRunning: preferences.keepRunning,
       confirmStop: preferences.confirmStop,
       notifyOnFailure: preferences.notifyOnFailure,
+      notifyOnDone: preferences.notifyOnDone ?? true,
+      notifyOnReady: preferences.notifyOnReady ?? true,
       logLines: sanitizeLogLines(preferences.logLines),
       ...(sanitizeLogLines(preferences.logLines) < get().logLines
         ? {
@@ -174,6 +180,8 @@ export const createSessionSlice: StateCreator<
     keepRunning: true,
     confirmStop: false,
     notifyOnFailure: true,
+    notifyOnDone: true,
+    notifyOnReady: true,
     logLines: DEFAULT_LOG_LINES,
     section: "overview",
 

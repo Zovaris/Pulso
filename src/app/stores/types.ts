@@ -41,6 +41,8 @@ export type StoreState = {
   keepRunning: boolean;
   confirmStop: boolean;
   notifyOnFailure: boolean;
+  notifyOnDone: boolean;
+  notifyOnReady: boolean;
   logLines: number;
 
   projects: Project[];

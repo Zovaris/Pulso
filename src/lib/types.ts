@@ -13,6 +13,8 @@ export type Preferences = {
   keepRunning: boolean;
   confirmStop: boolean;
   notifyOnFailure: boolean;
+  notifyOnDone: boolean;
+  notifyOnReady: boolean;
   logLines: number;
 };
 

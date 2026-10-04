@@ -96,6 +96,8 @@ export function SettingsSection() {
   const keepRunning = useStore((state) => state.keepRunning);
   const confirmStop = useStore((state) => state.confirmStop);
   const notifyOnFailure = useStore((state) => state.notifyOnFailure);
+  const notifyOnDone = useStore((state) => state.notifyOnDone);
+  const notifyOnReady = useStore((state) => state.notifyOnReady);
   const logLines = useStore((state) => state.logLines);
   const data = useStore((state) => state.data);
   const working = useStore((state) => state.working);
@@ -244,6 +246,8 @@ export function SettingsSection() {
                     updatePreferences({ confirmStop: checked }),
                   )}
                 />
+              </Group>
+              <Group>
                 <Row
                   label={t("notifyOnFailure")}
                   hint={t("notifyOnFailureHint")}
@@ -252,6 +256,22 @@ export function SettingsSection() {
                     notifyOnFailure,
                     (checked) =>
                       updatePreferences({ notifyOnFailure: checked }),
+                  )}
+                />
+                <Row
+                  label={t("notifyOnReady")}
+                  hint={t("notifyOnReadyHint")}
+                  control={toggle(
+                    t("notifyOnReady"),
+                    notifyOnReady,
+                    (checked) => updatePreferences({ notifyOnReady: checked }),
+                  )}
+                />
+                <Row
+                  label={t("notifyOnDone")}
+                  hint={t("notifyOnDoneHint")}
+                  control={toggle(t("notifyOnDone"), notifyOnDone, (checked) =>
+                    updatePreferences({ notifyOnDone: checked }),
                   )}
                 />
                 <Row

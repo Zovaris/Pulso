@@ -21,6 +21,8 @@ const preferences: Preferences = {
   keepRunning: true,
   confirmStop: false,
   notifyOnFailure: true,
+  notifyOnDone: true,
+  notifyOnReady: true,
   logLines: 4000,
 };
 

@@ -349,12 +349,8 @@ export function installDesignDemo() {
     revealDataFolder: noop,
     makeDiagnosticBundle: noop,
     saveLog: noop,
-    updatePreferences: (patch) => {
-      useStore.setState({
-        ...(patch.theme ? { themePref: patch.theme } : {}),
-        ...(patch.locale ? { locale: patch.locale } : {}),
-        ...(patch.sound !== undefined ? { sound: patch.sound } : {}),
-      });
+    updatePreferences: ({ theme, ...rest }) => {
+      useStore.setState({ ...rest, ...(theme ? { themePref: theme } : {}) });
     },
     setThemePref: (themePref) => useStore.setState({ themePref }),
     setLocale: (locale) => useStore.setState({ locale }),

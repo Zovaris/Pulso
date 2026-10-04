@@ -11,6 +11,8 @@ fn preferences() -> Preferences {
         keep_running: true,
         confirm_stop: false,
         notify_on_failure: true,
+        notify_on_done: false,
+        notify_on_ready: true,
         log_lines: DEFAULT_LOG_LINES,
     }
 }
@@ -78,6 +80,8 @@ fn a_payload_from_the_older_shape_still_parses() {
     assert!(parsed.keep_running);
     assert!(!parsed.confirm_stop);
     assert!(parsed.notify_on_failure);
+    assert!(parsed.notify_on_done);
+    assert!(parsed.notify_on_ready);
     assert_eq!(parsed.log_lines, DEFAULT_LOG_LINES);
 }
 
