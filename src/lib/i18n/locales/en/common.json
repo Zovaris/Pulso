@@ -368,7 +368,12 @@
   "groupName": "Group name",
   "groupNamePlaceholder": "Dev stack",
   "groupCommands": "Commands in the group",
-  "groupPick": "Pick the commands in the order they should start.",
+  "groupPick": "Pick the commands and put them in the order they should start.",
+  "groupOrder": "Start order",
+  "moveUp": "Move up",
+  "moveDown": "Move down",
+  "removeFromGroup": "Remove from group",
+  "groupMissingShort": "no longer exists",
   "groupSelected": {
     "one": "{count} command picked",
     "other": "{count} commands picked"

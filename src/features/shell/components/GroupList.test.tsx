@@ -138,4 +138,50 @@ describe("command groups", () => {
       }),
     );
   });
+
+  it("reorders an existing group with the arrows and ⌥↑, and keeps focus on the row", async () => {
+    render(<CommandsSection />);
+    fireEvent.click(
+      within(groupRow()).getByRole("button", { name: "More actions · Stack" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("menuitem", { name: "Edit group" }),
+    );
+    const order = () =>
+      within(screen.getByRole("list", { name: "Start order" }));
+
+    expect(
+      (
+        order().getByRole("button", {
+          name: "Move up · dev · api",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    fireEvent.click(
+      order().getByRole("button", { name: "Move down · dev · api" }),
+    );
+    expect(
+      order()
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(["1devweb", "2devapi"]);
+    expect(document.activeElement?.closest("li")?.textContent).toBe("2devapi");
+
+    fireEvent.keyDown(document.activeElement!, {
+      key: "ArrowUp",
+      altKey: true,
+    });
+    fireEvent.click(
+      order().getByRole("button", { name: "Remove from group · dev · web" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Save group" }));
+
+    await waitFor(() =>
+      expect(saveCommandGroup).toHaveBeenCalledWith({
+        id: 1,
+        label: "Stack",
+        members: [{ projectId: 1, commandId: "package_json:dev" }],
+      }),
+    );
+  });
 });

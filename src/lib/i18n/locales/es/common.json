@@ -368,7 +368,12 @@
   "groupName": "Nombre del grupo",
   "groupNamePlaceholder": "Stack de desarrollo",
   "groupCommands": "Comandos del grupo",
-  "groupPick": "Elige los comandos en el orden en que deben arrancar.",
+  "groupPick": "Marca los comandos y ordénalos como deben arrancar.",
+  "groupOrder": "Orden de arranque",
+  "moveUp": "Subir",
+  "moveDown": "Bajar",
+  "removeFromGroup": "Quitar del grupo",
+  "groupMissingShort": "ya no existe",
   "groupSelected": {
     "one": "{count} comando elegido",
     "other": "{count} comandos elegidos"

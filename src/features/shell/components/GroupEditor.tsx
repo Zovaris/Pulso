@@ -1,17 +1,179 @@
-import { MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { Button, Checkbox, Dialog, Field, Input } from "@zovaris/sephiro";
-import { type ReactNode, useMemo, useState } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  MagnifyingGlassIcon,
+  XIcon,
+} from "@phosphor-icons/react";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  Field,
+  IconButton,
+  Input,
+} from "@zovaris/sephiro";
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
+  type CatalogRow,
   catalogKey,
   catalogRows,
   filterCatalog,
 } from "@/features/desktop/catalog";
+import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
 import type { CommandGroup, GroupMember } from "@/lib/types";
 
 const FORM_ID = "pulso-group-editor";
+
+type Move = "up" | "down";
+
+/** Moves one member a step, leaving the list as it is at either end. */
+export function moveMember(
+  members: GroupMember[],
+  index: number,
+  move: Move,
+): GroupMember[] {
+  const target = move === "up" ? index - 1 : index + 1;
+  if (index < 0 || target < 0 || target >= members.length) return members;
+  const next = [...members];
+  [next[index], next[target]] = [next[target], next[index]];
+  return next;
+}
+
+/**
+ * The picked commands in the order they start. The arrows, or ⌥↑ and ⌥↓ on a
+ * row, move one a step; focus follows the row it moved.
+ */
+function StartOrder({
+  members,
+  rows,
+  onChange,
+}: {
+  members: GroupMember[];
+  rows: Map<string, CatalogRow>;
+  onChange: (members: GroupMember[]) => void;
+}) {
+  const { t } = useI18n();
+  const [list] = useAutoAnimate<HTMLOListElement>({
+    duration: REVEAL_DURATION,
+    easing: REVEAL_EASE,
+  });
+  const box = useRef<HTMLOListElement | null>(null);
+  const attach = useCallback(
+    (node: HTMLOListElement | null) => {
+      box.current = node;
+      list(node);
+    },
+    [list],
+  );
+  const [focus, setFocus] = useState<{ key: string; move: Move } | null>(null);
+
+  useLayoutEffect(() => {
+    if (!focus) return;
+    const row = box.current?.querySelector<HTMLElement>(
+      `[data-member="${CSS.escape(focus.key)}"]`,
+    );
+    const wanted = row?.querySelector<HTMLButtonElement>(
+      `[data-move="${focus.move}"]`,
+    );
+    (wanted && !wanted.disabled
+      ? wanted
+      : row?.querySelector<HTMLButtonElement>("[data-move]:not(:disabled)")
+    )?.focus();
+    setFocus(null);
+  }, [focus]);
+
+  const move = (index: number, direction: Move) => {
+    const next = moveMember(members, index, direction);
+    if (next === members) return;
+    onChange(next);
+    const member = members[index];
+    setFocus({
+      key: catalogKey(member.projectId, member.commandId),
+      move: direction,
+    });
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLLIElement>, index: number) => {
+    if (!event.altKey) return;
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    event.preventDefault();
+    move(index, event.key === "ArrowUp" ? "up" : "down");
+  };
+
+  return (
+    <ol ref={attach} className="pulso-group-order" aria-label={t("groupOrder")}>
+      {members.map((member, index) => {
+        const key = catalogKey(member.projectId, member.commandId);
+        const row = rows.get(key);
+        const name = row?.command.label ?? member.commandId;
+        const named = row ? `${name} · ${row.projectName}` : name;
+        return (
+          <li
+            key={key}
+            data-member={key}
+            onKeyDown={(event) => onKeyDown(event, index)}
+          >
+            <span className="pulso-group-picker__order">{index + 1}</span>
+            <span className="flex min-w-0 flex-1 items-baseline gap-2">
+              <span
+                className={
+                  row ? "truncate font-medium" : "truncate text-faint italic"
+                }
+              >
+                {name}
+              </span>
+              <span className="truncate text-faint">
+                {row?.projectName ?? t("groupMissingShort")}
+              </span>
+            </span>
+            <IconButton
+              size="sm"
+              variant="ghost"
+              data-move="up"
+              icon={<ArrowUpIcon size={13} />}
+              label={`${t("moveUp")} · ${named}`}
+              title={`${t("moveUp")} ⌥↑`}
+              disabled={index === 0}
+              onClick={() => move(index, "up")}
+            />
+            <IconButton
+              size="sm"
+              variant="ghost"
+              data-move="down"
+              icon={<ArrowDownIcon size={13} />}
+              label={`${t("moveDown")} · ${named}`}
+              title={`${t("moveDown")} ⌥↓`}
+              disabled={index === members.length - 1}
+              onClick={() => move(index, "down")}
+            />
+            <IconButton
+              size="sm"
+              variant="ghost"
+              icon={<XIcon size={13} />}
+              label={`${t("removeFromGroup")} · ${named}`}
+              title={t("removeFromGroup")}
+              onClick={() =>
+                onChange(members.filter((_, position) => position !== index))
+              }
+            />
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 function EditorDialog({
   initial,
@@ -32,6 +194,10 @@ function EditorDialog({
   const rows = useMemo(
     () => catalogRows(projects, scans, customs, t("personalCommands")),
     [projects, scans, customs, t],
+  );
+  const byKey = useMemo(
+    () => new Map(rows.map((row) => [row.key, row])),
+    [rows],
   );
   const shown = filterCatalog(rows, { kind: "all", projectId: null, text });
   const order = new Map(
@@ -113,6 +279,11 @@ function EditorDialog({
             onChange={(event) => setLabel(event.target.value)}
           />
         </Field>
+        {members.length ? (
+          <Field label={t("groupOrder")}>
+            <StartOrder members={members} rows={byKey} onChange={setMembers} />
+          </Field>
+        ) : null}
         <Field label={t("groupCommands")} htmlFor="group-search">
           <label className="pulso-search w-full!">
             <MagnifyingGlassIcon size={13} aria-hidden />
