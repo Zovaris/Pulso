@@ -16,6 +16,7 @@ import {
 import { useEffect, useMemo, useRef } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
+import { Orb } from "@/components/shared/Orb";
 import {
   filterLines,
   logText,
@@ -59,6 +60,12 @@ function Stream({
 }) {
   const { t } = useI18n();
   const lines = useStore((state) => state.logs[executionId] ?? NO_LINES);
+  const live = useStore((state) =>
+    state.executions.some(
+      (execution) =>
+        execution.id === executionId && isActiveState(execution.state),
+    ),
+  );
   const autoscroll = useStore((state) => state.logAutoscroll);
   const setAutoscroll = useStore((state) => state.setLogAutoscroll);
   const box = useRef<HTMLDivElement>(null);
@@ -111,10 +118,18 @@ function Stream({
   if (!hasOutput) {
     return (
       <div className="pulso-stream flex flex-1 items-center justify-center">
-        <EmptyState
-          compact
-          title={lines.length === 0 ? t("noOutput") : t("noMatch")}
-        />
+        {lines.length === 0 && live ? (
+          <EmptyState
+            compact
+            icon={<Orb state="listening" size={64} />}
+            title={t("waitingOutput")}
+          />
+        ) : (
+          <EmptyState
+            compact
+            title={lines.length === 0 ? t("noOutput") : t("noMatch")}
+          />
+        )}
       </div>
     );
   }

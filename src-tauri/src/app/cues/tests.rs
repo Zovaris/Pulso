@@ -3,15 +3,15 @@ use crate::domain::command::{CommandCategory, DetectedCommand};
 
 fn execution(id: i64, state: ExecutionState) -> Execution {
     let command = DetectedCommand {
-        id: "package.json:dev".to_string(),
-        label: "dev".to_string(),
+        id: "package.json:build".to_string(),
+        label: "build".to_string(),
         program: "bun".to_string(),
-        args: vec!["run".to_string(), "dev".to_string()],
+        args: vec!["run".to_string(), "build".to_string()],
         cwd: "/tmp/project".to_string(),
         source: "package.json".to_string(),
         detector: "package_json".to_string(),
-        category: CommandCategory::Dev,
-        long_running: true,
+        category: CommandCategory::Build,
+        long_running: false,
     };
 
     let mut execution = Execution::new(id, 1, &command, 1_000);
@@ -19,39 +19,45 @@ fn execution(id: i64, state: ExecutionState) -> Execution {
     execution
 }
 
+fn ended(id: i64, state: ExecutionState, after_ms: i64) -> Execution {
+    let mut execution = execution(id, state);
+    execution.ended_at = Some(execution.started_at + after_ms);
+    execution
+}
+
 #[test]
-fn a_fresh_execution_starts_with_a_cue() {
+fn starting_a_command_makes_no_sound() {
     let mut tracker = Tracker::default();
 
     assert_eq!(
         tracker.observe(&execution(1, ExecutionState::Starting)),
-        Some(Cue::Start)
+        None
     );
-}
-
-#[test]
-fn nothing_is_said_while_a_command_is_still_working() {
-    let mut tracker = Tracker::default();
-    tracker.observe(&execution(1, ExecutionState::Starting));
-
     assert_eq!(
         tracker.observe(&execution(1, ExecutionState::Running)),
         None
     );
-    assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Stopping)),
-        None
-    );
 }
 
 #[test]
-fn a_clean_exit_is_a_success() {
+fn a_long_run_that_ends_well_sounds_done() {
     let mut tracker = Tracker::default();
     tracker.observe(&execution(1, ExecutionState::Running));
 
     assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Exited)),
-        Some(Cue::Success)
+        tracker.observe(&ended(1, ExecutionState::Exited, LONG_RUN_MS)),
+        Some(Cue::Done)
+    );
+}
+
+#[test]
+fn a_quick_run_ends_in_silence() {
+    let mut tracker = Tracker::default();
+    tracker.observe(&execution(1, ExecutionState::Running));
+
+    assert_eq!(
+        tracker.observe(&ended(1, ExecutionState::Exited, 1_500)),
+        None
     );
 }
 
@@ -61,68 +67,33 @@ fn an_exit_the_user_asked_for_stays_silent() {
     tracker.observe(&execution(1, ExecutionState::Running));
     tracker.observe(&execution(1, ExecutionState::Stopping));
 
-    assert_eq!(tracker.observe(&execution(1, ExecutionState::Exited)), None);
+    assert_eq!(
+        tracker.observe(&ended(1, ExecutionState::Exited, LONG_RUN_MS * 3)),
+        None
+    );
 }
 
 #[test]
-fn any_other_ending_is_a_failure() {
+fn any_failure_sounds_however_short() {
     let mut tracker = Tracker::default();
     tracker.observe(&execution(1, ExecutionState::Starting));
 
     assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Failed)),
-        Some(Cue::Failure)
-    );
-}
-
-#[test]
-fn a_state_seen_twice_only_sounds_once() {
-    let mut tracker = Tracker::default();
-
-    assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Starting)),
-        Some(Cue::Start)
-    );
-    assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Starting)),
-        None
-    );
-    assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Failed)),
-        Some(Cue::Failure)
-    );
-    assert_eq!(tracker.observe(&execution(1, ExecutionState::Failed)), None);
-}
-
-#[test]
-fn two_executions_do_not_talk_over_each_other() {
-    let mut tracker = Tracker::default();
-    tracker.observe(&execution(1, ExecutionState::Starting));
-
-    assert_eq!(
-        tracker.observe(&execution(2, ExecutionState::Starting)),
-        Some(Cue::Start)
-    );
-    assert_eq!(
-        tracker.observe(&execution(2, ExecutionState::Failed)),
+        tracker.observe(&ended(1, ExecutionState::Failed, 200)),
         Some(Cue::Failure)
     );
     assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Running)),
+        tracker.observe(&ended(1, ExecutionState::Failed, 200)),
         None
     );
 }
 
 #[test]
-fn an_execution_met_halfway_is_not_greeted() {
-    let mut tracker = Tracker::default();
-
+fn a_burst_with_a_failure_in_it_sounds_like_a_failure() {
     assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Running)),
-        None
+        loudest(&[Cue::Done, Cue::Failure, Cue::Done]),
+        Some(Cue::Failure)
     );
-    assert_eq!(
-        tracker.observe(&execution(1, ExecutionState::Exited)),
-        Some(Cue::Success)
-    );
+    assert_eq!(loudest(&[Cue::Done, Cue::Done]), Some(Cue::Done));
+    assert_eq!(loudest(&[]), None);
 }

@@ -19,7 +19,38 @@ beforeEach(() => {
   });
 });
 
+const failed = (id: number, endedAt: number) => ({
+  id,
+  projectId: 1,
+  commandId: `package_json:test${id}`,
+  label: `test${id}`,
+  program: "bun",
+  args: [],
+  cwd: "/p/api",
+  state: "failed" as const,
+  pid: null,
+  startedAt: endedAt - 100,
+  endedAt,
+  exitCode: 1,
+  detail: null,
+  restartedFrom: null,
+  ports: [],
+});
+
 describe("Sidebar", () => {
+  it("counts the failures nobody has looked at yet, and clears them on opening Processes", () => {
+    useStore.setState({
+      executions: [failed(1, 500), failed(2, 900)],
+      seenFailuresAt: 600,
+    });
+    render(<Sidebar />);
+
+    expect(screen.getByTitle(/1 failure/i).textContent).toBe("1");
+    fireEvent.click(screen.getByRole("button", { name: /Processes/ }));
+
+    expect(screen.queryByTitle(/failure/i)).toBeNull();
+  });
+
   it("switches the section in view", () => {
     render(<Sidebar />);
 

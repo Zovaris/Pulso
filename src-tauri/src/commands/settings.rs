@@ -18,6 +18,8 @@ const OPEN_AT_LOGIN_KEY: &str = "ui.openAtLogin";
 const KEEP_RUNNING_KEY: &str = "ui.keepRunning";
 const CONFIRM_STOP_KEY: &str = "ui.confirmStop";
 const NOTIFY_ON_FAILURE_KEY: &str = "ui.notifyOnFailure";
+const NOTIFY_ON_DONE_KEY: &str = "ui.notifyOnDone";
+const NOTIFY_ON_READY_KEY: &str = "ui.notifyOnReady";
 pub const LOG_LINES_KEY: &str = "logs.maxLines";
 
 pub const DEFAULT_LOG_LINES: usize = 4000;
@@ -93,6 +95,10 @@ pub struct Preferences {
     pub confirm_stop: bool,
     #[serde(default = "default_true")]
     pub notify_on_failure: bool,
+    #[serde(default = "default_true")]
+    pub notify_on_done: bool,
+    #[serde(default = "default_true")]
+    pub notify_on_ready: bool,
     #[serde(default = "default_log_lines")]
     pub log_lines: usize,
 }
@@ -136,6 +142,8 @@ pub fn read_preferences(conn: &rusqlite::Connection) -> Result<Option<Preference
         repositories::settings::get(conn, KEEP_RUNNING_KEY)?,
         repositories::settings::get(conn, CONFIRM_STOP_KEY)?,
         repositories::settings::get(conn, NOTIFY_ON_FAILURE_KEY)?,
+        repositories::settings::get(conn, NOTIFY_ON_DONE_KEY)?,
+        repositories::settings::get(conn, NOTIFY_ON_READY_KEY)?,
         repositories::settings::get(conn, LOG_LINES_KEY)?,
     );
 
@@ -149,6 +157,8 @@ pub fn read_preferences(conn: &rusqlite::Connection) -> Result<Option<Preference
         keep_running,
         confirm_stop,
         notify_on_failure,
+        notify_on_done,
+        notify_on_ready,
         log_lines,
     ) = stored;
 
@@ -179,6 +189,8 @@ pub fn read_preferences(conn: &rusqlite::Connection) -> Result<Option<Preference
         keep_running: bool_pref(keep_running.as_deref(), true),
         confirm_stop: bool_pref(confirm_stop.as_deref(), false),
         notify_on_failure: bool_pref(notify_on_failure.as_deref(), true),
+        notify_on_done: bool_pref(notify_on_done.as_deref(), true),
+        notify_on_ready: bool_pref(notify_on_ready.as_deref(), true),
         log_lines: log_lines_pref(log_lines.as_deref()),
     }))
 }
@@ -215,7 +227,19 @@ pub fn keep_running(app: &AppHandle) -> bool {
 }
 
 pub fn notify_on_failure(app: &AppHandle) -> bool {
-    read(app, NOTIFY_ON_FAILURE_KEY)
+    stored_flag(app, NOTIFY_ON_FAILURE_KEY)
+}
+
+pub fn notify_on_done(app: &AppHandle) -> bool {
+    stored_flag(app, NOTIFY_ON_DONE_KEY)
+}
+
+pub fn notify_on_ready(app: &AppHandle) -> bool {
+    stored_flag(app, NOTIFY_ON_READY_KEY)
+}
+
+fn stored_flag(app: &AppHandle, key: &str) -> bool {
+    read(app, key)
         .map(|value| bool_pref(value.as_deref(), true))
         .unwrap_or(true)
 }
@@ -312,6 +336,16 @@ pub async fn save_preferences(
             conn,
             NOTIFY_ON_FAILURE_KEY,
             if stored.notify_on_failure { "1" } else { "0" },
+        )?;
+        repositories::settings::set(
+            conn,
+            NOTIFY_ON_DONE_KEY,
+            if stored.notify_on_done { "1" } else { "0" },
+        )?;
+        repositories::settings::set(
+            conn,
+            NOTIFY_ON_READY_KEY,
+            if stored.notify_on_ready { "1" } else { "0" },
         )?;
         repositories::settings::set(conn, LOG_LINES_KEY, &stored.log_lines.to_string())?;
         transaction

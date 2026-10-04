@@ -13,6 +13,7 @@ import * as environmentApi from "@/services/api/environment";
 import { toBackendError } from "@/services/api/errors";
 import * as executionsApi from "@/services/api/executions";
 import * as historyApi from "@/services/api/history";
+import * as trayApi from "@/services/api/tray";
 import { transitionView } from "@/lib/motion";
 import type { ImportSummary } from "@/lib/types";
 import type { AppStore } from "./types";
@@ -67,6 +68,8 @@ export type DesktopSlice = Pick<
   | "note"
   | "dismissNotice"
   | "markFailuresSeen"
+  | "loadFailuresSeen"
+  | "applyFailuresSeen"
 >;
 
 const NOTICE_MS = 3200;
@@ -302,6 +305,21 @@ export const createDesktopSlice: StateCreator<
 
     dismissNotice: () => set({ notice: null }),
 
-    markFailuresSeen: () => set({ seenFailuresAt: Date.now() }),
+    markFailuresSeen: () => {
+      set({ seenFailuresAt: Date.now() });
+      void trayApi
+        .markFailuresSeen()
+        .then((seenAt) => {
+          if (seenAt !== null) set({ seenFailuresAt: seenAt });
+        })
+        .catch(() => undefined);
+    },
+
+    loadFailuresSeen: async () => {
+      const seenAt = await trayApi.failuresSeenAt().catch(() => null);
+      if (seenAt !== null) set({ seenFailuresAt: seenAt });
+    },
+
+    applyFailuresSeen: (seenAt) => set({ seenFailuresAt: seenAt }),
   };
 };

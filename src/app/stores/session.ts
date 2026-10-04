@@ -33,6 +33,8 @@ export type SessionSlice = Pick<
   | "keepRunning"
   | "confirmStop"
   | "notifyOnFailure"
+  | "notifyOnDone"
+  | "notifyOnReady"
   | "logLines"
   | "setLocale"
   | "setThemePref"
@@ -126,6 +128,8 @@ export const createSessionSlice: StateCreator<
       keepRunning: state.keepRunning,
       confirmStop: state.confirmStop,
       notifyOnFailure: state.notifyOnFailure,
+      notifyOnDone: state.notifyOnDone,
+      notifyOnReady: state.notifyOnReady,
       logLines: state.logLines,
     };
   };
@@ -149,6 +153,8 @@ export const createSessionSlice: StateCreator<
       keepRunning: preferences.keepRunning,
       confirmStop: preferences.confirmStop,
       notifyOnFailure: preferences.notifyOnFailure,
+      notifyOnDone: preferences.notifyOnDone ?? true,
+      notifyOnReady: preferences.notifyOnReady ?? true,
       logLines: sanitizeLogLines(preferences.logLines),
       ...(sanitizeLogLines(preferences.logLines) < get().logLines
         ? {
@@ -174,18 +180,18 @@ export const createSessionSlice: StateCreator<
     keepRunning: true,
     confirmStop: false,
     notifyOnFailure: true,
+    notifyOnDone: true,
+    notifyOnReady: true,
     logLines: DEFAULT_LOG_LINES,
     section: "overview",
 
     // Opening Procesos is the moment the user is looking at what failed, so the
     // sidebar marker clears right there instead of needing its own effect.
     setSection: (section) => {
-      const apply = () =>
-        set(
-          section === "processes"
-            ? { section, seenFailuresAt: Date.now() }
-            : { section },
-        );
+      const apply = () => {
+        set({ section });
+        if (section === "processes") get().markFailuresSeen();
+      };
       if (get().section === section) apply();
       else transitionView(apply);
     },

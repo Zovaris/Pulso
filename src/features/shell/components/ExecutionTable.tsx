@@ -16,6 +16,7 @@ import {
 } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
+import { Orb } from "@/components/shared/Orb";
 import { formatCpu, formatMemory } from "@/features/desktop/metrics";
 import {
   formatDuration,
@@ -52,7 +53,11 @@ function State({ execution }: { execution: Execution }) {
   const { t } = useI18n();
   return (
     <span className="pulso-state" data-s={execution.state}>
-      <i className="pulso-dot" data-s={execution.state} />
+      {execution.state === "starting" || execution.state === "stopping" ? (
+        <Orb state="working" />
+      ) : (
+        <i className="pulso-dot" data-s={execution.state} />
+      )}
       <span className="truncate">{stateLabel(execution, t)}</span>
     </span>
   );
@@ -110,8 +115,33 @@ function Usage({
   );
 }
 
+/** A server gets this long to open its first port before the wait stops showing. */
+const PORT_WAIT_MS = 60_000;
+
 function Ports({ execution }: { execution: Execution }) {
+  const { t } = useI18n();
   const openUrl = useStore((state) => state.openUrl);
+  const server = useStore(
+    (state) =>
+      state.scans[String(execution.projectId)]?.commands.find(
+        (command) => command.id === execution.commandId,
+      )?.longRunning ?? false,
+  );
+  if (
+    server &&
+    execution.state === "running" &&
+    execution.ports.length === 0 &&
+    Date.now() - execution.startedAt < PORT_WAIT_MS
+  )
+    return (
+      <span
+        className="flex min-w-0 items-center gap-1.5 text-faint"
+        title={t("waitingPort")}
+      >
+        <Orb state="connecting" />
+        <span className="truncate">{t("waitingPort")}</span>
+      </span>
+    );
   if (execution.ports.length === 0 || !isActiveState(execution.state))
     return <span className="text-faint">—</span>;
   return (

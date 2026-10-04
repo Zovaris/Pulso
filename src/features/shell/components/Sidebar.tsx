@@ -59,10 +59,11 @@ export function Sidebar() {
       badge:
         id === "processes" && unseen > 0 ? (
           <span
-            className="pulso-dot"
-            data-s="failed"
+            className="pulso-alert-count"
             title={t("failuresWaiting", { count: unseen })}
-          />
+          >
+            {unseen}
+          </span>
         ) : counts[id] ? (
           <span className="tabular-nums">{counts[id]}</span>
         ) : undefined,

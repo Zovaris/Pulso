@@ -7,6 +7,7 @@ import {
   onCustomCommandsChanged,
   onExecutionChanged,
   onExecutionsRemoved,
+  onFailuresSeen,
   onLogAppended,
   onPopoverPrepare,
   onProjectsChanged,
@@ -25,6 +26,8 @@ export function useProjectSync() {
   const applyExecution = useStore((state) => state.applyExecution);
   const applyLogs = useStore((state) => state.applyLogs);
   const removeExecutions = useStore((state) => state.removeExecutions);
+  const loadFailuresSeen = useStore((state) => state.loadFailuresSeen);
+  const applyFailuresSeen = useStore((state) => state.applyFailuresSeen);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +47,7 @@ export function useProjectSync() {
       onExecutionsRemoved(removeExecutions),
       onLogAppended(applyLogs),
       onPopoverPrepare(refreshLogs),
+      onFailuresSeen(applyFailuresSeen),
     ];
 
     void Promise.all(subscriptions)
@@ -53,6 +57,7 @@ export function useProjectSync() {
         void loadCommandGroups();
         void loadProjects();
         void loadExecutions();
+        void loadFailuresSeen();
       })
       .catch(() => {
         if (!cancelled) {
@@ -60,6 +65,7 @@ export function useProjectSync() {
           void loadCommandGroups();
           void loadProjects();
           void loadExecutions();
+          void loadFailuresSeen();
         }
       });
 
@@ -83,5 +89,7 @@ export function useProjectSync() {
     applyExecution,
     applyLogs,
     removeExecutions,
+    loadFailuresSeen,
+    applyFailuresSeen,
   ]);
 }

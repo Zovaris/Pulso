@@ -25,6 +25,7 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let handle = app.handle().clone();
+            app::attention::start();
 
             let data_dir = handle.path().app_data_dir()?;
             let db = Arc::new(persistence::Database::open(&data_dir.join("pulso.db"))?);
@@ -55,7 +56,10 @@ pub fn run() {
             supervisor.set_log_lines(commands::settings::log_lines(&handle));
             supervisor.on_removed({
                 let handle = handle.clone();
-                Arc::new(move |ids| events::executions_removed(&handle, ids))
+                Arc::new(move |ids| {
+                    events::executions_removed(&handle, ids);
+                    app::tray::sync(&handle);
+                })
             });
             supervisor.on_finished({
                 let history = Arc::clone(&history);
@@ -138,6 +142,8 @@ pub fn run() {
             commands::editors::app_icon,
             commands::editors::open_project,
             commands::tray::set_tray_badge,
+            commands::tray::failures_seen_at,
+            commands::tray::mark_failures_seen,
             commands::ports::list_listening_ports,
             commands::ports::stop_port_process,
             commands::ports::open_listening_port,

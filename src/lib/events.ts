@@ -88,6 +88,12 @@ async function subscribe<T>(
   return listen<T>(event, (message) => handler(message.payload));
 }
 
+export function onFailuresSeen(
+  handler: (seenAt: number) => void,
+): Promise<UnlistenFn> {
+  return subscribe<number>("failures://seen", handler);
+}
+
 export function onCommandGroupsChanged(
   handler: (groups: CommandGroup[]) => void,
 ): Promise<UnlistenFn> {
