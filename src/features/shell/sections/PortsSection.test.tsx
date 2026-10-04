@@ -104,7 +104,7 @@ describe("PortsSection", () => {
 
   it("shows verified listeners and filters by PID, address and process", async () => {
     await ready();
-    expect(screen.getByText("External")).toBeTruthy();
+    expect(row("node").getByText("External")).toBeTruthy();
     expect(screen.getByText("127.0.0.1:3000")).toBeTruthy();
     const search = screen.getByRole("searchbox");
     fireEvent.change(search, { target: { value: "43" } });
@@ -136,15 +136,13 @@ describe("PortsSection", () => {
     expect(region.classList.contains("overflow-auto")).toBe(true);
     expect(region.classList.contains("min-h-0")).toBe(true);
     expect(region.classList.contains("overscroll-contain")).toBe(true);
-    expect(region.parentElement?.classList.contains("flex-1")).toBe(true);
+    expect(region.classList.contains("flex-1")).toBe(true);
     expect(
       container.firstElementChild?.classList.contains("overflow-hidden"),
     ).toBe(true);
     expect(within(region).getAllByRole("row")).toHaveLength(81);
     expect(within(region).getByText("server-79")).toBeTruthy();
-    expect(region.querySelector("thead")?.classList.contains("sticky")).toBe(
-      true,
-    );
+    expect(region.querySelector("table")?.dataset.stickyHeader).toBe("true");
     expect(region.contains(screen.getByRole("searchbox"))).toBe(false);
     expect(
       region.contains(screen.getByRole("button", { name: "Refresh ports" })),
@@ -206,7 +204,6 @@ describe("PortsSection", () => {
     await ready();
     fireEvent.click(row("node").getByRole("button", { name: "Stop process" }));
     fireEvent.click(lastButton("Stop process"));
-    // Successful scans must not dismiss an error from a destructive action.
     await waitFor(() =>
       expect(screen.getByRole("alert").textContent).toMatch(
         /changed or disappeared/,

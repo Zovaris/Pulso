@@ -6,6 +6,7 @@ use crate::domain::{
 };
 use crate::persistence::repositories::executions;
 use crate::process::supervisor::ProcessSupervisor;
+use crate::support::paths;
 use rusqlite::Connection;
 use std::sync::Arc;
 
@@ -142,4 +143,44 @@ async fn personal_shell_commands_execute_quotes_pipes_and_keep_history_without_a
             .unwrap(),
         0
     );
+}
+
+#[test]
+fn folders_default_to_home_or_project_and_explicit_tilde_always_means_home() {
+    let conn = rusqlite::Connection::open_in_memory().unwrap();
+    conn.execute_batch(include_str!("../../../migrations/0001_projects.sql"))
+        .unwrap();
+    let home = std::env::temp_dir();
+    let project = std::env::current_dir().unwrap();
+    conn.execute(
+        "INSERT INTO projects (id, path, name, added_at) VALUES (1, ?1, 'Test', 1)",
+        [project.to_string_lossy().as_ref()],
+    )
+    .unwrap();
+    let mut command = CustomCommand {
+        id: None,
+        project_id: None,
+        label: "Test".into(),
+        command: "pwd".into(),
+        cwd: String::new(),
+        favorite: false,
+    };
+    assert_eq!(
+        resolve_cwd(&conn, &command, &home).unwrap(),
+        paths::as_string(&paths::canonical_dir(&home).unwrap())
+    );
+    command.project_id = Some(1);
+    assert_eq!(
+        resolve_cwd(&conn, &command, &home).unwrap(),
+        paths::as_string(&paths::canonical_dir(&project).unwrap())
+    );
+    command.cwd = "~".into();
+    assert_eq!(
+        resolve_cwd(&conn, &command, &home).unwrap(),
+        paths::as_string(&paths::canonical_dir(&home).unwrap())
+    );
+    command.cwd = "relative/folder".into();
+    assert!(resolve_cwd(&conn, &command, &home).is_err());
+    command.cwd = "/pulso/nonexistent/folder".into();
+    assert!(resolve_cwd(&conn, &command, &home).is_err());
 }

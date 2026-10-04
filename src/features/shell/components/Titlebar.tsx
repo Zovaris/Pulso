@@ -3,13 +3,16 @@ import {
   MagnifyingGlassIcon,
   SidebarSimpleIcon,
 } from "@phosphor-icons/react";
-import { Button, Kbd } from "@zovaris/sephiro";
+import { Breadcrumb, Button, IconButton, Kbd, Toolbar } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { IconTool } from "@/components/shared/IconTool";
+import { SECTIONS } from "@/features/shell/sections";
 
 export function Titlebar() {
   const { t } = useI18n();
+  const section = useStore((state) => state.section);
+  const projects = useStore((state) => state.projects);
+  const selectedId = useStore((state) => state.selectedProjectId);
   const rescanning = useStore((state) => state.rescanning);
   const rescanProjects = useStore((state) => state.rescanProjects);
   const openPalette = useStore((state) => state.openPalette);
@@ -17,44 +20,82 @@ export function Titlebar() {
   const toggleSidebar = useStore((state) => state.toggleSidebar);
   const inspectorOpen = useStore((state) => state.inspectorOpen);
   const toggleInspector = useStore((state) => state.toggleInspector);
+  const project =
+    projects.find((entry) => entry.id === selectedId) ?? projects[0];
+  const hasInspector =
+    section === "overview" || (section === "projects" && Boolean(project));
+  const label = t(SECTIONS.find((entry) => entry.id === section)!.labelKey);
 
   return (
     <header
       data-tauri-drag-region
-      className="flex h-[46px] flex-none items-center gap-3 border-b border-line bg-night pr-3 pl-[80px]"
+      className="pulso-titlebar flex h-10 flex-none items-center pr-3 pl-[80px]"
     >
-      <IconTool
-        icon={SidebarSimpleIcon}
-        label={t(sidebarOpen ? "hideSidebar" : "showSidebar")}
-        active={sidebarOpen}
-        onClick={toggleSidebar}
-      />
-
-      <Button
-        type="button"
-        size="sm"
-        variant="secondary"
-        onClick={openPalette}
-        className="pulso-search-trigger ml-auto w-[260px] flex-none"
-      >
-        <MagnifyingGlassIcon size={12} />
-        <span className="truncate text-faint">{t("palettePlaceholder")}</span>
-        <Kbd keys="⌘K" className="ml-auto flex-none" />
-      </Button>
-
-      <IconTool
-        icon={ArrowsClockwiseIcon}
-        label={t("rescan")}
-        active={rescanning}
-        onClick={() => void rescanProjects()}
-      />
-
-      <IconTool
-        icon={SidebarSimpleIcon}
-        label={t(inspectorOpen ? "hideInspector" : "showInspector")}
-        active={inspectorOpen}
-        onClick={toggleInspector}
-        mirrored
+      <Toolbar
+        label={t("appName")}
+        className="pulso-titlebar-tools"
+        start={
+          <>
+            <IconButton
+              density="compact"
+              variant="ghost"
+              icon={<SidebarSimpleIcon size={17} />}
+              label={t(sidebarOpen ? "hideSidebar" : "showSidebar")}
+              title={t(sidebarOpen ? "hideSidebar" : "showSidebar")}
+              aria-pressed={sidebarOpen}
+              onClick={toggleSidebar}
+            />
+            <Breadcrumb
+              label={t("navLocation")}
+              items={[
+                { label },
+                ...(section === "projects" && project
+                  ? [{ label: project.name }]
+                  : []),
+              ]}
+            />
+          </>
+        }
+        end={
+          <>
+            <Button
+              size="sm"
+              density="compact"
+              motion="none"
+              variant="secondary"
+              onClick={openPalette}
+              className="pulso-search-trigger"
+            >
+              <MagnifyingGlassIcon size={15} />
+              <span className="truncate text-faint">
+                {t("palettePlaceholder")}
+              </span>
+              <Kbd keys="⌘K" className="ml-auto flex-none" />
+            </Button>
+            <IconButton
+              density="compact"
+              variant="ghost"
+              icon={<ArrowsClockwiseIcon size={16} />}
+              label={t("rescan")}
+              title={t("rescan")}
+              disabled={rescanning}
+              loading={rescanning}
+              onClick={() => void rescanProjects()}
+            />
+            {hasInspector ? (
+              <IconButton
+                density="compact"
+                variant="ghost"
+                className="pulso-inspector-toggle"
+                icon={<SidebarSimpleIcon size={17} className="-scale-x-100" />}
+                label={t(inspectorOpen ? "hideInspector" : "showInspector")}
+                title={t(inspectorOpen ? "hideInspector" : "showInspector")}
+                aria-pressed={inspectorOpen}
+                onClick={toggleInspector}
+              />
+            ) : null}
+          </>
+        }
       />
     </header>
   );

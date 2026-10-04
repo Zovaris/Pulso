@@ -50,6 +50,12 @@ export function useShellKeyboard() {
 
       if (command && event.shiftKey) return;
 
+      if (command && event.key === ",") {
+        event.preventDefault();
+        useStore.getState().setSection("settings");
+        return;
+      }
+
       if (command && event.key === "b") {
         event.preventDefault();
         useStore.getState().toggleSidebar();
@@ -99,11 +105,7 @@ export function useShellKeyboard() {
         return;
       }
 
-      if (event.key === "Escape" && useStore.getState().paletteOpen) {
-        useStore.getState().closePalette();
-        return;
-      }
-
+      if (useStore.getState().paletteOpen || event.defaultPrevented) return;
       if (inField(event.target)) return;
 
       if (event.key === "/") {

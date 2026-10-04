@@ -1,25 +1,60 @@
-import { describe, expect, it } from "vitest";
-import { prefersReducedMotion, settleDuration } from "@/lib/motion";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { transitionView } from "@/lib/motion";
 
-describe("settleDuration", () => {
-  it("scales with the distance travelled", () => {
-    expect(settleDuration(120)).toBe(200);
-    expect(settleDuration(180)).toBe(300);
-  });
+const settled = () => ({
+  ready: Promise.resolve(),
+  finished: Promise.resolve(),
+});
 
-  it("keeps a floor so a small change is still perceptible", () => {
-    expect(settleDuration(0)).toBe(140);
-    expect(settleDuration(12)).toBe(140);
-  });
-
-  it("caps the long ones instead of crawling", () => {
-    expect(settleDuration(600)).toBe(320);
-    expect(settleDuration(5000)).toBe(320);
+afterEach(() => {
+  Reflect.deleteProperty(document, "startViewTransition");
+  Object.defineProperty(document, "hidden", {
+    configurable: true,
+    value: false,
   });
 });
 
-describe("prefersReducedMotion", () => {
-  it("reads the media query", () => {
-    expect(prefersReducedMotion()).toBe(false);
+describe("transitionView", () => {
+  it("just applies the change where view transitions do not exist", () => {
+    const update = vi.fn();
+
+    transitionView(update);
+
+    expect(update).toHaveBeenCalledOnce();
+  });
+
+  it("hands the change to a view transition when one is available", () => {
+    const update = vi.fn();
+    const start = vi.fn((callback: () => void) => {
+      callback();
+      return settled();
+    });
+    Object.defineProperty(document, "startViewTransition", {
+      configurable: true,
+      value: start,
+    });
+
+    transitionView(update);
+
+    expect(start).toHaveBeenCalledOnce();
+    expect(update).toHaveBeenCalledOnce();
+  });
+
+  it("skips the transition while the window is hidden", () => {
+    const update = vi.fn();
+    const start = vi.fn(() => settled());
+    Object.defineProperty(document, "startViewTransition", {
+      configurable: true,
+      value: start,
+    });
+    Object.defineProperty(document, "hidden", {
+      configurable: true,
+      value: true,
+    });
+
+    transitionView(update);
+
+    expect(start).not.toHaveBeenCalled();
+    expect(update).toHaveBeenCalledOnce();
   });
 });

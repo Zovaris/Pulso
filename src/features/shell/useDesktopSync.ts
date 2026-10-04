@@ -5,6 +5,9 @@ import {
 import { useEffect } from "react";
 import { useStore } from "@/app/store";
 import { onExecutionMetrics } from "@/lib/events";
+import { listen } from "@tauri-apps/api/event";
+import { SECTIONS } from "@/features/shell/sections";
+import type { SectionId } from "@/app/stores/types";
 import { isTauri } from "@/lib/tauri";
 
 /**
@@ -37,8 +40,15 @@ export function useDesktopSync() {
     void askToNotify();
 
     const metrics = onExecutionMetrics(applyMetrics);
+    const navigation = isTauri()
+      ? listen<SectionId>("navigation://section", ({ payload }) => {
+          if (SECTIONS.some((section) => section.id === payload))
+            useStore.getState().setSection(payload);
+        })
+      : Promise.resolve(() => {});
 
     return () => {
+      void navigation.then((unlisten) => unlisten()).catch(() => undefined);
       void metrics.then((unlisten) => unlisten());
     };
   }, [loadEditors, loadDataStatus, applyMetrics]);

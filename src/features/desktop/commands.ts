@@ -14,15 +14,6 @@ export type CommandFilter =
   | "lint"
   | "hidden";
 
-export const FILTERS: CommandFilter[] = [
-  "all",
-  "favorites",
-  "dev",
-  "test",
-  "lint",
-  "hidden",
-];
-
 export function flagsFor(
   flags: Record<string, CommandFlags> | undefined,
   commandId: string,
@@ -58,58 +49,8 @@ export function visibleCommands(scan: CommandScan): DetectedCommand[] {
   );
 }
 
-export function filterCommands(
-  scan: CommandScan,
-  filter: CommandFilter,
-): DetectedCommand[] {
-  const ordered = orderedCommands(scan);
-
-  switch (filter) {
-    case "all":
-      return ordered;
-    case "favorites":
-      return ordered.filter(
-        (command) => flagsFor(scan.flags, command.id).favorite,
-      );
-    case "hidden":
-      return ordered.filter(
-        (command) => flagsFor(scan.flags, command.id).hidden,
-      );
-    default:
-      return ordered.filter((command) => command.category === filter);
-  }
-}
-
-export function filterCount(scan: CommandScan, filter: CommandFilter): number {
-  return filterCommands(scan, filter).length;
-}
-
-export function categoryKey(category: DetectedCommand["category"]): string {
-  switch (category) {
-    case "dev":
-      return "categoryDev";
-    case "build":
-      return "categoryBuild";
-    case "test":
-      return "categoryTest";
-    case "lint":
-      return "categoryLint";
-    case "database":
-      return "categoryDatabase";
-    case "infrastructure":
-      return "categoryInfrastructure";
-    default:
-      return "categoryOther";
-  }
-}
-
 export function invocationOf(command: DetectedCommand): string {
   return [command.program, ...command.args].join(" ");
-}
-
-/** The commands of a scan, grouped by the file they were declared in. */
-export function scanGroups(scan: CommandScan, filter: CommandFilter) {
-  return groupBySource(filterCommands(scan, filter));
 }
 
 export function sourcesOf(

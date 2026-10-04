@@ -44,7 +44,7 @@ export function AppPicker() {
     <div ref={box} className="relative">
       <Button
         type="button"
-        size="md"
+        size="sm"
         variant="secondary"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
@@ -61,7 +61,7 @@ export function AppPicker() {
             <Button
               key={editor.id}
               type="button"
-              size="md"
+              size="sm"
               variant="quiet"
               onClick={() => {
                 setOpen(false);

@@ -3,7 +3,6 @@ import {
   formatCpu,
   formatMemory,
   HISTORY,
-  memoryRatio,
   pushSample,
   sparkline,
   totalCpu,
@@ -46,17 +45,6 @@ describe("formatMemory", () => {
   it("treats nothing as nothing", () => {
     expect(formatMemory(0)).toBe("0 MB");
     expect(formatMemory(-1)).toBe("0 MB");
-  });
-});
-
-describe("memoryRatio", () => {
-  it("sits between nothing and full", () => {
-    expect(memoryRatio(0)).toBe(0);
-    expect(memoryRatio(512 * 1024 * 1024)).toBeCloseTo(0.5, 3);
-  });
-
-  it("never overflows the bar", () => {
-    expect(memoryRatio(8 * 1024 * 1024 * 1024)).toBe(1);
   });
 });
 

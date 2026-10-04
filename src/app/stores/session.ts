@@ -16,6 +16,7 @@ import type { Locale, Preferences, Surface, ThemePref } from "@/lib/types";
 import { LOG_LINE_CHOICES } from "@/lib/types";
 import { toBackendError } from "@/services/api/errors";
 import { getPreferences, persistPreferences } from "@/services/api/settings";
+import { transitionView } from "@/lib/motion";
 import type { AppStore } from "./types";
 
 export type SessionSlice = Pick<
@@ -178,12 +179,16 @@ export const createSessionSlice: StateCreator<
 
     // Opening Procesos is the moment the user is looking at what failed, so the
     // sidebar marker clears right there instead of needing its own effect.
-    setSection: (section) =>
-      set(
-        section === "processes"
-          ? { section, seenFailuresAt: Date.now() }
-          : { section },
-      ),
+    setSection: (section) => {
+      const apply = () =>
+        set(
+          section === "processes"
+            ? { section, seenFailuresAt: Date.now() }
+            : { section },
+        );
+      if (get().section === section) apply();
+      else transitionView(apply);
+    },
 
     updatePreferences: (patch) => {
       confirmed ??= chosen();

@@ -1,7 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  commandKey,
   formatDuration,
   formatLogTime,
   isActiveState,
@@ -42,12 +41,6 @@ describe("isActiveState", () => {
 
     expect(active.filter(isActiveState)).toEqual(active);
     expect(done.some(isActiveState)).toBe(false);
-  });
-});
-
-describe("commandKey", () => {
-  it("separates the project from the command", () => {
-    expect(commandKey(3, "package.json:dev")).toBe("3:package.json:dev");
   });
 });
 

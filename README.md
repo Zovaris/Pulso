@@ -1,7 +1,7 @@
 <h1 align="center">Pulso</h1>
 
 <p align="center">
-  <img src="./assets/brand/pulso-icon.svg" alt="Pulso" width="112" height="112" />
+  <img src="./assets/brand/pulso-icon-rounded.svg" alt="Pulso" width="112" height="112" />
 </p>
 
 <p align="center">

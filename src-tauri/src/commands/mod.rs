@@ -1,3 +1,4 @@
+pub mod command_groups;
 pub mod custom_commands;
 pub mod data;
 pub mod editors;

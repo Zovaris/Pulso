@@ -1,9 +1,22 @@
-import { ArrowClockwiseIcon, GlobeIcon, StopIcon } from "@phosphor-icons/react";
-import { Button, Input } from "@zovaris/sephiro";
+import {
+  ArrowClockwiseIcon,
+  GlobeIcon,
+  MagnifyingGlassIcon,
+  StopIcon,
+} from "@phosphor-icons/react";
+import {
+  Alert,
+  Button,
+  IconButton,
+  EmptyState,
+  Input,
+  SegmentedControl,
+  Table,
+  type TableColumn,
+} from "@zovaris/sephiro";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { Card, CardEmpty } from "@/components/shared/Card";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { isTauri } from "@/lib/tauri";
 import type { ListeningPort } from "@/lib/types";
@@ -13,6 +26,9 @@ import {
   openListeningPort,
   stopPortProcess,
 } from "@/services/api/ports";
+
+type Origin = "all" | "pulso" | "external";
+const ORIGINS: Origin[] = ["all", "pulso", "external"];
 
 export function PortsSection() {
   const { t } = useI18n();
@@ -114,7 +130,6 @@ export function PortsSection() {
       acting.current = false;
       if (mounted.current) {
         setBusy(false);
-        // A later poll, rather than a successful signal alone, proves release.
         void refresh();
       }
     }
@@ -127,19 +142,139 @@ export function PortsSection() {
     const project = projects.find((entry) => entry.id === execution.projectId);
     return `${project?.name ?? t("personalCommands")} · ${execution.label}`;
   };
+  const [origin, setOrigin] = useState<Origin>("all");
   const search = query.trim().toLocaleLowerCase();
-  const filtered = ports.filter((port) =>
-    `${port.port} ${port.pid} ${port.address} ${port.process} ${nameOf(port)}`
-      .toLocaleLowerCase()
-      .includes(search),
+  const inOrigin = (port: ListeningPort, which: Origin) =>
+    which === "all" || (which === "pulso") === (port.executionId !== null);
+  const filtered = ports.filter(
+    (port) =>
+      inOrigin(port, origin) &&
+      `${port.port} ${port.pid} ${port.address} ${port.process} ${nameOf(port)}`
+        .toLocaleLowerCase()
+        .includes(search),
   );
   const native = isTauri();
   const displayedError = error ?? actionError;
+  const emptyNote = t(
+    !native
+      ? "portsDesktopOnly"
+      : !loaded && loading
+        ? "portsLoading"
+        : !loaded && error
+          ? "portsUnavailable"
+          : search || origin !== "all"
+            ? "noMatchingPorts"
+            : "noListeningPorts",
+  );
+
+  const columns: TableColumn<ListeningPort>[] = [
+    {
+      key: "port",
+      label: t("columnPort"),
+      width: "76px",
+      sortable: true,
+      sortValue: (port) => port.port,
+      render: (port) => (
+        <span className="font-mono text-accent-strong tabular-nums">
+          :{port.port}
+        </span>
+      ),
+    },
+    {
+      key: "address",
+      label: t("columnAddress"),
+      width: "22%",
+      render: (port) => (
+        <span
+          className="block truncate font-mono text-xs text-faint"
+          title={port.address}
+        >
+          {port.address}
+        </span>
+      ),
+    },
+    {
+      key: "process",
+      label: t("columnProcess"),
+      sortable: true,
+      sortValue: (port) => port.process.toLowerCase(),
+      render: (port) => (
+        <span className="block truncate font-medium" title={port.process}>
+          {port.process}
+        </span>
+      ),
+    },
+    {
+      key: "pid",
+      label: t("columnPid"),
+      width: "72px",
+      align: "end",
+      render: (port) => (
+        <span className="font-mono text-xs text-mist tabular-nums">
+          {port.pid}
+        </span>
+      ),
+    },
+    {
+      key: "origin",
+      label: t("columnOrigin"),
+      width: "22%",
+      render: (port) =>
+        port.executionId === null ? (
+          <span className="text-xs text-faint">{t("portExternal")}</span>
+        ) : (
+          <button
+            type="button"
+            className="pulso-cell-link"
+            onClick={() => {
+              select(port.executionId);
+              setSection("processes");
+            }}
+          >
+            <span className="truncate">{nameOf(port)}</span>
+          </button>
+        ),
+    },
+    {
+      key: "actions",
+      label: <span className="sr-only">{t("portActions")}</span>,
+      align: "end",
+      width: "84px",
+      render: (port) => (
+        <div className="flex justify-end gap-1">
+          <IconButton
+            size="sm"
+            variant="ghost"
+            icon={<GlobeIcon size={15} />}
+            label={t("openPortHttp")}
+            title={`${t("openPortHttp")} · ${t("openPortHttpHint")}`}
+            disabled={busy}
+            onClick={() => {
+              void openListeningPort(port).catch((cause) => {
+                if (mounted.current)
+                  setActionError(toBackendError(cause).message);
+              });
+            }}
+          />
+          <IconButton
+            size="sm"
+            variant="ghost"
+            className="pulso-control-danger"
+            icon={<StopIcon size={13} weight="fill" />}
+            label={t("stopPortProcess")}
+            title={port.canStop ? t("stopPortProcess") : t("portProtected")}
+            disabled={busy || !port.canStop}
+            onClick={() => setConfirming(port)}
+          />
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3.5 overflow-hidden px-6 py-5">
-      <header className="flex shrink-0 items-start justify-between gap-4">
-        <div>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <header className="flex flex-none items-start gap-4 px-6 pt-5 pb-4">
+        <div className="min-w-0 flex-1">
           <h1 className="text-[16px] font-semibold tracking-[-0.015em]">
             {t("sectionPorts")}
           </h1>
@@ -151,173 +286,93 @@ export function PortsSection() {
           disabled={loading || busy || !native}
           onClick={() => void refresh()}
         >
-          <ArrowClockwiseIcon size={14} />
+          <ArrowClockwiseIcon size={13} />
           {t(loading ? "portsLoading" : "refreshPorts")}
         </Button>
       </header>
-      <Input
-        className="shrink-0"
-        type="search"
-        value={query}
-        aria-label={t("searchPorts")}
-        placeholder={t("searchPorts")}
-        onChange={(event) => setQuery(event.target.value)}
-      />
-      {displayedError ? (
-        <div
-          role="alert"
-          className="flex shrink-0 items-center gap-3 rounded-lg border border-line px-3 py-2 text-[12px] text-alarm"
-        >
-          <span className="flex-1">{displayedError}</span>
-          <Button
+
+      <div className="pulso-filter-bar">
+        <SegmentedControl
+          size="sm"
+          ariaLabel={t("columnOrigin")}
+          value={origin}
+          onValueChange={(value) => setOrigin(value as Origin)}
+          options={ORIGINS.map((entry) => ({
+            value: entry,
+            label: (
+              <>
+                {t(`origin${entry[0].toUpperCase()}${entry.slice(1)}`)}
+                <span className="pulso-count">
+                  {ports.filter((port) => inOrigin(port, entry)).length}
+                </span>
+              </>
+            ),
+          }))}
+        />
+        <label className="pulso-search pulso-search--wide ml-auto">
+          <MagnifyingGlassIcon size={13} aria-hidden />
+          <Input
             size="sm"
-            variant="quiet"
-            onClick={() => {
-              setError(null);
-              setActionError(null);
-            }}
-          >
-            {t("dismiss")}
-          </Button>
-        </div>
+            type="search"
+            value={query}
+            aria-label={t("searchPorts")}
+            placeholder={t("searchPorts")}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+      </div>
+
+      {displayedError ? (
+        <Alert
+          variant="danger"
+          role="alert"
+          dismissible
+          onDismiss={() => {
+            setError(null);
+            setActionError(null);
+          }}
+          className="mx-5 mb-3"
+        >
+          {displayedError}
+        </Alert>
       ) : null}
       {stopping ? (
-        <p role="status" className="shrink-0 text-[12px] text-mist">
+        <p role="status" className="mx-6 mb-3 text-[12px] text-mist">
           {t("portStopRequested", {
             process: stopping.process,
             pid: stopping.pid,
           })}
         </p>
       ) : null}
-      <Card
-        className="flex min-h-0 flex-1 flex-col [&>header]:shrink-0"
-        title={t("listeningPorts")}
-        meta={
-          loaded && native
-            ? t("listeningCount", { count: ports.length })
-            : undefined
-        }
+
+      <div
+        role="region"
+        aria-label={t("listeningPorts")}
+        tabIndex={0}
+        className="pulso-pane min-h-0 flex-1 overflow-auto overscroll-contain px-5 pb-4"
       >
         {filtered.length === 0 ? (
-          <CardEmpty
-            note={t(
-              !native
-                ? "portsDesktopOnly"
-                : !loaded && loading
-                  ? "portsLoading"
-                  : !loaded && error
-                    ? "portsUnavailable"
-                    : search
-                      ? "noMatchingPorts"
-                      : "noListeningPorts",
-            )}
-          />
+          <EmptyState compact title={emptyNote} />
         ) : (
-          <div
-            role="region"
-            aria-label={t("listeningPorts")}
-            tabIndex={0}
-            className="pulso-pane min-h-0 flex-1 overflow-auto overscroll-contain"
-          >
-            <table className="w-full text-left text-[12px]">
-              <thead className="sticky top-0 z-10 border-b border-hairline bg-panel text-[11px] text-faint">
-                <tr>
-                  {["port", "process", "pid", "portOrigin", "portActions"].map(
-                    (key) => (
-                      <th
-                        key={key}
-                        scope="col"
-                        className="px-3.5 py-2 font-medium"
-                      >
-                        {t(key)}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((port) => (
-                  <tr
-                    key={`${port.pid}:${port.startedAt}:${port.address}`}
-                    className="border-b border-hairline last:border-b-0"
-                  >
-                    <td className="px-3.5 py-3">
-                      <span className="font-mono text-accent-strong">
-                        :{port.port}
-                      </span>
-                      <span className="mt-1 block whitespace-nowrap font-mono text-[11px] text-faint">
-                        {port.address}
-                      </span>
-                    </td>
-                    <td className="px-3.5 py-3">{port.process}</td>
-                    <td className="px-3.5 py-3 font-mono text-mist">
-                      {port.pid}
-                    </td>
-                    <td className="px-3.5 py-3">
-                      <span className="mb-1 block text-[10px] text-faint">
-                        {t(
-                          port.executionId === null
-                            ? "portExternal"
-                            : "portManaged",
-                        )}
-                      </span>
-                      {port.executionId !== null ? (
-                        <Button
-                          size="sm"
-                          variant="quiet"
-                          onClick={() => {
-                            select(port.executionId);
-                            setSection("processes");
-                          }}
-                        >
-                          {nameOf(port)}
-                        </Button>
-                      ) : null}
-                    </td>
-                    <td className="px-3.5 py-3">
-                      <div className="flex justify-end gap-1.5">
-                        <Button
-                          size="sm"
-                          variant="quiet"
-                          title={t("openPortHttpHint")}
-                          disabled={busy}
-                          onClick={() => {
-                            void openListeningPort(port).catch((cause) => {
-                              if (mounted.current)
-                                setActionError(toBackendError(cause).message);
-                            });
-                          }}
-                        >
-                          <GlobeIcon size={13} />
-                          {t("openPortHttp")}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="pulso-control-danger"
-                          disabled={busy || !port.canStop}
-                          title={
-                            port.canStop
-                              ? t("stopPortProcess")
-                              : t("portProtected")
-                          }
-                          onClick={() => setConfirming(port)}
-                        >
-                          <StopIcon size={12} />
-                          {t("stopPortProcess")}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table
+            columns={columns}
+            rows={filtered}
+            getRowId={(port) => `${port.pid}:${port.startedAt}:${port.address}`}
+            density="compact"
+            stickyHeader
+            className="pulso-command-table"
+          />
         )}
-      </Card>
-      <p className="shrink-0 text-[11px] leading-5 text-faint">
-        {t("portsNote")}
-      </p>
+      </div>
+
+      <footer className="pulso-section-footer flex justify-between gap-4">
+        <span className="min-w-0">{t("portsNote")}</span>
+        {loaded && native ? (
+          <span className="flex-none">
+            {t("listeningCount", { count: ports.length })}
+          </span>
+        ) : null}
+      </footer>
       {confirming ? (
         <ConfirmDialog
           title={t("confirmPortStopTitle")}

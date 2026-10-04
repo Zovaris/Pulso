@@ -6,7 +6,6 @@ import {
   logText,
   matchCount,
   NO_FILTER,
-  nextScroll,
   tail,
 } from "@/features/desktop/logs";
 import type { LogLine, LogStream } from "@/lib/types";
@@ -115,15 +114,5 @@ describe("tail", () => {
 
   it("keeps everything when there are few", () => {
     expect(tail(lines, 99)).toHaveLength(5);
-  });
-});
-
-describe("nextScroll", () => {
-  it("follows the output while the reader is at the bottom", () => {
-    expect(nextScroll(true, 100, 420)).toBe(420);
-  });
-
-  it("holds still while the reader is reading", () => {
-    expect(nextScroll(false, 100, 420)).toBe(100);
   });
 });

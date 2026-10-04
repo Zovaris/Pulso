@@ -7,10 +7,6 @@ export function isActiveState(state: ExecutionState): boolean {
   return ACTIVE.includes(state);
 }
 
-export function commandKey(projectId: number, commandId: string): string {
-  return `${projectId}:${commandId}`;
-}
-
 export function formatLogTime(at: number): string {
   const date = new Date(at);
   const pad = (value: number) => String(value).padStart(2, "0");

@@ -41,7 +41,6 @@ beforeEach(() => {
     scans: {},
     scanningProjectId: null,
     rescanning: false,
-    expandedProjectId: null,
     projectError: null,
   });
 });

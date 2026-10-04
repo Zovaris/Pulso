@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import { pushSample } from "@/features/desktop/metrics";
-import { commandKey, isActiveState } from "@/features/executions/execution";
+import { isActiveState } from "@/features/executions/execution";
 import type { Execution, LogLine } from "@/lib/types";
 import { toBackendError } from "@/services/api/errors";
 import * as executionsApi from "@/services/api/executions";
@@ -13,7 +13,6 @@ export type ExecutionsSlice = Pick<
   | "metrics"
   | "histories"
   | "logs"
-  | "openLogKey"
   | "loadExecutions"
   | "applyExecution"
   | "removeExecutions"
@@ -24,8 +23,6 @@ export type ExecutionsSlice = Pick<
   | "clearFinished"
   | "applyLogs"
   | "loadLogs"
-  | "toggleLogs"
-  | "closeLogs"
   | "openUrl"
 >;
 
@@ -106,7 +103,6 @@ export const createExecutionsSlice: StateCreator<
     metrics: {},
     histories: {},
     logs: {},
-    openLogKey: null,
 
     removeExecutions: (ids) => {
       for (const id of ids) removed.push([id, id]);
@@ -240,7 +236,6 @@ export const createExecutionsSlice: StateCreator<
         );
         get().applyExecution(execution);
         set({
-          openLogKey: commandKey(projectId, commandId),
           selectedExecutionId: execution.id,
           argsFor: null,
         });
@@ -328,15 +323,6 @@ export const createExecutionsSlice: StateCreator<
         if (error.kind !== "notFound") set({ projectError: error });
       }
     },
-
-    toggleLogs: (key, executionId) => {
-      const open = get().openLogKey === key;
-      set({ openLogKey: open ? null : key });
-
-      if (!open && executionId !== null) void get().loadLogs(executionId);
-    },
-
-    closeLogs: () => set({ openLogKey: null }),
 
     openUrl: async (executionId, portId) => {
       try {

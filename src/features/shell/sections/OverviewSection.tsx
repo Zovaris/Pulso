@@ -1,231 +1,240 @@
 import {
-  CpuIcon,
+  ArrowClockwiseIcon,
   FolderSimplePlusIcon,
-  GaugeIcon,
-  PlugsConnectedIcon,
-  StopIcon,
-  WarningOctagonIcon,
+  TextAlignLeftIcon,
+  WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { Button } from "@zovaris/sephiro";
+import { Button, EmptyState } from "@zovaris/sephiro";
+import { useMemo } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { Card } from "@/components/shared/Card";
-import { Sparkline } from "@/components/shared/Sparkline";
+import {
+  type CatalogRow,
+  catalogKey,
+  catalogRows,
+} from "@/features/desktop/catalog";
 import {
   formatCpu,
   formatMemory,
   totalCpu,
   totalMemory,
 } from "@/features/desktop/metrics";
-import { byUptime, failures, openPorts } from "@/features/desktop/session";
+import { byUptime, openPorts } from "@/features/desktop/session";
+import { isActiveState } from "@/features/executions/execution";
+import { activity } from "@/features/popover/menubar/MenubarMenu";
 import { useAddProject } from "@/features/projects/useAddProject";
+import { useCommandEditor } from "@/features/shell/components/CommandEditor";
+import { CommandTable } from "@/features/shell/components/CommandTable";
+import { ExecutionTable } from "@/features/shell/components/ExecutionTable";
 import { ProcessInspector } from "@/features/shell/components/Inspector";
-import { ProcessTable } from "@/features/shell/components/ProcessTable";
+import type { Execution } from "@/lib/types";
 
-function Tile({
-  icon,
-  label,
-  value,
-  unit,
-  note,
-  chart,
-  tone,
-}: {
-  icon: typeof CpuIcon;
-  label: string;
-  value: string;
-  unit?: string;
-  note?: string;
-  chart?: number[];
-  tone?: "alarm";
-}) {
-  const Icon = icon;
+const RECENT = 5;
 
+/**
+ * Starred commands first, then the latest distinct runs that are not starred.
+ * What already runs is listed above it, so it is left out here.
+ */
+export function launchRows(
+  rows: CatalogRow[],
+  executions: Execution[],
+): CatalogRow[] {
+  const byKey = new Map(rows.map((row) => [row.key, row]));
+  const running = new Set(
+    executions
+      .filter((execution) => isActiveState(execution.state))
+      .map((execution) => catalogKey(execution.projectId, execution.commandId)),
+  );
+  const favorites = rows.filter(
+    (row) => row.favorite && !row.hidden && !running.has(row.key),
+  );
+  const taken = new Set([...favorites.map((row) => row.key), ...running]);
+  const recent: CatalogRow[] = [];
+  for (const execution of [...executions].sort(
+    (left, right) => right.startedAt - left.startedAt,
+  )) {
+    const row = byKey.get(catalogKey(execution.projectId, execution.commandId));
+    if (!row || taken.has(row.key)) continue;
+    taken.add(row.key);
+    recent.push(row);
+    if (recent.length === RECENT) break;
+  }
+  return [...favorites, ...recent];
+}
+
+/** Real numbers only, on one line: what runs, what it costs, what it listens on. */
+function Stats({ live }: { live: Execution[] }) {
+  const { t } = useI18n();
+  const metrics = useStore((state) => state.metrics);
+  const samples = live
+    .map((execution) => metrics[execution.id])
+    .filter((sample) => sample !== undefined);
+  const ports = openPorts(live);
   return (
-    <div className="rounded-[10px] border border-line bg-panel px-3 pt-2.5 pb-2">
-      <p className="flex items-center gap-1.5 text-[11px] text-faint">
-        <Icon size={12} />
-        {label}
-      </p>
-      <p
-        className={`mt-1.5 text-[20px] font-semibold tracking-[-0.02em] tabular-nums ${
-          tone === "alarm" ? "text-alarm" : ""
-        }`}
-      >
-        {value}
-        {unit ? (
-          <span className="ml-1 text-[11px] font-normal text-faint">
-            {unit}
+    <p className="pulso-stats">
+      <span>
+        <i className="pulso-dot" data-s={live.length ? "running" : "exited"} />
+        {live.length
+          ? t("statRunning", { count: live.length })
+          : t("noneRunning")}
+      </span>
+      {live.length ? <span>{formatCpu(totalCpu(samples))} CPU</span> : null}
+      {live.length ? <span>{formatMemory(totalMemory(samples))}</span> : null}
+      {ports.length ? (
+        <span>
+          {t("statPorts", { count: ports.length })}{" "}
+          <span className="font-mono text-faint">
+            {ports.map((port) => `:${port}`).join(" ")}
           </span>
-        ) : null}
-      </p>
-      {chart ? <Sparkline values={chart} /> : null}
-      {note ? (
-        <p className="mt-1.5 truncate text-[11px] text-faint">{note}</p>
+        </span>
       ) : null}
-    </div>
+    </p>
   );
 }
 
-function Notice() {
+function Attention({ failed }: { failed: Execution[] }) {
   const { t } = useI18n();
-  const executions = useStore((state) => state.executions);
-  const setSection = useStore((state) => state.setSection);
   const projects = useStore((state) => state.projects);
-  const failed = failures(executions)[0];
-
-  if (!failed) return null;
-
-  const name = projects.find(
-    (project) => project.id === failed.projectId,
-  )?.name;
-
+  const markFailuresSeen = useStore((state) => state.markFailuresSeen);
+  const restartExecution = useStore((state) => state.restartExecution);
+  const projectName = (id: number) =>
+    projects.find((project) => project.id === id)?.name ??
+    t("personalCommands");
   return (
-    <div className="flex items-center gap-2.5 rounded-[9px] border border-line bg-panel px-3 py-2">
-      <WarningOctagonIcon size={14} className="flex-none text-alarm" />
-      <p className="min-w-0 flex-1 truncate text-[12px]">
-        {t("failedNotice", {
-          target: `${name ?? `#${failed.projectId}`} · ${failed.label}`,
-          code: failed.exitCode ?? "—",
-        })}
-      </p>
-      <Button
-        size="sm"
-        variant="secondary"
-        type="button"
-        onClick={() => {
-          setSection("logs");
-        }}
-        className="pulso-control-xs"
-      >
-        <span className="inline-flex items-center gap-1.5">{t("seeLogs")}</span>
-      </Button>
-    </div>
+    <section className="pulso-attention" aria-labelledby="attention-title">
+      <header className="flex items-center gap-2 py-1 pr-2 pl-3">
+        <WarningCircleIcon
+          size={14}
+          weight="fill"
+          className="flex-none text-alarm"
+        />
+        <h2 id="attention-title" className="flex-1 text-[12px] font-medium">
+          {t("attentionTitle")}
+        </h2>
+        <Button
+          size="sm"
+          variant="quiet"
+          motion="none"
+          onClick={markFailuresSeen}
+        >
+          {t("dismissFailures")}
+        </Button>
+      </header>
+      <ul>
+        {failed.map((execution) => (
+          <li key={execution.id} className="pulso-attention__row">
+            <span className="min-w-0 flex-1 truncate">
+              <span className="font-medium">{execution.label}</span>{" "}
+              <span className="text-faint">
+                {projectName(execution.projectId)}
+              </span>
+            </span>
+            <span className="flex-none text-[12px] text-alarm">
+              {t("failedWith", { code: String(execution.exitCode ?? "·") })}
+            </span>
+            <Button
+              size="sm"
+              variant="quiet"
+              motion="none"
+              onClick={() => {
+                const state = useStore.getState();
+                state.select(execution.id);
+                state.setSection("logs");
+              }}
+            >
+              <TextAlignLeftIcon size={13} />
+              {t("seeLogs")}
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              motion="none"
+              onClick={() => void restartExecution(execution.id)}
+            >
+              <ArrowClockwiseIcon size={13} />
+              {t("runAgain")}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
 export function OverviewSection() {
   const { t } = useI18n();
   const projects = useStore((state) => state.projects);
+  const scans = useStore((state) => state.scans);
+  const customs = useStore((state) => state.customCommands);
   const executions = useStore((state) => state.executions);
-  const metrics = useStore((state) => state.metrics);
-  const histories = useStore((state) => state.histories);
-  const clearFinished = useStore((state) => state.clearFinished);
-  const stopExecution = useStore((state) => state.stopExecution);
+  const seenAt = useStore((state) => state.seenFailuresAt);
   const addProject = useAddProject();
+  const editor = useCommandEditor();
 
   const live = byUptime(executions);
-  const samples = Object.values(metrics);
-  const ports = openPorts(executions);
-  const failed = failures(executions);
-  const names = Object.fromEntries(
-    projects.map((project) => [project.id, project.name]),
+  const failed = activity(executions, seenAt).filter(
+    (execution) => !isActiveState(execution.state),
   );
-  const cpuHistory = histories[live[0]?.id ?? -1] ?? [];
-  const memoryHistory = Object.values(histories).flatMap((history) =>
-    history.map((value) => value * 64),
+  const rows = useMemo(
+    () => catalogRows(projects, scans, customs, t("personalCommands")),
+    [projects, scans, customs, t],
   );
+  const launch = launchRows(rows, executions);
+
+  if (projects.length === 0 && customs.length === 0) {
+    return (
+      <div className="pulso-pane flex min-w-0 flex-1 items-center justify-center p-6">
+        <EmptyState
+          icon={<FolderSimplePlusIcon size={28} />}
+          title={t("welcomeTitle")}
+          description={t("welcomeBody")}
+          action={
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => void addProject()}
+            >
+              {t("addProject")}
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="pulso-pane flex min-w-0 flex-1 flex-col gap-3.5 overflow-auto px-6 py-5">
-        <header className="flex items-start gap-4">
-          <div>
-            <h1 className="text-[16px] font-semibold tracking-[-0.015em]">
-              {t("sectionOverview")}
-            </h1>
-            <p className="mt-1 text-[12px] text-mist">{t("overviewLede")}</p>
-          </div>
-          <div className="ml-auto flex flex-none items-center gap-2">
-            <Button
-              size="md"
-              variant="secondary"
-              type="button"
-              disabled={live.length === 0}
-              onClick={() => {
-                for (const execution of live) void stopExecution(execution.id);
-              }}
-            >
-              <StopIcon size={12} weight="fill" />
-              {t("stopAll")}
-            </Button>
-            <Button
-              size="md"
-              variant="primary"
-              type="button"
-              onClick={() => void addProject()}
-            >
-              <FolderSimplePlusIcon size={13} />
-              {t("addProject")}
-            </Button>
-          </div>
+      <div className="pulso-pane flex min-w-0 flex-1 flex-col gap-5 overflow-auto px-6 py-5">
+        <header>
+          <h1 className="text-[16px] font-semibold tracking-[-0.015em]">
+            {t("sectionOverview")}
+          </h1>
+          <p className="mt-1 text-[12px] text-mist">{t("overviewLede")}</p>
+          <Stats live={live} />
         </header>
 
-        <Notice />
+        {failed.length ? <Attention failed={failed} /> : null}
 
-        <div className="grid grid-cols-4 gap-2.5">
-          <Tile
-            icon={GaugeIcon}
-            label={t("tileLive")}
-            value={String(live.length)}
-            note={
-              live.length === 0
-                ? t("noneRunning")
-                : `${formatCpu(totalCpu(samples))} CPU`
-            }
-            chart={cpuHistory}
+        <section>
+          <h2 className="pulso-block-title">{t("liveProcesses")}</h2>
+          <ExecutionTable
+            executions={live}
+            label={t("liveProcesses")}
+            empty={<EmptyState compact title={t("noLiveProcesses")} />}
           />
-          <Tile
-            icon={CpuIcon}
-            label={t("memory")}
-            value={formatMemory(totalMemory(samples)).split(" ")[0]}
-            unit={formatMemory(totalMemory(samples)).split(" ")[1]}
-            chart={memoryHistory.slice(-60)}
-          />
-          <Tile
-            icon={PlugsConnectedIcon}
-            label={t("tilePorts")}
-            value={String(ports.length)}
-            note={ports.length === 0 ? t("nothingListening") : ports.join(", ")}
-          />
-          <Tile
-            icon={WarningOctagonIcon}
-            label={t("tileFailures")}
-            value={String(failed.length)}
-            tone={failed.length > 0 ? "alarm" : undefined}
-            note={
-              failed.length === 0
-                ? t("noFailures")
-                : `${names[failed[0].projectId] ?? ""} · ${failed[0].label}`
-            }
-          />
-        </div>
+        </section>
 
-        <ProcessTable
-          executions={live}
-          projects={names}
-          variant="live"
-          title={t("liveProcesses")}
-          meta={t("sampledEvery")}
-          empty={t("noLiveProcesses")}
-        />
-
-        <Card title={t("sessionSummary")}>
-          <div className="flex items-center gap-3 px-3.5 py-2.5 text-[11.5px] text-faint">
-            <span>{t("executionCount", { count: executions.length })}</span>
-            <span className="h-[12px] w-px bg-line" />
-            <span>{t("exitCodeHint")}</span>
-            <Button
-              size="sm"
-              variant="secondary"
-              type="button"
-              onClick={() => void clearFinished()}
-              className="pulso-control-xs ml-auto"
-            >
-              {t("clearFinished")}
-            </Button>
-          </div>
-        </Card>
+        <section>
+          <h2 className="pulso-block-title">{t("launchTitle")}</h2>
+          <CommandTable
+            rows={launch}
+            showProject
+            onEdit={editor.edit}
+            onRemove={editor.remove}
+            empty={<EmptyState compact title={t("launchEmpty")} />}
+          />
+        </section>
+        {editor.dialogs}
       </div>
 
       <ProcessInspector />

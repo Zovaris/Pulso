@@ -11,7 +11,6 @@ export type ProjectsSlice = Pick<
   | "scans"
   | "scanningProjectId"
   | "rescanning"
-  | "expandedProjectId"
   | "projectError"
   | "loadProjects"
   | "addProject"
@@ -19,7 +18,6 @@ export type ProjectsSlice = Pick<
   | "loadCommands"
   | "rescanProjects"
   | "rescanProject"
-  | "toggleProject"
   | "applyProjects"
   | "applyScan"
   | "applyFlags"
@@ -57,7 +55,6 @@ export const createProjectsSlice: StateCreator<
   scans: {},
   scanningProjectId: null,
   rescanning: false,
-  expandedProjectId: null,
   projectError: null,
 
   applyProjects: (projects) =>
@@ -126,7 +123,6 @@ export const createProjectsSlice: StateCreator<
       const project = await projectsApi.addProject(path);
       set((state) => ({
         projects: upsert(state.projects, project),
-        expandedProjectId: project.id,
         selectedProjectId: project.id,
         projectError: null,
       }));
@@ -152,10 +148,6 @@ export const createProjectsSlice: StateCreator<
         return {
           projects,
           scans,
-          expandedProjectId:
-            state.expandedProjectId === projectId
-              ? null
-              : state.expandedProjectId,
           selectedProjectId:
             state.selectedProjectId === projectId
               ? (projects[0]?.id ?? null)
@@ -215,12 +207,6 @@ export const createProjectsSlice: StateCreator<
             : state.scanningProjectId,
       }));
     }
-  },
-
-  toggleProject: (projectId) => {
-    const wasOpen = get().expandedProjectId === projectId;
-    set({ expandedProjectId: wasOpen ? null : projectId });
-    if (!wasOpen) void get().loadCommands(projectId);
   },
 
   dismissProjectError: () => set({ projectError: null }),

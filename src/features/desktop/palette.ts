@@ -28,6 +28,15 @@ function rank(row: PaletteRow, query: string): number | null {
   if (label.startsWith(query)) return 1;
   if (label.includes(query)) return 2;
   if (invocation.includes(query)) return 3;
+  if (`${row.project.name} ${row.project.path}`.toLowerCase().includes(query))
+    return 4;
+  const words = query.split(/\s+/);
+  if (
+    words.every((word) =>
+      `${label} ${invocation} ${row.project.name}`.toLowerCase().includes(word),
+    )
+  )
+    return 5;
 
   return null;
 }
