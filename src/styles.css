@@ -1292,3 +1292,21 @@ html[data-material="menu"][data-theme="dark"] .pulso-menu {
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
+
+.pulso-orb {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulso-state .pulso-orb,
+.pulso-command-name .pulso-orb {
+  margin-block: -6px;
+}
+
+.sph-empty-state__icon:has(> .pulso-orb) {
+  width: auto;
+  height: auto;
+  background: none;
+}

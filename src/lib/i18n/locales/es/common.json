@@ -27,6 +27,7 @@
   "stopCommand": "Detener",
   "waitingOutput": "Esperando salida…",
   "noOutput": "Este comando no escribió nada.",
+  "waitingPort": "Esperando puerto",
   "dismiss": "Descartar",
   "cancel": "Cancelar",
   "copied": "Copiado al portapapeles.",

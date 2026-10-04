@@ -27,6 +27,7 @@
   "stopCommand": "Stop",
   "waitingOutput": "Waiting for output…",
   "noOutput": "This command wrote nothing.",
+  "waitingPort": "Waiting for a port",
   "dismiss": "Dismiss",
   "cancel": "Cancel",
   "copied": "Copied to the clipboard.",

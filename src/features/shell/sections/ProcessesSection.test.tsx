@@ -51,6 +51,48 @@ beforeEach(() => {
 });
 
 describe("ProcessesSection", () => {
+  it("shows a server waiting for its port, and only a server", () => {
+    const command = (id: string, longRunning: boolean) => ({
+      id,
+      label: id,
+      program: "bun",
+      args: [],
+      cwd: "/p",
+      source: "package.json",
+      detector: "package_json",
+      category: "dev" as const,
+      longRunning,
+    });
+    useStore.setState({
+      executions: [
+        run({ id: 1, startedAt: Date.now() }),
+        run({
+          id: 2,
+          label: "worker",
+          commandId: "package_json:worker",
+          startedAt: Date.now(),
+        }),
+      ],
+      scans: {
+        "1": {
+          projectId: 1,
+          status: "detected",
+          detail: null,
+          commands: [
+            command("package_json:dev", true),
+            command("package_json:worker", false),
+          ],
+          flags: {},
+        },
+      },
+    });
+    render(<ProcessesSection />);
+
+    const [, dev, worker] = screen.getAllByRole("row");
+    expect(within(dev).getByText("Waiting for a port")).toBeTruthy();
+    expect(within(worker).queryByText("Waiting for a port")).toBeNull();
+  });
+
   it("opens on what is running and keeps finished runs one filter away", () => {
     render(<ProcessesSection />);
 

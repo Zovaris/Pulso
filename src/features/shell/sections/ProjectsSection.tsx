@@ -9,11 +9,11 @@ import {
   EmptyState,
   Input,
   SegmentedControl,
-  Skeleton,
 } from "@zovaris/sephiro";
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
+import { Orb } from "@/components/shared/Orb";
 import {
   type CatalogKind,
   catalogRows,
@@ -163,11 +163,11 @@ export function ProjectsSection() {
               description={project.path}
             />
           ) : !scan ? (
-            <div className="space-y-2 pt-2">
-              <Skeleton height={28} />
-              <Skeleton height={28} />
-              <Skeleton height={28} />
-            </div>
+            <EmptyState
+              compact
+              icon={<Orb state="searching" size={64} />}
+              title={t("readingManifest")}
+            />
           ) : rows.length === 0 ? (
             <EmptyState
               title={message ? t(message.key) : t("noCommands")}
