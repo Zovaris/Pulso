@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use crate::domain::command::{CommandCategory, DetectedCommand};
 use crate::persistence::storage_error;
 use crate::support::error::{BackendError, ErrorKind, Result};
+use crate::support::paths;
+use std::path::{Path, PathBuf};
 
 /// The existing execution API uses zero for personal commands; storage uses NULL.
 pub const PERSONAL_SCOPE: i64 = 0;
@@ -83,6 +85,36 @@ pub fn save(conn: &Connection, command: &CustomCommand) -> Result<()> {
             params![command.project_id, command.label, command.command, command.cwd, command.favorite]).map_err(storage_error)?;
     }
     Ok(())
+}
+
+/// The folder a custom command runs in: the project (or home) when left empty,
+/// `~` expanded, and the result canonical so the same folder is stored once.
+pub fn resolve_cwd(conn: &Connection, command: &CustomCommand, home: &Path) -> Result<String> {
+    let cwd = command.cwd.trim();
+    let path = if cwd.is_empty() {
+        if let Some(id) = command.project_id {
+            let project =
+                crate::persistence::repositories::projects::by_id(conn, id)?.ok_or_else(|| {
+                    BackendError::new(ErrorKind::NotFound, "That project is no longer in Pulso.")
+                })?;
+            PathBuf::from(project.path)
+        } else {
+            home.to_path_buf()
+        }
+    } else if cwd == "~" {
+        home.to_path_buf()
+    } else if let Some(relative) = cwd.strip_prefix("~/") {
+        home.join(relative)
+    } else {
+        PathBuf::from(cwd)
+    };
+    if !path.is_absolute() {
+        return Err(BackendError::new(
+            ErrorKind::InvalidInput,
+            "Use an absolute folder path or ~.",
+        ));
+    }
+    Ok(paths::as_string(&paths::canonical_dir(&path)?))
 }
 
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {

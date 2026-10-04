@@ -172,6 +172,23 @@
   },
   "exportProjects": "Exportar",
   "importProjects": "Importar",
+  "importedSummary": "Importado: {items}.",
+  "importedNothing": "Nada nuevo: todo lo del archivo ya estaba en Pulso.",
+  "importedProjects": {
+    "one": "{count} proyecto",
+    "other": "{count} proyectos"
+  },
+  "importedCommands": {
+    "one": "{count} comando",
+    "other": "{count} comandos"
+  },
+  "importedGroups": {
+    "one": "{count} grupo",
+    "other": "{count} grupos"
+  },
+  "listAnd": "{rest} y {last}",
+  "projectsTransfer": "Exportar e importar",
+  "projectsTransferHint": "El archivo lleva los proyectos, sus marcas, tus comandos y los grupos.",
   "sessionLog": "Diagnóstico",
   "sessionLogHint": "Un archivo con la configuración y la salida de esta sesión, para reportar un problema.",
   "executionHistory": "Historial guardado",

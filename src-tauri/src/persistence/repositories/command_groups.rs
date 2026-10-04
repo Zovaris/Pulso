@@ -96,6 +96,12 @@ pub fn list(conn: &Connection) -> Result<Vec<CommandGroup>> {
 
 pub fn save(conn: &Connection, group: &CommandGroup) -> Result<()> {
     let tx = conn.unchecked_transaction().map_err(storage_error)?;
+    write(&tx, group)?;
+    tx.commit().map_err(storage_error)
+}
+
+/// Saves a group inside a transaction the caller already holds.
+pub fn write(tx: &Connection, group: &CommandGroup) -> Result<()> {
     let id = match group.id {
         Some(id) => {
             let changed = tx
@@ -133,7 +139,7 @@ pub fn save(conn: &Connection, group: &CommandGroup) -> Result<()> {
         )
         .map_err(storage_error)?;
     }
-    tx.commit().map_err(storage_error)
+    Ok(())
 }
 
 pub fn delete(conn: &Connection, id: i64) -> Result<()> {

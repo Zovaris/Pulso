@@ -175,6 +175,13 @@ export type DataStatus = {
   runs: number;
 };
 
+/** What an import added; what was already in Pulso is not counted. */
+export type ImportSummary = {
+  projects: number;
+  commands: number;
+  groups: number;
+};
+
 export type PathEntry = {
   dir: string;
   exists: boolean;

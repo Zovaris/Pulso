@@ -294,6 +294,11 @@ export function SettingsSection() {
                         })
                       : t("readingShort")
                   }
+                  control={null}
+                />
+                <Row
+                  label={t("projectsTransfer")}
+                  hint={t("projectsTransferHint")}
                   control={
                     <>
                       <Action

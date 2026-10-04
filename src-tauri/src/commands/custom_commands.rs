@@ -4,11 +4,8 @@ use crate::persistence::{
     Database,
 };
 use crate::process::supervisor::ProcessSupervisor;
-use crate::support::{
-    error::{BackendError, ErrorKind, Result},
-    paths,
-};
-use std::{path::Path, sync::Arc};
+use crate::support::error::{BackendError, ErrorKind, Result};
+use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager, State};
 
 #[tauri::command]
@@ -53,7 +50,7 @@ pub async fn save_custom_command(
         .home_dir()
         .map_err(|e| BackendError::internal(e.to_string()))?;
     let commands = in_database(&db, move |conn| {
-        command.cwd = resolve_cwd(conn, &command, &home)?;
+        command.cwd = repositories::custom_commands::resolve_cwd(conn, &command, &home)?;
         repositories::custom_commands::save(conn, &command)?;
         repositories::custom_commands::list(conn)
     })
@@ -78,79 +75,4 @@ pub async fn delete_custom_command(
     let _ = app.emit("custom-command://changed", &commands);
     crate::events::refresh(&app).await;
     Ok(commands)
-}
-
-fn resolve_cwd(
-    conn: &rusqlite::Connection,
-    command: &CustomCommand,
-    home: &Path,
-) -> Result<String> {
-    let cwd = command.cwd.trim();
-    let path = if cwd.is_empty() {
-        if let Some(id) = command.project_id {
-            let project = repositories::projects::by_id(conn, id)?.ok_or_else(|| {
-                BackendError::new(ErrorKind::NotFound, "That project is no longer in Pulso.")
-            })?;
-            std::path::PathBuf::from(project.path)
-        } else {
-            home.to_path_buf()
-        }
-    } else if cwd == "~" {
-        home.to_path_buf()
-    } else if let Some(relative) = cwd.strip_prefix("~/") {
-        home.join(relative)
-    } else {
-        std::path::PathBuf::from(cwd)
-    };
-    if !path.is_absolute() {
-        return Err(BackendError::new(
-            ErrorKind::InvalidInput,
-            "Use an absolute folder path or ~.",
-        ));
-    }
-    Ok(paths::as_string(&paths::canonical_dir(&path)?))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn folders_default_to_home_or_project_and_explicit_tilde_always_means_home() {
-        let conn = rusqlite::Connection::open_in_memory().unwrap();
-        conn.execute_batch(include_str!("../../migrations/0001_projects.sql"))
-            .unwrap();
-        let home = std::env::temp_dir();
-        let project = std::env::current_dir().unwrap();
-        conn.execute(
-            "INSERT INTO projects (id, path, name, added_at) VALUES (1, ?1, 'Test', 1)",
-            [project.to_string_lossy().as_ref()],
-        )
-        .unwrap();
-        let mut command = CustomCommand {
-            id: None,
-            project_id: None,
-            label: "Test".into(),
-            command: "pwd".into(),
-            cwd: String::new(),
-            favorite: false,
-        };
-        assert_eq!(
-            resolve_cwd(&conn, &command, &home).unwrap(),
-            paths::as_string(&paths::canonical_dir(&home).unwrap())
-        );
-        command.project_id = Some(1);
-        assert_eq!(
-            resolve_cwd(&conn, &command, &home).unwrap(),
-            paths::as_string(&paths::canonical_dir(&project).unwrap())
-        );
-        command.cwd = "~".into();
-        assert_eq!(
-            resolve_cwd(&conn, &command, &home).unwrap(),
-            paths::as_string(&paths::canonical_dir(&home).unwrap())
-        );
-        command.cwd = "relative/folder".into();
-        assert!(resolve_cwd(&conn, &command, &home).is_err());
-        command.cwd = "/pulso/nonexistent/folder".into();
-        assert!(resolve_cwd(&conn, &command, &home).is_err());
-    }
 }

@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { isTauri } from "@/lib/tauri";
-import type { DataStatus } from "@/lib/types";
+import type { DataStatus, ImportSummary } from "@/lib/types";
 
 export function dataStatus(): Promise<DataStatus> {
   if (!isTauri()) {
@@ -26,7 +26,7 @@ export function exportProjects(): Promise<string | null> {
   return invoke("export_projects");
 }
 
-export function importProjects(): Promise<number | null> {
+export function importProjects(): Promise<ImportSummary | null> {
   if (!isTauri()) return Promise.resolve(null);
   return invoke("import_projects");
 }

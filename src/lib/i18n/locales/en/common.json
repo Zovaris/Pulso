@@ -172,6 +172,23 @@
   },
   "exportProjects": "Export",
   "importProjects": "Import",
+  "importedSummary": "Imported {items}.",
+  "importedNothing": "Nothing new: everything in the file was already in Pulso.",
+  "importedProjects": {
+    "one": "{count} project",
+    "other": "{count} projects"
+  },
+  "importedCommands": {
+    "one": "{count} command",
+    "other": "{count} commands"
+  },
+  "importedGroups": {
+    "one": "{count} group",
+    "other": "{count} groups"
+  },
+  "listAnd": "{rest} and {last}",
+  "projectsTransfer": "Export and import",
+  "projectsTransferHint": "The file carries the projects, their flags, your commands and the groups.",
   "sessionLog": "Diagnostics",
   "sessionLogHint": "One file with the settings and this session's output, for reporting a problem.",
   "executionHistory": "Stored history",

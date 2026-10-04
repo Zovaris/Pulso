@@ -14,6 +14,7 @@ import { toBackendError } from "@/services/api/errors";
 import * as executionsApi from "@/services/api/executions";
 import * as historyApi from "@/services/api/history";
 import { transitionView } from "@/lib/motion";
+import type { ImportSummary } from "@/lib/types";
 import type { AppStore } from "./types";
 
 export type DesktopSlice = Pick<
@@ -69,6 +70,21 @@ export type DesktopSlice = Pick<
 >;
 
 const NOTICE_MS = 3200;
+
+function importNotice(t: AppStore["t"], added: ImportSummary): string {
+  const parts = (["projects", "commands", "groups"] as const)
+    .filter((kind) => added[kind] > 0)
+    .map((kind) =>
+      t(`imported${kind[0].toUpperCase()}${kind.slice(1)}`, {
+        count: added[kind],
+      }),
+    );
+  if (!parts.length) return t("importedNothing");
+  const last = parts.pop()!;
+  return t("importedSummary", {
+    items: parts.length ? t("listAnd", { rest: parts.join(", "), last }) : last,
+  });
+}
 
 export const createDesktopSlice: StateCreator<
   AppStore,
@@ -161,8 +177,12 @@ export const createDesktopSlice: StateCreator<
         const added = await dataApi.importProjects();
         if (added === null) return;
 
-        await get().loadProjects();
-        note(String(added));
+        await Promise.all([
+          get().loadProjects(),
+          get().loadCustomCommands(),
+          get().loadCommandGroups(),
+        ]);
+        note(importNotice(get().t, added));
       });
     },
 

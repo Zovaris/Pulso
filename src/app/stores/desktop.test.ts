@@ -385,15 +385,48 @@ describe("data actions", () => {
     expect(useStore.getState().notice).toBe("/tmp/pulso-projects.json");
   });
 
-  it("reloads the projects after importing, so the window catches up", async () => {
-    data.importProjects.mockResolvedValue(3);
+  it("reloads what an import can bring and says what it added", async () => {
+    data.importProjects.mockResolvedValue({
+      projects: 3,
+      commands: 0,
+      groups: 1,
+    });
     const loadProjects = vi.fn().mockResolvedValue(undefined);
-    useStore.setState({ loadProjects });
+    const loadCustomCommands = vi.fn().mockResolvedValue(undefined);
+    const loadCommandGroups = vi.fn().mockResolvedValue(undefined);
+    useStore.setState({
+      locale: "en",
+      loadProjects,
+      loadCustomCommands,
+      loadCommandGroups,
+    });
 
     await useStore.getState().importProjects();
 
     expect(loadProjects).toHaveBeenCalled();
-    expect(useStore.getState().notice).toBe("3");
+    expect(loadCustomCommands).toHaveBeenCalled();
+    expect(loadCommandGroups).toHaveBeenCalled();
+    expect(useStore.getState().notice).toBe("Imported 3 projects and 1 group.");
+  });
+
+  it("says so when the file had nothing new", async () => {
+    data.importProjects.mockResolvedValue({
+      projects: 0,
+      commands: 0,
+      groups: 0,
+    });
+    useStore.setState({
+      locale: "en",
+      loadProjects: vi.fn().mockResolvedValue(undefined),
+      loadCustomCommands: vi.fn().mockResolvedValue(undefined),
+      loadCommandGroups: vi.fn().mockResolvedValue(undefined),
+    });
+
+    await useStore.getState().importProjects();
+
+    expect(useStore.getState().notice).toBe(
+      "Nothing new: everything in the file was already in Pulso.",
+    );
   });
 
   it("tells the truth when the user backs out of the import", async () => {
