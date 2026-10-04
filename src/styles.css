@@ -1264,3 +1264,11 @@ html[data-material="menu"][data-theme="dark"] .pulso-menu {
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
 }
+
+.pulso-icon-segments .sph-segmented-control__option {
+  padding-inline: 9px;
+}
+
+.pulso-icon-segments .sph-segmented-control__label > span {
+  display: inline-flex;
+}

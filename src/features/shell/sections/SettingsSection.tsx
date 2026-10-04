@@ -1,3 +1,4 @@
+import { DesktopIcon, MoonIcon, SunIcon } from "@phosphor-icons/react";
 import {
   Button,
   Kbd,
@@ -11,6 +12,12 @@ import { useStore } from "@/app/store";
 import { AppPicker } from "@/features/shell/components/AppPicker";
 import type { Locale, ThemePref } from "@/lib/types";
 import { LOG_LINE_CHOICES } from "@/lib/types";
+
+const THEMES = [
+  { value: "system", label: "themeSystem", Icon: DesktopIcon },
+  { value: "dark", label: "themeDark", Icon: MoonIcon },
+  { value: "light", label: "themeLight", Icon: SunIcon },
+] as const;
 
 /** One inset group of rows, as in System Settings. */
 function Group({ children }: { children: React.ReactNode }) {
@@ -195,18 +202,25 @@ export function SettingsSection() {
                 label={t("theme")}
                 hint={t("themeHint")}
                 control={
-                  <Select
+                  <SegmentedControl
+                    size="sm"
+                    className="pulso-icon-segments"
+                    ariaLabel={t("theme")}
                     value={themePref}
                     onValueChange={(value) =>
                       updatePreferences({ theme: value as ThemePref })
                     }
-                    options={[
-                      { value: "system", label: t("themeSystem") },
-                      { value: "dark", label: t("themeDark") },
-                      { value: "light", label: t("themeLight") },
-                    ]}
-                    ariaLabel={t("theme")}
-                    size="sm"
+                    options={THEMES.map(({ value, label, Icon }) => ({
+                      value,
+                      label: (
+                        <span title={t(label)}>
+                          <Icon size={15} aria-hidden />
+                          <span className="sph-visually-hidden">
+                            {t(label)}
+                          </span>
+                        </span>
+                      ),
+                    }))}
                   />
                 }
               />

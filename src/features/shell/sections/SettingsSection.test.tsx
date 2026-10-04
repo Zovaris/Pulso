@@ -41,6 +41,19 @@ describe("SettingsSection", () => {
     expect(updatePreferences).toHaveBeenCalledWith({ confirmStop: true });
   });
 
+  it("picks the theme from icons that still carry their names", () => {
+    useStore.setState({ themePref: "dark" });
+    render(<SettingsSection />);
+    fireEvent.click(screen.getByRole("radio", { name: "Appearance" }));
+
+    expect(
+      screen.getByRole("radio", { name: "Dark" }).getAttribute("aria-checked"),
+    ).toBe("true");
+    fireEvent.click(screen.getByRole("radio", { name: "Light" }));
+
+    expect(updatePreferences).toHaveBeenCalledWith({ theme: "light" });
+  });
+
   it("lists the shortcuts the window actually answers to", () => {
     render(<SettingsSection />);
     fireEvent.click(screen.getByRole("radio", { name: "Shortcuts" }));
