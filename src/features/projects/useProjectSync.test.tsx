@@ -7,6 +7,7 @@ import type { Execution } from "@/lib/types";
 
 vi.mock("@/lib/events", () => ({
   onProjectsChanged: vi.fn(),
+  onCommandGroupsChanged: vi.fn(),
   onCustomCommandsChanged: vi.fn(),
   onCommandsChanged: vi.fn(),
   onCommandFlagsChanged: vi.fn(),
@@ -33,7 +34,6 @@ beforeEach(() => {
     loadLogs,
     executions: [],
     selectedExecutionId: null,
-    openLogKey: null,
   });
 });
 
@@ -65,11 +65,11 @@ describe("useProjectSync", () => {
     const { unmount } = renderHook(() => useProjectSync());
     unmount();
     await act(async () => resolve(unlisten));
-    expect(unlisten).toHaveBeenCalledTimes(8);
+    expect(unlisten).toHaveBeenCalledTimes(9);
     expect(loadExecutions).not.toHaveBeenCalled();
   });
 
-  it("recovers logs for the latest run on focus", async () => {
+  it("recovers the logs of the selected run on focus", async () => {
     const run = (id: number): Execution => ({
       id,
       projectId: 1,
@@ -89,7 +89,7 @@ describe("useProjectSync", () => {
     });
     useStore.setState({
       executions: [run(1), run(2)],
-      openLogKey: "1:test:dev",
+      selectedExecutionId: 2,
     });
     renderHook(() => useProjectSync());
     await act(async () => window.dispatchEvent(new Event("focus")));

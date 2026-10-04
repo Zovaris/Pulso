@@ -22,21 +22,6 @@ export function customDetected(command: CustomCommand): DetectedCommand {
   };
 }
 
-export function menubarCommands(
-  commands: CustomCommand[],
-  executions: Execution[],
-): CustomCommand[] {
-  return commands.filter(
-    (command) =>
-      command.favorite ||
-      executions.some(
-        (execution) =>
-          execution.commandId === `custom:${command.id}` &&
-          isActiveState(execution.state),
-      ),
-  );
-}
-
 export type MenubarFavourite = {
   projectId: number;
   command: DetectedCommand;
@@ -68,8 +53,12 @@ export function menubarFavourites(
     }
   }
 
+  const listed = new Set(
+    found.map((entry) => `${entry.projectId}:${entry.command.id}`),
+  );
   for (const command of commands) {
     if (!command.favorite) continue;
+    if (listed.has(`${command.projectId ?? 0}:custom:${command.id}`)) continue;
     if (isRunning(`custom:${command.id}`, command.projectId ?? 0, executions))
       continue;
 
@@ -93,39 +82,4 @@ function isRunning(
       execution.commandId === commandId &&
       isActiveState(execution.state),
   );
-}
-
-export type CustomCommandGroup = {
-  key: string;
-  projectId: number | null;
-  cwd: string;
-  commands: CustomCommand[];
-};
-
-export function groupCustomCommands(
-  commands: CustomCommand[],
-): CustomCommandGroup[] {
-  const groups = new Map<string, CustomCommandGroup>();
-
-  for (const command of commands) {
-    const key =
-      command.projectId === null
-        ? `cwd:${command.cwd}`
-        : `project:${command.projectId}`;
-    const existing = groups.get(key);
-
-    if (existing) {
-      existing.commands.push(command);
-      continue;
-    }
-
-    groups.set(key, {
-      key,
-      projectId: command.projectId,
-      cwd: command.cwd,
-      commands: [command],
-    });
-  }
-
-  return [...groups.values()];
 }

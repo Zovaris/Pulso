@@ -35,8 +35,8 @@
       {
         "label": "popover",
         "title": "Pulso",
-        "width": 360,
-        "height": 610,
+        "width": 300,
+        "height": 420,
         "visible": false,
         "decorations": false,
         "transparent": true,

@@ -43,7 +43,6 @@ beforeEach(() => {
   useStore.setState({
     executions: [],
     logs: {},
-    openLogKey: null,
     pendingCommandId: null,
     projectError: null,
     logLines: 4000,
@@ -137,26 +136,6 @@ describe("loadLogs", () => {
   });
 });
 
-describe("toggleLogs", () => {
-  it("opens, closes and fetches on the way in", async () => {
-    api.getLogSnapshot.mockResolvedValue({ executionId: 7, lines: [line(1)] });
-
-    useStore.getState().toggleLogs("1:package.json:dev", 7);
-    expect(useStore.getState().openLogKey).toBe("1:package.json:dev");
-    expect(api.getLogSnapshot).toHaveBeenCalledWith(7, null, 4000);
-
-    useStore.getState().toggleLogs("1:package.json:dev", 7);
-    expect(useStore.getState().openLogKey).toBeNull();
-  });
-
-  it("opens a command that never ran without fetching", () => {
-    useStore.getState().toggleLogs("1:package.json:dev", null);
-
-    expect(useStore.getState().openLogKey).toBe("1:package.json:dev");
-    expect(api.getLogSnapshot).not.toHaveBeenCalled();
-  });
-});
-
 describe("startCommand", () => {
   it("registers the execution and opens its output", async () => {
     api.startCommand.mockResolvedValue(execution(4));
@@ -166,7 +145,7 @@ describe("startCommand", () => {
 
     const state = useStore.getState();
     expect(state.executions.map((item) => item.id)).toEqual([4]);
-    expect(state.openLogKey).toBe("1:package.json:dev");
+    expect(state.selectedExecutionId).toBe(4);
     expect(state.pendingCommandId).toBeNull();
     expect(api.getLogSnapshot).toHaveBeenCalledWith(4, null, 4000);
   });

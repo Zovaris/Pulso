@@ -4,10 +4,8 @@ import {
   exitBadge,
   failures,
   finishedExecutions,
-  lastRun,
   liveExecutions,
   openPorts,
-  recentRuns,
 } from "@/features/desktop/session";
 import type { Execution, ExecutionState } from "@/lib/types";
 
@@ -105,41 +103,5 @@ describe("exitBadge", () => {
 describe("byUptime", () => {
   it("puts the longest running first", () => {
     expect(byUptime(all).map((entry) => entry.id)).toEqual([4, 2]);
-  });
-});
-
-describe("lastRun", () => {
-  it("finds the most recent run of one command", () => {
-    const runs = [
-      execution(1, "exited", { commandId: "pkg:dev", startedAt: 100 }),
-      execution(2, "running", { commandId: "pkg:dev", startedAt: 900 }),
-      execution(3, "exited", { commandId: "pkg:test", startedAt: 500 }),
-    ];
-
-    expect(lastRun(runs, 1, "pkg:dev")?.id).toBe(2);
-  });
-
-  it("says nothing about a command that never ran", () => {
-    expect(lastRun(all, 1, "pkg:nope")).toBeUndefined();
-  });
-});
-
-describe("recentRuns", () => {
-  it("keeps the newest runs of one project only", () => {
-    const runs = [
-      execution(1, "exited", { projectId: 1, startedAt: 100 }),
-      execution(2, "exited", { projectId: 2, startedAt: 900 }),
-      execution(3, "exited", { projectId: 1, startedAt: 800 }),
-    ];
-
-    expect(recentRuns(runs, 1).map((entry) => entry.id)).toEqual([3, 1]);
-  });
-
-  it("respects the limit it was given", () => {
-    const runs = Array.from({ length: 9 }, (_, index) =>
-      execution(index, "exited", { startedAt: index }),
-    );
-
-    expect(recentRuns(runs, 1, 3)).toHaveLength(3);
   });
 });

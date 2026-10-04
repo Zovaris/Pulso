@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use serde::Serialize;
-use tauri::{AppHandle, Manager, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::app::picker;
 use crate::commands::settings;
@@ -91,7 +91,7 @@ pub async fn export_projects(
 pub async fn import_projects(
     app: AppHandle,
     db: State<'_, Arc<Database>>,
-) -> Result<Option<usize>> {
+) -> Result<Option<transfer::Imported>> {
     let Some(path) = picker::open_file(&app, "Import projects".to_string()).await else {
         return Ok(None);
     };
@@ -115,11 +115,25 @@ pub async fn import_projects(
         )
     })?;
 
-    let added = in_database(&db, move |conn| transfer::import(conn, &bundle)).await?;
+    let home = app
+        .path()
+        .home_dir()
+        .map_err(|error| BackendError::internal(error.to_string()))?;
+    let (imported, customs, groups) = in_database(&db, move |conn| {
+        let imported = transfer::import(conn, &bundle, &home)?;
+        Ok((
+            imported,
+            repositories::custom_commands::list(conn)?,
+            repositories::command_groups::list(conn)?,
+        ))
+    })
+    .await?;
 
-    events::broadcast_projects(&app).await;
+    let _ = app.emit("custom-command://changed", &customs);
+    let _ = app.emit("command-group://changed", &groups);
+    events::refresh(&app).await;
 
-    Ok(Some(added))
+    Ok(Some(imported))
 }
 
 /// Everything needed to explain a problem in an issue, in one file: what Pulso

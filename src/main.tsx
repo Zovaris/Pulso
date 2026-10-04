@@ -11,8 +11,29 @@ import "@/styles.css";
 
 applyDocumentLocale(readStoredLocale() ?? detectLocale());
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+const root = ReactDOM.createRoot(
+  document.getElementById("root") as HTMLElement,
 );
+
+if (
+  import.meta.env.DEV &&
+  new URLSearchParams(window.location.search).has("design")
+) {
+  void Promise.all([
+    import("@/features/design-review/DesignReview"),
+    import("@/features/design-review/demo"),
+  ]).then(([{ DesignReview }, { installDesignDemo }]) => {
+    installDesignDemo();
+    root.render(
+      <React.StrictMode>
+        <DesignReview />
+      </React.StrictMode>,
+    );
+  });
+} else {
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+}

@@ -32,6 +32,18 @@ export async function showPopover(): Promise<void> {
   } catch {}
 }
 
+/** Sizes the popover window to the menu it holds, so the material ends where the menu does. */
+export async function fitPopover(width: number, height: number): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    const { getCurrentWindow, LogicalSize } =
+      await import("@tauri-apps/api/window");
+    const win = getCurrentWindow();
+    if (win.label !== "popover") return;
+    await win.setSize(new LogicalSize(Math.ceil(width), Math.ceil(height)));
+  } catch {}
+}
+
 export function setReducedMotion(value: boolean): Promise<void> {
   if (!isTauri()) return Promise.resolve();
   return invoke("set_reduced_motion", { value });

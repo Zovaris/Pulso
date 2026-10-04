@@ -1,5 +1,4 @@
 import type { StateCreator } from "zustand";
-import type { CommandFilter } from "@/features/desktop/commands";
 import { HISTORY_RUNS } from "@/features/desktop/history";
 import {
   filterLines,
@@ -14,6 +13,8 @@ import * as environmentApi from "@/services/api/environment";
 import { toBackendError } from "@/services/api/errors";
 import * as executionsApi from "@/services/api/executions";
 import * as historyApi from "@/services/api/history";
+import { transitionView } from "@/lib/motion";
+import type { ImportSummary } from "@/lib/types";
 import type { AppStore } from "./types";
 
 export type DesktopSlice = Pick<
@@ -22,7 +23,6 @@ export type DesktopSlice = Pick<
   | "icons"
   | "selectedExecutionId"
   | "selectedProjectId"
-  | "commandFilter"
   | "logFilter"
   | "logAutoscroll"
   | "paletteOpen"
@@ -56,7 +56,6 @@ export type DesktopSlice = Pick<
   | "clearHistory"
   | "select"
   | "selectProject"
-  | "setCommandFilter"
   | "setLogFilter"
   | "setLogAutoscroll"
   | "openPalette"
@@ -71,6 +70,21 @@ export type DesktopSlice = Pick<
 >;
 
 const NOTICE_MS = 3200;
+
+function importNotice(t: AppStore["t"], added: ImportSummary): string {
+  const parts = (["projects", "commands", "groups"] as const)
+    .filter((kind) => added[kind] > 0)
+    .map((kind) =>
+      t(`imported${kind[0].toUpperCase()}${kind.slice(1)}`, {
+        count: added[kind],
+      }),
+    );
+  if (!parts.length) return t("importedNothing");
+  const last = parts.pop()!;
+  return t("importedSummary", {
+    items: parts.length ? t("listAnd", { rest: parts.join(", "), last }) : last,
+  });
+}
 
 export const createDesktopSlice: StateCreator<
   AppStore,
@@ -104,7 +118,6 @@ export const createDesktopSlice: StateCreator<
     icons: {},
     selectedExecutionId: null,
     selectedProjectId: null,
-    commandFilter: "all",
     logFilter: NO_FILTER,
     logAutoscroll: true,
     paletteOpen: false,
@@ -164,8 +177,12 @@ export const createDesktopSlice: StateCreator<
         const added = await dataApi.importProjects();
         if (added === null) return;
 
-        await get().loadProjects();
-        note(String(added));
+        await Promise.all([
+          get().loadProjects(),
+          get().loadCustomCommands(),
+          get().loadCommandGroups(),
+        ]);
+        note(importNotice(get().t, added));
       });
     },
 
@@ -251,14 +268,18 @@ export const createDesktopSlice: StateCreator<
 
     select: (executionId) => set({ selectedExecutionId: executionId }),
 
-    selectProject: (projectId) =>
-      set({
-        selectedProjectId: projectId,
-        environment: null,
-        environmentFor: null,
-      }),
-
-    setCommandFilter: (filter: CommandFilter) => set({ commandFilter: filter }),
+    selectProject: (projectId) => {
+      const apply = () =>
+        set({
+          selectedProjectId: projectId,
+          environment: null,
+          environmentFor: null,
+        });
+      const state = get();
+      if (state.section === "projects" && state.selectedProjectId !== projectId)
+        transitionView(apply);
+      else apply();
+    },
 
     setLogFilter: (filter: LogFilter) => set({ logFilter: filter }),
 

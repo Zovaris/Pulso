@@ -1,356 +1,212 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
-  EyeIcon,
-  EyeSlashIcon,
   FolderSimplePlusIcon,
-  PlayIcon,
-  StarIcon,
-  StopIcon,
-  TextboxIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
 } from "@phosphor-icons/react";
-import { Button, IconButton, Input, SegmentedControl } from "@zovaris/sephiro";
-import { useState } from "react";
+import {
+  Alert,
+  Button,
+  EmptyState,
+  Input,
+  SegmentedControl,
+  Skeleton,
+} from "@zovaris/sephiro";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
-import { Card, CardEmpty } from "@/components/shared/Card";
-import { IconTool } from "@/components/shared/IconTool";
 import {
-  type CommandFilter,
-  categoryKey,
-  filterCommands,
-  filterCount,
-  flagsFor,
-  invocationOf,
-  scanGroups,
-} from "@/features/desktop/commands";
-import { latestExecution } from "@/features/executions/execution";
+  type CatalogKind,
+  catalogRows,
+  filterCatalog,
+  kindCounts,
+} from "@/features/desktop/catalog";
 import { scanMessage } from "@/features/projects/scanMessage";
 import { useAddProject } from "@/features/projects/useAddProject";
+import { useCommandEditor } from "@/features/shell/components/CommandEditor";
+import { CommandTable } from "@/features/shell/components/CommandTable";
 import { EditorSplit } from "@/features/shell/components/EditorSplit";
 import { ProjectInspector } from "@/features/shell/components/Inspector";
-import { ProjectStrip } from "@/features/shell/components/ProjectStrip";
-import { REVEAL_DURATION, REVEAL_EASE } from "@/lib/motion";
-import type { DetectedCommand } from "@/lib/types";
 
-const FILTERS = [
-  "all",
-  "favorites",
-  "dev",
-  "test",
-  "lint",
-  "hidden",
-] as CommandFilter[];
-
-const FILTER_ICONS: Partial<Record<CommandFilter, typeof StarIcon>> = {
-  favorites: StarIcon,
-  dev: PlayIcon,
-  hidden: EyeSlashIcon,
-};
-
-function CommandRow({
-  projectId,
-  command,
-}: {
-  projectId: number;
-  command: DetectedCommand;
-}) {
-  const { t } = useI18n();
-  const scan = useStore((state) => state.scans[String(projectId)]);
-  const executions = useStore((state) => state.executions);
-  const pendingCommandId = useStore((state) => state.pendingCommandId);
-  const argsFor = useStore((state) => state.argsFor);
-  const setArgsFor = useStore((state) => state.setArgsFor);
-  const startCommand = useStore((state) => state.startCommand);
-  const stopExecution = useStore((state) => state.stopExecution);
-  const setCommandFlag = useStore((state) => state.setCommandFlag);
-  const [draft, setDraft] = useState("");
-
-  const flags = flagsFor(scan?.flags, command.id);
-  const key = `${projectId}:${command.id}`;
-  const open = argsFor === key;
-  const execution = latestExecution(executions, projectId, command.id);
-  const active =
-    execution?.state === "running" || execution?.state === "starting";
-  const invocation = invocationOf(command);
-
-  return (
-    <>
-      <div
-        className="pulso-cmd pulso-row pulso-row-cmd px-2 py-1.5"
-        data-hidden={flags.hidden}
-      >
-        <IconButton
-          size="sm"
-          variant="ghost"
-          label={t("favorite")}
-          title={t("favorite")}
-          aria-pressed={flags.favorite}
-          onClick={() =>
-            void setCommandFlag(projectId, command.id, {
-              favorite: !flags.favorite,
-            })
-          }
-          icon={
-            <StarIcon size={12} weight={flags.favorite ? "fill" : "regular"} />
-          }
-          className={flags.favorite ? "text-accent-strong" : undefined}
-          style={{ width: 20, height: 20 }}
-        />
-
-        <span className="pulso-cmd__name min-w-0 truncate text-[12.5px]">
-          {command.label}
-        </span>
-
-        <span
-          className="pulso-cmd__invocation min-w-0 truncate font-mono text-[11.5px] text-faint"
-          title={invocation}
-        >
-          {invocation}
-        </span>
-
-        <span className="truncate text-[11px] text-faint">
-          {t(categoryKey(command.category))}
-          {command.longRunning ? ` · ${t("longRunningHint")}` : ""}
-        </span>
-
-        <span className="flex items-center justify-end gap-0.5">
-          <IconTool
-            icon={TextboxIcon}
-            disabled={command.detector === "custom"}
-            size={12}
-            label={t("runWithArgs")}
-            onClick={() => setArgsFor(open ? null : key)}
-          />
-          <IconTool
-            icon={flags.hidden ? EyeIcon : EyeSlashIcon}
-            size={12}
-            label={flags.hidden ? t("showInPopover") : t("hideInPopover")}
-            onClick={() =>
-              void setCommandFlag(projectId, command.id, {
-                hidden: !flags.hidden,
-              })
-            }
-          />
-          <IconTool
-            icon={active ? StopIcon : PlayIcon}
-            size={12}
-            label={active ? t("stopCommand") : t("runCommand")}
-            disabled={pendingCommandId === command.id}
-            onClick={() => {
-              if (active && execution) {
-                void stopExecution(execution.id);
-                return;
-              }
-
-              void startCommand(projectId, command.id);
-            }}
-          />
-        </span>
-      </div>
-
-      {open ? (
-        <form
-          className="flex items-center gap-2 bg-hover px-2 py-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void startCommand(
-              projectId,
-              command.id,
-              draft.split(/\s+/).filter((part) => part !== ""),
-            );
-          }}
-        >
-          <Input
-            size="sm"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder={t("argumentsPlaceholder")}
-            aria-label={t("argumentsPlaceholder")}
-            className="min-w-0 flex-1 font-mono text-[11.5px]"
-          />
-          <Button size="sm" variant="primary" type="submit">
-            {t("runCommand")}
-          </Button>
-          <Button
-            size="sm"
-            variant="secondary"
-            type="button"
-            onClick={() => setArgsFor(null)}
-          >
-            {t("cancel")}
-          </Button>
-        </form>
-      ) : null}
-    </>
-  );
-}
+const KINDS: CatalogKind[] = ["all", "favorites", "custom", "hidden"];
 
 export function ProjectsSection() {
   const { t } = useI18n();
   const projects = useStore((state) => state.projects);
   const scans = useStore((state) => state.scans);
+  const customs = useStore((state) => state.customCommands);
   const selectedProjectId = useStore((state) => state.selectedProjectId);
-  const selectProject = useStore((state) => state.selectProject);
-  const filter = useStore((state) => state.commandFilter);
-  const setCommandFilter = useStore((state) => state.setCommandFilter);
   const error = useStore((state) => state.projectError);
   const dismissProjectError = useStore((state) => state.dismissProjectError);
+  const setArgsFor = useStore((state) => state.setArgsFor);
   const addProject = useAddProject();
-  const [commands] = useAutoAnimate<HTMLDivElement>({
-    duration: REVEAL_DURATION,
-    easing: REVEAL_EASE,
-  });
-
+  const editor = useCommandEditor();
+  const [kind, setKind] = useState<CatalogKind>("all");
+  const [text, setText] = useState("");
   const project =
     projects.find((entry) => entry.id === selectedProjectId) ?? projects[0];
   const scan = project ? scans[String(project.id)] : undefined;
+
+  useEffect(() => {
+    setArgsFor(null);
+    setKind("all");
+    setText("");
+  }, [project?.id, setArgsFor]);
+
+  const rows = useMemo(
+    () =>
+      project
+        ? catalogRows([project], scans, customs, t("personalCommands")).filter(
+            (row) => row.projectId === project.id,
+          )
+        : [],
+    [project, scans, customs, t],
+  );
+  const counts = kindCounts(rows, KINDS);
+  const shown = filterCatalog(rows, { kind, projectId: null, text });
   const message = scan ? scanMessage(scan) : null;
-  const groups = scan ? scanGroups(scan, filter) : [];
-  const shown = scan ? filterCommands(scan, filter).length : 0;
 
   if (!project) {
     return (
-      <div className="pulso-pane flex flex-1 flex-col items-center justify-center gap-3 text-center">
-        <p className="text-[12.5px] text-mist">{t("emptyProjects")}</p>
-        <Button
-          size="md"
-          variant="primary"
-          type="button"
-          onClick={() => void addProject()}
-        >
-          <FolderSimplePlusIcon size={13} />
-          {t("addProject")}
-        </Button>
+      <div className="flex min-w-0 flex-1 items-center justify-center p-6">
+        <EmptyState
+          icon={<FolderSimplePlusIcon size={28} />}
+          title={t("noProjects")}
+          description={t("emptyProjects")}
+          action={
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => void addProject()}
+            >
+              {t("addProject")}
+            </Button>
+          }
+        />
       </div>
     );
   }
 
   return (
     <>
-      <div className="pulso-pane flex min-w-0 flex-1 flex-col overflow-auto px-6 py-5">
-        <header className="flex items-start gap-4">
-          <div className="min-w-0">
-            <h1 className="truncate text-[16px] font-semibold tracking-[-0.015em]">
+      <section className="pulso-pane flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex flex-none items-start gap-4 px-6 pt-5 pb-4">
+          <div className="min-w-0 flex-1">
+            <h1
+              className="truncate text-[16px] font-semibold tracking-[-0.015em]"
+              title={project.name}
+            >
               {project.name}
             </h1>
-            <p className="mt-0.5 truncate font-mono text-[11.5px] text-faint">
+            <p
+              className="mt-1 truncate font-mono text-[11.5px] text-faint"
+              title={project.path}
+            >
               {project.path}
             </p>
           </div>
-          <div className="ml-auto flex flex-none items-center gap-1.5">
-            <EditorSplit projectId={project.id} />
-            <Button
-              size="md"
-              variant="primary"
-              type="button"
-              onClick={() => void addProject()}
-            >
-              <FolderSimplePlusIcon size={13} />
-              {t("addProject")}
-            </Button>
-          </div>
+          <EditorSplit projectId={project.id} />
         </header>
 
-        <div className="mt-4">
-          <ProjectStrip
-            projects={projects}
-            scans={scans}
-            selectedId={project.id}
-            onSelect={selectProject}
-          />
-        </div>
-
-        {scan && scan.commands.length > 0 ? (
-          <div className="mt-3.5 flex flex-wrap items-center gap-1.5">
+        {project.availability === "available" ? (
+          <div className="pulso-filter-bar">
             <SegmentedControl
               size="sm"
               ariaLabel={t("commandFilters")}
-              value={filter}
-              onValueChange={(value) =>
-                setCommandFilter(value as CommandFilter)
-              }
-              options={FILTERS.map((entry) => {
-                const Icon = FILTER_ICONS[entry];
-                return {
-                  value: entry,
-                  icon: Icon ? <Icon size={12} /> : undefined,
-                  label: (
-                    <span className="inline-flex items-center gap-1.5">
-                      {t(`filter${entry[0].toUpperCase()}${entry.slice(1)}`)}
-                      <span className="text-faint tabular-nums">
-                        {filterCount(scan, entry)}
-                      </span>
-                    </span>
-                  ),
-                };
-              })}
+              value={kind}
+              onValueChange={(value) => setKind(value as CatalogKind)}
+              options={KINDS.map((entry) => ({
+                value: entry,
+                label: (
+                  <>
+                    {t(`kind${entry[0].toUpperCase()}${entry.slice(1)}`)}
+                    <span className="pulso-count">{counts[entry]}</span>
+                  </>
+                ),
+              }))}
             />
-          </div>
-        ) : null}
-
-        <div ref={commands} className="mt-3.5 flex flex-col gap-3">
-          {scan === undefined ? (
-            <Card>
-              <CardEmpty note={t("readingManifest")} />
-            </Card>
-          ) : scan.commands.length === 0 ? (
-            <Card>
-              <CardEmpty
-                note={
-                  message
-                    ? `${t(message.key)} ${message.detail ?? ""}`.trim()
-                    : t("noCommands")
-                }
+            <label className="pulso-search ml-auto">
+              <MagnifyingGlassIcon size={13} aria-hidden />
+              <Input
+                size="sm"
+                aria-label={t("searchCommands")}
+                placeholder={t("searchCommands")}
+                value={text}
+                onChange={(event) => setText(event.target.value)}
               />
-            </Card>
-          ) : shown === 0 ? (
-            <Card>
-              <CardEmpty note={t("nothingInFilter")} />
-            </Card>
-          ) : (
-            <Card>
-              {groups.map((group) => (
-                <div key={group.source}>
-                  <p className="flex items-center gap-2.5 border-b border-hairline px-2 py-1.5">
-                    <span className="font-mono text-[11px] text-faint">
-                      {group.label}
-                    </span>
-                    <span className="h-px flex-1 bg-hairline" />
-                    <span className="text-[11px] text-faint tabular-nums">
-                      {group.commands.length}
-                    </span>
-                  </p>
-                  {group.commands.map((command) => (
-                    <CommandRow
-                      key={command.id}
-                      projectId={project.id}
-                      command={command}
-                    />
-                  ))}
-                </div>
-              ))}
-            </Card>
-          )}
-        </div>
-
-        {error ? (
-          <div className="mt-3.5 flex items-center gap-2.5 rounded-[9px] border border-line bg-panel px-3 py-2">
-            <p className="min-w-0 flex-1 text-[11.5px] text-mist">
-              {error.message}
-            </p>
+            </label>
             <Button
               size="sm"
-              variant="secondary"
-              type="button"
-              onClick={dismissProjectError}
-              className="pulso-control-xs"
+              variant="quiet"
+              onClick={() => editor.create(project.id)}
             >
-              {t("dismiss")}
+              <PlusIcon size={13} weight="bold" />
+              {t("newCommand")}
             </Button>
           </div>
         ) : null}
-      </div>
 
+        {error ? (
+          <Alert
+            variant="danger"
+            dismissible
+            onDismiss={dismissProjectError}
+            className="mx-5 mb-3"
+          >
+            {error.message}
+          </Alert>
+        ) : null}
+
+        <div className="min-h-0 flex-1 overflow-auto px-5 pb-4">
+          {project.availability !== "available" ? (
+            <EmptyState
+              title={t("projectMissing")}
+              description={project.path}
+            />
+          ) : !scan ? (
+            <div className="space-y-2 pt-2">
+              <Skeleton height={28} />
+              <Skeleton height={28} />
+              <Skeleton height={28} />
+            </div>
+          ) : rows.length === 0 ? (
+            <EmptyState
+              title={message ? t(message.key) : t("noCommands")}
+              description={message?.detail}
+              compact
+            />
+          ) : (
+            <CommandTable
+              rows={shown}
+              showProject={false}
+              onEdit={editor.edit}
+              onRemove={editor.remove}
+              empty={
+                <EmptyState
+                  compact
+                  title={t("nothingInFilter")}
+                  action={
+                    <Button
+                      size="sm"
+                      variant="quiet"
+                      onClick={() => {
+                        setKind("all");
+                        setText("");
+                      }}
+                    >
+                      {t("clearSearch")}
+                    </Button>
+                  }
+                />
+              }
+            />
+          )}
+        </div>
+
+        <footer className="pulso-section-footer">
+          {t("commandCount", { count: shown.length })}
+        </footer>
+        {editor.dialogs}
+      </section>
       <ProjectInspector project={project} />
     </>
   );

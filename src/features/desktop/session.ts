@@ -52,35 +52,3 @@ export function byUptime(executions: Execution[]): Execution[] {
     (left, right) => left.startedAt - right.startedAt,
   );
 }
-
-export function lastRun(
-  executions: Execution[],
-  projectId: number,
-  commandId: string,
-): Execution | undefined {
-  let found: Execution | undefined;
-
-  for (const execution of executions) {
-    if (
-      execution.projectId === projectId &&
-      execution.commandId === commandId &&
-      (!found || execution.startedAt > found.startedAt)
-    ) {
-      found = execution;
-    }
-  }
-
-  return found;
-}
-
-/** The last few runs of one project, newest first, for the inspector. */
-export function recentRuns(
-  executions: Execution[],
-  projectId: number,
-  limit = 4,
-): Execution[] {
-  return executions
-    .filter((execution) => execution.projectId === projectId)
-    .sort((left, right) => right.startedAt - left.startedAt)
-    .slice(0, limit);
-}
