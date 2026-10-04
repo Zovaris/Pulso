@@ -1269,6 +1269,10 @@ html[data-material="menu"][data-theme="dark"] .pulso-menu {
   padding-inline: 9px;
 }
 
+.pulso-icon-segments .sph-segmented-control__label,
 .pulso-icon-segments .sph-segmented-control__label > span {
-  display: inline-flex;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
 }
