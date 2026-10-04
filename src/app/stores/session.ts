@@ -188,12 +188,10 @@ export const createSessionSlice: StateCreator<
     // Opening Procesos is the moment the user is looking at what failed, so the
     // sidebar marker clears right there instead of needing its own effect.
     setSection: (section) => {
-      const apply = () =>
-        set(
-          section === "processes"
-            ? { section, seenFailuresAt: Date.now() }
-            : { section },
-        );
+      const apply = () => {
+        set({ section });
+        if (section === "processes") get().markFailuresSeen();
+      };
       if (get().section === section) apply();
       else transitionView(apply);
     },

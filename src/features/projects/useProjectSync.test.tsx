@@ -15,6 +15,7 @@ vi.mock("@/lib/events", () => ({
   onExecutionsRemoved: vi.fn(),
   onLogAppended: vi.fn(),
   onPopoverPrepare: vi.fn(),
+  onFailuresSeen: vi.fn(),
 }));
 
 const eventMocks = vi.mocked(events);
@@ -65,7 +66,7 @@ describe("useProjectSync", () => {
     const { unmount } = renderHook(() => useProjectSync());
     unmount();
     await act(async () => resolve(unlisten));
-    expect(unlisten).toHaveBeenCalledTimes(9);
+    expect(unlisten).toHaveBeenCalledTimes(10);
     expect(loadExecutions).not.toHaveBeenCalled();
   });
 

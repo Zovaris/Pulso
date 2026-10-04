@@ -1,3 +1,4 @@
+pub mod attention;
 pub mod autostart;
 pub mod burst;
 pub mod cues;

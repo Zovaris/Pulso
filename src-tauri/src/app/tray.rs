@@ -10,7 +10,8 @@ use crate::commands::settings::{stored_locale, Locale};
 use crate::events;
 use crate::process::supervisor::ProcessSupervisor;
 
-use super::windows;
+use super::{attention, windows};
+use crate::platform;
 
 const TRAY_PNG: &[u8] = include_bytes!("../../../assets/brand/pulso-tray.png");
 const TRAY_ID: &str = "pulso";
@@ -19,6 +20,7 @@ const TRAY_ID: &str = "pulso";
 struct Shown {
     running: usize,
     locale: Locale,
+    attention: bool,
 }
 
 static SHOWN: Mutex<Option<Shown>> = Mutex::new(None);
@@ -70,7 +72,17 @@ pub fn set_badge(app: &AppHandle, png: Option<&[u8]>) -> tauri::Result<()> {
         None => Image::from_bytes(TRAY_PNG).expect("tray png"),
     };
 
-    tray.set_icon_with_as_template(Some(icon), true)
+    tray.set_icon_with_as_template(Some(icon), true)?;
+    platform::status_dot::show(&tray, attention_shown());
+    Ok(())
+}
+
+fn attention_shown() -> bool {
+    SHOWN
+        .lock()
+        .ok()
+        .and_then(|shown| shown.map(|shown| shown.attention))
+        .unwrap_or(false)
 }
 
 pub fn sync(app: &AppHandle) {
@@ -78,22 +90,36 @@ pub fn sync(app: &AppHandle) {
         return;
     }
 
-    let running = running_count(app);
-    let locale = stored_locale(app);
+    let executions = app
+        .try_state::<Arc<ProcessSupervisor>>()
+        .map(|supervisor| supervisor.list())
+        .unwrap_or_default();
+    let next = Shown {
+        running: executions
+            .iter()
+            .filter(|execution| execution.is_active())
+            .count(),
+        locale: stored_locale(app),
+        attention: attention::unseen(&executions, attention::seen_at()) > 0,
+    };
 
     let Ok(mut shown) = SHOWN.lock() else {
         return;
     };
-    if *shown == Some(Shown { running, locale }) {
+    let previous = shown.replace(next);
+    drop(shown);
+    if previous == Some(next) {
         return;
     }
-    *shown = Some(Shown { running, locale });
-    drop(shown);
 
     let app = app.clone();
     tauri::async_runtime::spawn_blocking(move || {
-        if let Some(tray) = app.tray_by_id(TRAY_ID) {
-            let _ = tray.set_tooltip(Some(label(running, locale)));
+        let Some(tray) = app.tray_by_id(TRAY_ID) else {
+            return;
+        };
+        let _ = tray.set_tooltip(Some(label(next.running, next.locale)));
+        if previous.map(|shown| shown.attention) != Some(next.attention) {
+            platform::status_dot::show(&tray, next.attention);
         }
     });
 }
@@ -109,18 +135,6 @@ pub fn label(running: usize, locale: Locale) -> String {
     };
 
     format!("Pulso — {sentence}")
-}
-
-fn running_count(app: &AppHandle) -> usize {
-    let Some(supervisor) = app.try_state::<Arc<ProcessSupervisor>>() else {
-        return 0;
-    };
-
-    supervisor
-        .list()
-        .iter()
-        .filter(|execution| execution.is_active())
-        .count()
 }
 
 fn toggle_popover(app: &AppHandle, x: i32, y: i32, width: u32, height: u32) {

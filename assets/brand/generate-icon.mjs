@@ -28,6 +28,14 @@ const TRAY_SHAPE = {
 /** 18 points at 2x, the height macOS gives a menu bar item. */
 const TRAY_PX = 36;
 
+/**
+ * The dot that sits on the menu bar icon while a failure waits to be seen.
+ * It is drawn in the system red rather than tinted, so it reads on any bar.
+ */
+const ATTENTION_SHAPE = { dot: 46, rings: [] };
+const ATTENTION_PX = 14;
+const ATTENTION_INK = [0xff, 0x3b, 0x30];
+
 function squirclePath(size, n = 5, samples = 128) {
   const half = size / 2;
   const points = [];
@@ -148,15 +156,18 @@ function chunk(type, data) {
   return Buffer.concat([length, name, data, crc]);
 }
 
-/** A black template image: macOS tints it for a light or dark menu bar. */
-function templatePng(shape, size) {
+/**
+ * A PNG of the shape in one ink. Black on clear is a template image, which
+ * macOS tints for a light or dark menu bar; any other ink stays as drawn.
+ */
+function shapePng(shape, size, ink = [0, 0, 0]) {
   const stride = size * 4 + 1;
   const pixels = Buffer.alloc(size * stride);
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      pixels[y * stride + 1 + x * 4 + 3] = Math.round(
-        coverage(shape, size, x, y) * 255,
-      );
+      const at = y * stride + 1 + x * 4;
+      pixels.set(ink, at);
+      pixels[at + 3] = Math.round(coverage(shape, size, x, y) * 255);
     }
   }
   const header = Buffer.alloc(13);
@@ -178,7 +189,8 @@ const files = {
   "pulso-icon-rounded.svg": appSvg(true),
   "pulso-mark.svg": markSvg,
   "pulso-tray.svg": traySvg,
-  "pulso-tray.png": templatePng(TRAY_SHAPE, TRAY_PX),
+  "pulso-tray.png": shapePng(TRAY_SHAPE, TRAY_PX),
+  "pulso-attention.png": shapePng(ATTENTION_SHAPE, ATTENTION_PX, ATTENTION_INK),
 };
 for (const [name, body] of Object.entries(files)) {
   writeFileSync(join(dir, name), body);

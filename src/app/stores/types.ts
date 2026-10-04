@@ -170,6 +170,8 @@ export type StoreActions = {
   note: (text: string) => void;
   dismissNotice: () => void;
   markFailuresSeen: () => void;
+  loadFailuresSeen: () => Promise<void>;
+  applyFailuresSeen: (seenAt: number) => void;
 };
 
 export type HistoryLog = {
