@@ -150,7 +150,7 @@
   "transparency": "Transparency",
   "transparencyHint": "macOS material behind the main window. The menu bar menu always uses the system menu material.",
   "soundCues": "Sound cues",
-  "soundCuesHint": "Tink to start, Glass to finish well, Basso to fail.",
+  "soundCuesHint": "One sound when something long finishes well and another when something fails. Several at once sound as one.",
   "openAtLogin": "Open at login",
   "openAtLoginHint": "Pulso starts in the menu bar, with no window.",
   "defaultEditorLabel": "Default editor",

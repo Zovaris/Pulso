@@ -150,7 +150,7 @@
   "transparency": "Transparencia",
   "transparencyHint": "Material de macOS detrás de la ventana principal. El menú de la barra siempre usa el material de los menús del sistema.",
   "soundCues": "Avisos sonoros",
-  "soundCuesHint": "Tink al arrancar, Glass al terminar bien, Basso al fallar.",
+  "soundCuesHint": "Un sonido cuando algo largo termina bien y otro cuando algo falla. Varios a la vez suenan como uno.",
   "openAtLogin": "Abrir al iniciar sesión",
   "openAtLoginHint": "Pulso empieza en la barra, sin ventana.",
   "defaultEditorLabel": "Editor predeterminado",

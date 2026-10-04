@@ -66,6 +66,9 @@
     "macOS": {
       "infoPlist": "Info.plist",
       "signingIdentity": "-"
+    },
+    "resources": {
+      "sounds/*.wav": "sounds/"
     }
   }
 }

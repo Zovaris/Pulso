@@ -1,17 +1,35 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
+use std::time::Duration;
 
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
+use crate::app::burst::{self, Burst};
 use crate::commands::settings::sound_cues;
 use crate::domain::execution::{Execution, ExecutionState};
-use crate::platform::macos::sound;
+use crate::platform;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// A run shorter than this finished while the user was still looking at it,
+/// so a sound would only repeat what the row already says.
+pub const LONG_RUN_MS: i64 = 20_000;
+
+/// Long enough to hear a group as one event, short enough to still feel live.
+const BURST: Duration = Duration::from_millis(250);
+
+/// Ordered by how much it matters: a burst with a failure in it sounds like one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Cue {
-    Start,
-    Success,
+    Done,
     Failure,
+}
+
+impl Cue {
+    pub fn sound(self) -> &'static str {
+        match self {
+            Cue::Done => "done",
+            Cue::Failure => "failed",
+        }
+    }
 }
 
 #[derive(Default)]
@@ -26,36 +44,61 @@ impl Tracker {
             return None;
         }
 
-        cue_for(previous, execution.state)
+        cue_for(previous, execution)
     }
 }
 
 static TRACKER: Mutex<Option<Tracker>> = Mutex::new(None);
+static PENDING: Mutex<Option<Burst<Cue>>> = Mutex::new(None);
 
 pub fn observe(app: &AppHandle, execution: &Execution) {
-    let Ok(mut guard) = TRACKER.lock() else {
+    let Some(cue) = TRACKER.lock().ok().and_then(|mut guard| {
+        guard
+            .get_or_insert_with(Tracker::default)
+            .observe(execution)
+    }) else {
         return;
     };
-    let tracker = guard.get_or_insert_with(Tracker::default);
+    if !sound_cues(app) {
+        return;
+    }
 
-    let Some(cue) = tracker.observe(execution) else {
+    let app = app.clone();
+    burst::gather(&PENDING, cue, BURST, move |cues| {
+        if let Some(cue) = loudest(&cues) {
+            play(&app, cue);
+        }
+    });
+}
+
+pub fn loudest(cues: &[Cue]) -> Option<Cue> {
+    cues.iter().copied().max()
+}
+
+fn play(app: &AppHandle, cue: Cue) {
+    let Ok(path) = app.path().resolve(
+        format!("sounds/{}.wav", cue.sound()),
+        tauri::path::BaseDirectory::Resource,
+    ) else {
         return;
     };
+    platform::sound::play(&path);
+}
 
-    if sound_cues(app) {
-        sound::play(cue);
+fn cue_for(previous: Option<ExecutionState>, execution: &Execution) -> Option<Cue> {
+    match execution.state {
+        ExecutionState::Failed => Some(Cue::Failure),
+        ExecutionState::Exited => {
+            (previous != Some(ExecutionState::Stopping) && ran_long(execution)).then_some(Cue::Done)
+        }
+        _ => None,
     }
 }
 
-fn cue_for(previous: Option<ExecutionState>, next: ExecutionState) -> Option<Cue> {
-    match next {
-        ExecutionState::Starting => (previous.is_none()).then_some(Cue::Start),
-        ExecutionState::Failed => Some(Cue::Failure),
-        ExecutionState::Exited => {
-            (previous != Some(ExecutionState::Stopping)).then_some(Cue::Success)
-        }
-        ExecutionState::Running | ExecutionState::Stopping | ExecutionState::Interrupted => None,
-    }
+fn ran_long(execution: &Execution) -> bool {
+    execution
+        .ended_at
+        .is_some_and(|ended| ended - execution.started_at >= LONG_RUN_MS)
 }
 
 #[cfg(test)]

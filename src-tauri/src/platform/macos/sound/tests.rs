@@ -1,20 +1,21 @@
 use super::*;
 
-#[test]
-fn every_cue_points_at_a_sound_this_mac_has() {
-    for cue in [Cue::Start, Cue::Success, Cue::Failure] {
-        let path = format!("{SOUNDS}/{}.aiff", name(cue));
+fn sound(name: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("sounds")
+        .join(format!("{name}.wav"))
+}
 
-        assert!(
-            std::path::Path::new(&path).exists(),
-            "{path} is not on this machine"
-        );
+#[test]
+fn every_cue_has_a_sound_the_system_can_load() {
+    for cue in [crate::app::cues::Cue::Done, crate::app::cues::Cue::Failure] {
+        let path = sound(cue.sound());
+
+        assert!(register(&path).is_some(), "{} did not load", path.display());
     }
 }
 
 #[test]
-fn the_three_cues_are_three_different_sounds() {
-    assert_ne!(name(Cue::Start), name(Cue::Success));
-    assert_ne!(name(Cue::Success), name(Cue::Failure));
-    assert_ne!(name(Cue::Failure), name(Cue::Start));
+fn a_missing_file_is_skipped_instead_of_playing_silence() {
+    assert!(register(&sound("nowhere")).is_none());
 }
