@@ -146,6 +146,8 @@
   "themeLight": "Light",
   "themeSystem": "System",
   "themeHint": "Dark, light, or whatever the system is using.",
+  "themePalette": "Palette",
+  "themePaletteHint": "Pulso's own colours, or a theme you already know.",
   "language": "Language",
   "languageHint": "Applies to the window and the menu bar.",
   "transparency": "Transparency",

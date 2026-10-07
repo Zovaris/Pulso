@@ -1,5 +1,6 @@
 @import "./styles/fonts.css";
 @import "tailwindcss";
+@import "./styles/themes.css";
 
 @theme {
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;

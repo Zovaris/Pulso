@@ -10,6 +10,7 @@ import { applyDocumentLocale } from "@/lib/i18n";
 export function DesignReview() {
   const { t } = useI18n();
   const theme = useStore((state) => state.themePref);
+  const palette = useStore((state) => state.palette);
   const locale = useStore((state) => state.locale);
   const surface = useStore((state) => state.surface);
   const notice = useStore((state) => state.notice);
@@ -18,11 +19,12 @@ export function DesignReview() {
     const root = document.documentElement;
     root.dataset.theme = theme === "light" ? "light" : "dark";
     root.dataset.themePref = theme;
+    root.dataset.sephiroTheme = palette;
     root.dataset.transparency = "off";
     root.dataset.surface = "app";
     root.style.colorScheme = theme === "light" ? "light" : "dark";
     applyDocumentLocale(locale);
-  }, [theme, locale]);
+  }, [theme, palette, locale]);
   const choose = (value: string) => {
     useStore.setState({
       surface: value === "menubar" ? "popover" : "app",

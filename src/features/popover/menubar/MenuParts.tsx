@@ -89,6 +89,7 @@ export function MenuItem({
           aria-label={action.label}
           title={action.label}
           disabled={action.disabled}
+          onMouseDown={(event) => event.preventDefault()}
           onClick={(event) => {
             event.stopPropagation();
             action.onSelect();

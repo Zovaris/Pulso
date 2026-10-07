@@ -225,6 +225,22 @@ describe("menubar menu", () => {
     expect(item(/^Stop/)).toBeTruthy();
   });
 
+  it("keeps the row highlighted while its action is pressed", () => {
+    const running = execution({});
+    setup({ executions: [running] });
+    const stop = screen.getByRole("button", { name: "Stop" });
+
+    const press = new MouseEvent("mousedown", {
+      bubbles: true,
+      cancelable: true,
+    });
+    stop.dispatchEvent(press);
+
+    expect(press.defaultPrevented).toBe(true);
+    fireEvent.click(stop);
+    expect(stopExecution).toHaveBeenCalledWith(running.id);
+  });
+
   it("offers a failed command again from its row", () => {
     const failed = execution({ state: "failed", endedAt: 2_000, exitCode: 1 });
     setup({ executions: [failed] });

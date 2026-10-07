@@ -19,6 +19,7 @@ const AppShell = lazy(() =>
 export default function App() {
   const surface = useStore((s) => s.surface);
   const themePref = useStore((s) => s.themePref);
+  const palette = useStore((s) => s.palette);
   const transparency = useStore((s) => s.transparency);
 
   useProjectSync();
@@ -27,21 +28,21 @@ export default function App() {
 
   useEffect(() => {
     const resolved = resolveTheme(themePref);
-    applyDocumentAppearance(themePref, resolved, transparency);
+    applyDocumentAppearance(themePref, resolved, transparency, palette);
     void applyWindowChrome(resolved, transparency);
-  }, [themePref, transparency]);
+  }, [themePref, palette, transparency]);
 
   useEffect(() => {
     if (themePref !== "system") return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => {
       const resolved = resolveTheme("system");
-      applyDocumentAppearance("system", resolved, transparency);
+      applyDocumentAppearance("system", resolved, transparency, palette);
       void applyWindowChrome(resolved, transparency);
     };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
-  }, [themePref, transparency]);
+  }, [themePref, palette, transparency]);
 
   return surface === "popover" ? (
     <PopoverShell />

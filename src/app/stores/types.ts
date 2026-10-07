@@ -14,6 +14,7 @@ import type {
   Locale,
   LogLine,
   MetricsSample,
+  Palette,
   Preferences,
   Project,
   Surface,
@@ -34,6 +35,7 @@ export type StoreState = {
   section: SectionId;
   locale: Locale;
   themePref: ThemePref;
+  palette: Palette;
   transparency: boolean;
   sound: boolean;
   editor: string | null;
@@ -89,6 +91,7 @@ export type StoreActions = {
   setSection: (section: SectionId) => void;
   setLocale: (locale: Locale) => void;
   setThemePref: (pref: ThemePref) => void;
+  setPalette: (palette: Palette) => void;
   setTransparency: (value: boolean) => void;
   setSound: (value: boolean) => void;
   updatePreferences: (patch: Partial<Preferences>) => void;

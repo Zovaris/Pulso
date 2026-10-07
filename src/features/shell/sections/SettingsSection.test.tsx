@@ -54,6 +54,19 @@ describe("SettingsSection", () => {
     expect(updatePreferences).toHaveBeenCalledWith({ theme: "light" });
   });
 
+  it("offers every palette and saves the chosen one", () => {
+    useStore.setState({ palette: "pulso" });
+    render(<SettingsSection />);
+    fireEvent.click(screen.getByRole("radio", { name: "Appearance" }));
+
+    expect(
+      screen.getByRole("radio", { name: "Pulso" }).getAttribute("aria-checked"),
+    ).toBe("true");
+    fireEvent.click(screen.getByRole("radio", { name: "Rosé Pine" }));
+
+    expect(updatePreferences).toHaveBeenCalledWith({ palette: "rose-pine" });
+  });
+
   it("lists the shortcuts the window actually answers to", () => {
     render(<SettingsSection />);
     fireEvent.click(screen.getByRole("radio", { name: "Shortcuts" }));

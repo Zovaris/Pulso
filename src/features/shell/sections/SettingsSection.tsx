@@ -10,8 +10,15 @@ import { useEffect, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { AppPicker } from "@/features/shell/components/AppPicker";
-import type { Locale, ThemePref } from "@/lib/types";
-import { LOG_LINE_CHOICES } from "@/lib/types";
+import type { Locale, Palette, ThemePref } from "@/lib/types";
+import { LOG_LINE_CHOICES, PALETTE_CHOICES } from "@/lib/types";
+
+const PALETTE_NAMES: Record<Palette, string> = {
+  pulso: "Pulso",
+  nord: "Nord",
+  "rose-pine": "Rosé Pine",
+  catppuccin: "Catppuccin",
+};
 
 const THEMES = [
   { value: "system", label: "themeSystem", Icon: DesktopIcon },
@@ -90,6 +97,7 @@ const CATEGORIES: { value: Category; labelKey: string }[] = [
 export function SettingsSection() {
   const { t, locale } = useI18n();
   const themePref = useStore((state) => state.themePref);
+  const palette = useStore((state) => state.palette);
   const transparency = useStore((state) => state.transparency);
   const sound = useStore((state) => state.sound);
   const openAtLogin = useStore((state) => state.openAtLogin);
@@ -200,6 +208,24 @@ export function SettingsSection() {
 
           {category === "appearance" ? (
             <Group>
+              <Row
+                label={t("themePalette")}
+                hint={t("themePaletteHint")}
+                control={
+                  <SegmentedControl
+                    size="sm"
+                    ariaLabel={t("themePalette")}
+                    value={palette}
+                    onValueChange={(value) =>
+                      updatePreferences({ palette: value as Palette })
+                    }
+                    options={PALETTE_CHOICES.map((value) => ({
+                      value,
+                      label: PALETTE_NAMES[value],
+                    }))}
+                  />
+                }
+              />
               <Row
                 label={t("theme")}
                 hint={t("themeHint")}

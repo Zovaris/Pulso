@@ -1,8 +1,10 @@
-import type { ThemePref } from "./types";
+import type { Palette, ThemePref } from "./types";
+import { PALETTE_CHOICES } from "./types";
 
 export type ResolvedTheme = "dark" | "light";
 
 const THEME_KEY = "pulso:theme";
+const PALETTE_KEY = "pulso:palette";
 const GLASS_KEY = "pulso:transparency";
 /** Matches `.pulso-menu`, so the material and the drawn rim share one corner. */
 const POPOVER_RADIUS = 10;
@@ -14,6 +16,18 @@ export function readStoredTheme(): ThemePref {
       return value;
   } catch {}
   return "system";
+}
+
+export function readStoredPalette(): Palette {
+  try {
+    const value = window.localStorage.getItem(PALETTE_KEY);
+    if (value !== null && isPalette(value)) return value;
+  } catch {}
+  return "pulso";
+}
+
+function isPalette(value: string): value is Palette {
+  return PALETTE_CHOICES.includes(value as Palette);
 }
 
 export function readStoredTransparency(): boolean {
@@ -37,14 +51,17 @@ export function applyDocumentAppearance(
   pref: ThemePref,
   resolved: ResolvedTheme,
   transparency: boolean,
+  palette: Palette,
 ) {
   const root = document.documentElement;
   root.dataset.theme = resolved;
   root.dataset.themePref = pref;
+  root.dataset.sephiroTheme = palette;
   root.dataset.transparency = transparency ? "on" : "off";
   root.style.colorScheme = resolved;
   try {
     window.localStorage.setItem(THEME_KEY, pref);
+    window.localStorage.setItem(PALETTE_KEY, palette);
     window.localStorage.setItem(GLASS_KEY, transparency ? "1" : "0");
   } catch {}
 }

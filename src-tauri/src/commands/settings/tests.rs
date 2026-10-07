@@ -3,6 +3,7 @@ use super::*;
 fn preferences() -> Preferences {
     Preferences {
         theme: ThemePref::System,
+        palette: Palette::RosePine,
         transparency: true,
         locale: Locale::Es,
         sound: true,
@@ -31,6 +32,25 @@ fn a_theme_nobody_ships_is_refused() {
 }
 
 #[test]
+fn every_palette_survives_a_round_trip() {
+    for palette in [
+        Palette::Pulso,
+        Palette::Nord,
+        Palette::RosePine,
+        Palette::Catppuccin,
+    ] {
+        assert_eq!(Palette::parse(palette.as_str()), Some(palette));
+    }
+}
+
+#[test]
+fn a_palette_nobody_ships_is_refused() {
+    assert_eq!(Palette::parse("midnight"), None);
+    assert_eq!(Palette::parse("Nord"), None);
+    assert_eq!(Palette::parse("rose_pine"), None);
+}
+
+#[test]
 fn every_locale_survives_a_round_trip() {
     for locale in [Locale::Es, Locale::En] {
         assert_eq!(Locale::parse(locale.as_str()), Some(locale));
@@ -48,6 +68,7 @@ fn preferences_reach_the_frontend_the_way_it_reads_them() {
     let json = serde_json::to_value(preferences()).expect("preferences should serialize");
 
     assert_eq!(json["theme"], "system");
+    assert_eq!(json["palette"], "rose-pine");
     assert_eq!(json["transparency"], true);
     assert_eq!(json["locale"], "es");
     assert_eq!(json["sound"], true);
@@ -75,6 +96,7 @@ fn a_payload_from_the_older_shape_still_parses() {
     )
     .expect("the older payload should still parse");
 
+    assert_eq!(parsed.palette, Palette::Pulso);
     assert_eq!(parsed.editor, None);
     assert!(!parsed.open_at_login);
     assert!(parsed.keep_running);
@@ -103,6 +125,14 @@ fn a_stored_switch_that_makes_no_sense_falls_back() {
 }
 
 #[test]
+fn a_stored_palette_that_makes_no_sense_falls_back_to_pulso() {
+    assert_eq!(palette_pref(None), Palette::Pulso);
+    assert_eq!(palette_pref(Some("")), Palette::Pulso);
+    assert_eq!(palette_pref(Some("Midnight")), Palette::Pulso);
+    assert_eq!(palette_pref(Some("nord")), Palette::Nord);
+}
+
+#[test]
 fn an_absent_log_cap_gets_the_default() {
     assert_eq!(log_lines_pref(None), DEFAULT_LOG_LINES);
     assert_eq!(log_lines_pref(Some("")), DEFAULT_LOG_LINES);
@@ -125,6 +155,7 @@ fn every_offered_log_cap_survives() {
 #[test]
 fn the_stored_keys_stay_where_the_preferences_were_written() {
     assert_eq!(THEME_KEY, "ui.theme");
+    assert_eq!(PALETTE_KEY, "ui.palette");
     assert_eq!(TRANSPARENCY_KEY, "ui.transparency");
     assert_eq!(LOCALE_KEY, "ui.locale");
     assert_eq!(SOUND_KEY, "ui.sound");

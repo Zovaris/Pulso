@@ -10,6 +10,7 @@ use crate::support::error::{BackendError, ErrorKind, Result};
 use super::in_database;
 
 const THEME_KEY: &str = "ui.theme";
+const PALETTE_KEY: &str = "ui.palette";
 const TRANSPARENCY_KEY: &str = "ui.transparency";
 const LOCALE_KEY: &str = "ui.locale";
 const SOUND_KEY: &str = "ui.sound";
@@ -52,6 +53,37 @@ impl ThemePref {
     }
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Palette {
+    #[default]
+    Pulso,
+    Nord,
+    RosePine,
+    Catppuccin,
+}
+
+impl Palette {
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "pulso" => Some(Self::Pulso),
+            "nord" => Some(Self::Nord),
+            "rose-pine" => Some(Self::RosePine),
+            "catppuccin" => Some(Self::Catppuccin),
+            _ => None,
+        }
+    }
+
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Pulso => "pulso",
+            Self::Nord => "nord",
+            Self::RosePine => "rose-pine",
+            Self::Catppuccin => "catppuccin",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Locale {
@@ -80,6 +112,8 @@ impl Locale {
 #[serde(rename_all = "camelCase")]
 pub struct Preferences {
     pub theme: ThemePref,
+    #[serde(default)]
+    pub palette: Palette,
     pub transparency: bool,
     pub locale: Locale,
     pub sound: bool,
@@ -119,6 +153,10 @@ fn bool_pref(stored: Option<&str>, fallback: bool) -> bool {
     }
 }
 
+fn palette_pref(stored: Option<&str>) -> Palette {
+    stored.and_then(Palette::parse).unwrap_or_default()
+}
+
 fn log_lines_pref(stored: Option<&str>) -> usize {
     stored
         .and_then(|value| value.parse::<usize>().ok())
@@ -134,6 +172,7 @@ pub async fn get_preferences(db: State<'_, Arc<Database>>) -> Result<Option<Pref
 pub fn read_preferences(conn: &rusqlite::Connection) -> Result<Option<Preferences>> {
     let stored = (
         repositories::settings::get(conn, THEME_KEY)?,
+        repositories::settings::get(conn, PALETTE_KEY)?,
         repositories::settings::get(conn, TRANSPARENCY_KEY)?,
         repositories::settings::get(conn, LOCALE_KEY)?,
         repositories::settings::get(conn, SOUND_KEY)?,
@@ -149,6 +188,7 @@ pub fn read_preferences(conn: &rusqlite::Connection) -> Result<Option<Preference
 
     let (
         theme,
+        palette,
         transparency,
         locale,
         sound,
@@ -181,6 +221,7 @@ pub fn read_preferences(conn: &rusqlite::Connection) -> Result<Option<Preference
 
     Ok(Some(Preferences {
         theme,
+        palette: palette_pref(palette.as_deref()),
         transparency: transparency.as_deref() == Some("1"),
         locale,
         sound: sound_pref(sound.as_deref()),
@@ -309,6 +350,7 @@ pub async fn save_preferences(
         let locale = stored.locale.as_str();
 
         repositories::settings::set(conn, THEME_KEY, theme)?;
+        repositories::settings::set(conn, PALETTE_KEY, stored.palette.as_str())?;
         repositories::settings::set(
             conn,
             TRANSPARENCY_KEY,

@@ -1,0 +1,151 @@
+[data-sephiro-theme="nord"] {
+  --sph-bg: #e5e9f0;
+  --sph-surface: #eceff4;
+  --sph-surface-elevated: #f8fafc;
+  --sph-raised: #d8dee9;
+  --sph-border: #cfd8e3;
+  --sph-border-strong: #81a1c1;
+  --sph-text: #2e3440;
+  --sph-text-muted: #4c566a;
+  --sph-accent: #5e81ac;
+  --sph-accent-hover: #53739b;
+  --sph-accent-pressed: #476384;
+  --sph-accent-strong: #4f6f96;
+  --sph-on-accent: #ffffff;
+  --sph-success: #4f7d4a;
+  --sph-warning: #96701b;
+  --sph-danger: #a84e57;
+  --sph-focus: #5e81ac;
+  color-scheme: light;
+}
+
+[data-theme="dark"][data-sephiro-theme="nord"] {
+  --sph-bg: #2e3440;
+  --sph-surface: #343b4a;
+  --sph-surface-elevated: #3b4252;
+  --sph-raised: #434c5e;
+  --sph-border: #4c566a;
+  --sph-border-strong: #5e81ac;
+  --sph-text: #eceff4;
+  --sph-text-muted: #a9b4c4;
+  --sph-accent: #5e81ac;
+  --sph-accent-hover: #6d90bb;
+  --sph-accent-pressed: #4f7099;
+  --sph-accent-strong: #88c0d0;
+  --sph-on-accent: #ffffff;
+  --sph-success: #a3be8c;
+  --sph-warning: #ebcb8b;
+  --sph-danger: #bf616a;
+  --sph-focus: #88c0d0;
+  color-scheme: dark;
+}
+
+[data-sephiro-theme="rose-pine"] {
+  --sph-bg: #faf4ed;
+  --sph-surface: #fffaf3;
+  --sph-surface-elevated: #ffffff;
+  --sph-raised: #f2e9e1;
+  --sph-border: #e4dcd6;
+  --sph-border-strong: #b9aeb6;
+  --sph-text: #575279;
+  --sph-text-muted: #797593;
+  --sph-accent: #907aa9;
+  --sph-accent-hover: #7f6a97;
+  --sph-accent-pressed: #6d5a83;
+  --sph-accent-strong: #7d6897;
+  --sph-on-accent: #ffffff;
+  --sph-success: #56949f;
+  --sph-warning: #a8761c;
+  --sph-danger: #b4637a;
+  --sph-focus: #907aa9;
+  color-scheme: light;
+}
+
+[data-theme="dark"][data-sephiro-theme="rose-pine"] {
+  --sph-bg: #191724;
+  --sph-surface: #1f1d2e;
+  --sph-surface-elevated: #26233a;
+  --sph-raised: #2f2b45;
+  --sph-border: #403d52;
+  --sph-border-strong: #524f67;
+  --sph-text: #e0def4;
+  --sph-text-muted: #908caa;
+  --sph-accent: #c4a7e7;
+  --sph-accent-hover: #cfb5ee;
+  --sph-accent-pressed: #b090d6;
+  --sph-accent-strong: #d0b8ec;
+  --sph-on-accent: #191724;
+  --sph-success: #9ccfd8;
+  --sph-warning: #f6c177;
+  --sph-danger: #eb6f92;
+  --sph-focus: #c4a7e7;
+  color-scheme: dark;
+}
+
+[data-sephiro-theme="catppuccin"] {
+  --sph-bg: #eff1f5;
+  --sph-surface: #f8f9fb;
+  --sph-surface-elevated: #ffffff;
+  --sph-raised: #e6e9ef;
+  --sph-border: #ccd0da;
+  --sph-border-strong: #acb0be;
+  --sph-text: #4c4f69;
+  --sph-text-muted: #6c6f85;
+  --sph-accent: #8839ef;
+  --sph-accent-hover: #7729d6;
+  --sph-accent-pressed: #6620bb;
+  --sph-accent-strong: #7126cd;
+  --sph-on-accent: #ffffff;
+  --sph-success: #40a02b;
+  --sph-warning: #a8711a;
+  --sph-danger: #d20f39;
+  --sph-focus: #8839ef;
+  color-scheme: light;
+}
+
+[data-theme="dark"][data-sephiro-theme="catppuccin"] {
+  --sph-bg: #181825;
+  --sph-surface: #1e1e2e;
+  --sph-surface-elevated: #2a2a3c;
+  --sph-raised: #313244;
+  --sph-border: #41455c;
+  --sph-border-strong: #585b70;
+  --sph-text: #cdd6f4;
+  --sph-text-muted: #a6adc8;
+  --sph-accent: #cba6f7;
+  --sph-accent-hover: #d7b9f9;
+  --sph-accent-pressed: #b98ef4;
+  --sph-accent-strong: #dcc7fb;
+  --sph-on-accent: #1e1e2e;
+  --sph-success: #a6e3a1;
+  --sph-warning: #f9e2af;
+  --sph-danger: #f38ba8;
+  --sph-focus: #cba6f7;
+  color-scheme: dark;
+}
+
+:where(
+  [data-sephiro-theme="nord"],
+  [data-sephiro-theme="rose-pine"],
+  [data-sephiro-theme="catppuccin"]
+) {
+  --sph-accent-soft: color-mix(in srgb, var(--sph-accent) 13%, transparent);
+  --sph-success-soft: color-mix(in srgb, var(--sph-success) 12%, transparent);
+  --sph-warning-soft: color-mix(in srgb, var(--sph-warning) 12%, transparent);
+  --sph-danger-soft: color-mix(in srgb, var(--sph-danger) 12%, transparent);
+  --sph-focus-ring: color-mix(in srgb, var(--sph-accent) 18%, transparent);
+  --sph-shadow-popover: 0 14px 36px rgb(0 0 0 / 0.14);
+}
+
+[data-theme="dark"]:where(
+  [data-sephiro-theme="nord"],
+  [data-sephiro-theme="rose-pine"],
+  [data-sephiro-theme="catppuccin"]
+) {
+  --sph-accent-soft: color-mix(in srgb, var(--sph-accent) 18%, transparent);
+  --sph-success-soft: color-mix(in srgb, var(--sph-success) 15%, transparent);
+  --sph-warning-soft: color-mix(in srgb, var(--sph-warning) 15%, transparent);
+  --sph-danger-soft: color-mix(in srgb, var(--sph-danger) 15%, transparent);
+  --sph-focus-ring: color-mix(in srgb, var(--sph-accent) 24%, transparent);
+  --sph-shadow-popover: 0 14px 36px rgb(0 0 0 / 0.38);
+}
