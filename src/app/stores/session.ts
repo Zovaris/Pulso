@@ -2,6 +2,7 @@ import type { StateCreator } from "zustand";
 import {
   applyDocumentAppearance,
   applyWindowChrome,
+  readStoredPalette,
   readStoredTheme,
   readStoredTransparency,
   resolveTheme,
@@ -12,7 +13,13 @@ import {
   readStoredLocale,
   translate,
 } from "@/lib/i18n";
-import type { Locale, Preferences, Surface, ThemePref } from "@/lib/types";
+import type {
+  Locale,
+  Palette,
+  Preferences,
+  Surface,
+  ThemePref,
+} from "@/lib/types";
 import { LOG_LINE_CHOICES } from "@/lib/types";
 import { toBackendError } from "@/services/api/errors";
 import { getPreferences, persistPreferences } from "@/services/api/settings";
@@ -26,6 +33,7 @@ export type SessionSlice = Pick<
   | "setSection"
   | "locale"
   | "themePref"
+  | "palette"
   | "transparency"
   | "sound"
   | "editor"
@@ -38,6 +46,7 @@ export type SessionSlice = Pick<
   | "logLines"
   | "setLocale"
   | "setThemePref"
+  | "setPalette"
   | "setTransparency"
   | "setSound"
   | "updatePreferences"
@@ -63,6 +72,7 @@ function currentSurface(): Surface {
 
 const initialLocale = readStoredLocale() ?? detectLocale();
 const initialTheme = readStoredTheme();
+const initialPalette = readStoredPalette();
 const initialGlass = readStoredTransparency();
 const initialSurface = currentSurface();
 document.documentElement.dataset.surface = initialSurface;
@@ -120,6 +130,7 @@ export const createSessionSlice: StateCreator<
     const state = get();
     return {
       theme: state.themePref,
+      palette: state.palette,
       transparency: state.transparency,
       locale: state.locale,
       sound: state.sound,
@@ -140,11 +151,13 @@ export const createSessionSlice: StateCreator<
       preferences.theme,
       resolved,
       preferences.transparency,
+      preferences.palette,
     );
     applyDocumentLocale(preferences.locale);
     void applyWindowChrome(resolved, preferences.transparency);
     set({
       themePref: preferences.theme,
+      palette: preferences.palette,
       transparency: preferences.transparency,
       locale: preferences.locale,
       sound: preferences.sound,
@@ -173,6 +186,7 @@ export const createSessionSlice: StateCreator<
     surface: initialSurface,
     locale: initialLocale,
     themePref: initialTheme,
+    palette: initialPalette,
     transparency: initialGlass,
     sound: true,
     editor: null,
@@ -207,6 +221,8 @@ export const createSessionSlice: StateCreator<
     setLocale: (locale: Locale) => get().updatePreferences({ locale }),
 
     setThemePref: (pref: ThemePref) => get().updatePreferences({ theme: pref }),
+
+    setPalette: (palette: Palette) => get().updatePreferences({ palette }),
 
     setTransparency: (value: boolean) =>
       get().updatePreferences({ transparency: value }),

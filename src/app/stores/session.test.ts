@@ -13,6 +13,7 @@ vi.mock("@/services/api/settings", () => ({
 
 const preferences: Preferences = {
   theme: "dark",
+  palette: "pulso",
   transparency: false,
   locale: "en",
   sound: true,
@@ -117,6 +118,19 @@ describe("preferences", () => {
     finish(preferences);
     await loading;
     expect(state.getState().themePref).toBe("light");
+  });
+
+  it("keeps a palette choice, paints it and saves it", async () => {
+    const state = store();
+    state.getState().setPalette("rose-pine");
+
+    expect(state.getState().palette).toBe("rose-pine");
+    expect(document.documentElement.dataset.sephiroTheme).toBe("rose-pine");
+    await waitFor(() =>
+      expect(settings.persistPreferences).toHaveBeenCalledWith(
+        expect.objectContaining({ palette: "rose-pine" }),
+      ),
+    );
   });
 
   it("trims existing logs when the cap is lowered", () => {

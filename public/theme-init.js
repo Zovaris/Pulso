@@ -1,5 +1,6 @@
 (() => {
   var pref = "system";
+  var palette = "pulso";
   var glass = false;
   var resolved = "dark";
   var params;
@@ -8,6 +9,8 @@
     params = new URLSearchParams(location.search);
     pref =
       params.get("theme") || localStorage.getItem("pulso:theme") || "system";
+    palette =
+      params.get("palette") || localStorage.getItem("pulso:palette") || "pulso";
     glass =
       params.get("glass") === "1" ||
       localStorage.getItem("pulso:transparency") === "1";
@@ -21,6 +24,7 @@
           : "dark";
     document.documentElement.dataset.theme = resolved;
     document.documentElement.dataset.themePref = pref;
+    document.documentElement.dataset.sephiroTheme = palette;
     document.documentElement.dataset.transparency = glass ? "on" : "off";
     label = window.__TAURI_INTERNALS__?.metadata?.currentWindow?.label;
     document.documentElement.dataset.surface =

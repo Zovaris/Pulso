@@ -146,6 +146,8 @@
   "themeLight": "Claro",
   "themeSystem": "Sistema",
   "themeHint": "Oscuro, claro o el del sistema.",
+  "themePalette": "Paleta",
+  "themePaletteHint": "Los colores de Pulso o un tema que ya conozcas.",
   "language": "Idioma",
   "languageHint": "Se aplica a la ventana y a la barra de menús.",
   "transparency": "Transparencia",

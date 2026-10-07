@@ -1,9 +1,20 @@
 export type ThemePref = "dark" | "light" | "system";
+
+export type Palette = "pulso" | "nord" | "rose-pine" | "catppuccin";
+
+export const PALETTE_CHOICES = [
+  "pulso",
+  "nord",
+  "rose-pine",
+  "catppuccin",
+] as const satisfies readonly Palette[];
+
 export type Locale = "es" | "en";
 export type Surface = "popover" | "app";
 
 export type Preferences = {
   theme: ThemePref;
+  palette: Palette;
   transparency: boolean;
   locale: Locale;
   sound: boolean;
