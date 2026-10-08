@@ -1,4 +1,5 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type { Theme } from "@tauri-apps/api/window";
 import { isTauri } from "@/lib/tauri";
 import type {
   CommandFlags,
@@ -78,6 +79,18 @@ export function onPreferencesChanged(
   handler: (preferences: Preferences) => void,
 ): Promise<UnlistenFn> {
   return subscribe<Preferences>("settings://changed", handler);
+}
+
+/**
+ * macOS reporting the appearance change itself, which still arrives when the
+ * webview has not re-evaluated its media query.
+ */
+export async function onSystemThemeChanged(
+  handler: (theme: Theme) => void,
+): Promise<UnlistenFn> {
+  if (!isTauri()) return () => {};
+  const { getCurrentWindow } = await import("@tauri-apps/api/window");
+  return getCurrentWindow().onThemeChanged(({ payload }) => handler(payload));
 }
 
 async function subscribe<T>(

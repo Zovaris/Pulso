@@ -7,6 +7,7 @@ import {
   applyDocumentAppearance,
   applyWindowChrome,
   resolveTheme,
+  watchSystemTheme,
 } from "@/lib/appearance";
 import { useStore } from "./app/store";
 
@@ -34,14 +35,10 @@ export default function App() {
 
   useEffect(() => {
     if (themePref !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => {
-      const resolved = resolveTheme("system");
+    return watchSystemTheme((resolved) => {
       applyDocumentAppearance("system", resolved, transparency, palette);
       void applyWindowChrome("system", resolved, transparency);
-    };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    });
   }, [themePref, palette, transparency]);
 
   return surface === "popover" ? (
