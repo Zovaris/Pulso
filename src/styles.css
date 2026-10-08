@@ -572,6 +572,12 @@ html[data-theme="light"] .pulso-stream::-webkit-scrollbar-thumb {
   }
 }
 
+.sph-menu__content {
+  max-height: calc(var(--spacing, 0.25rem) * 60);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
 .pulso-menu {
   --menu-bg: rgb(242 242 242);
   --menu-rim: rgb(0 0 0 / 0.14);
