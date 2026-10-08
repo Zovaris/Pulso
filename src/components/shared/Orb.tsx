@@ -1,28 +1,11 @@
 import { type OrbState, ThinkingOrb } from "thinking-orbs";
-import { useEffect, useState } from "react";
+import { useRootTheme } from "@/app/hooks/useRootTheme";
 
 /** Inline in a 36px row the stock dots read faint, so they get heavier there. */
 const INLINE_DOTS = 1.4;
 
 /** The live green of the mark, a shade darker on light backgrounds. */
 const INK = { dark: "#6fa77b", light: "#4f7658" } as const;
-
-function useRootTheme(): "dark" | "light" {
-  const read = (): "dark" | "light" =>
-    document.documentElement.dataset.theme === "light" ? "light" : "dark";
-  const [theme, setTheme] = useState(read);
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => setTheme(read()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  return theme;
-}
 
 /**
  * Something on its way: a process starting or stopping, a server not yet
