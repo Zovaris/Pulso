@@ -151,7 +151,7 @@
   "language": "Idioma",
   "languageHint": "Se aplica a la ventana y a la barra de menús.",
   "transparency": "Transparencia",
-  "transparencyHint": "Material de macOS detrás de la ventana principal. El menú de la barra siempre usa el material de los menús del sistema.",
+  "transparencyHint": "Material de macOS detrás de la ventana principal. El menú de la barra conserva el material de macOS, teñido con la paleta.",
   "soundCues": "Avisos sonoros",
   "soundCuesHint": "Un sonido cuando algo largo termina bien y otro cuando algo falla. Varios a la vez suenan como uno.",
   "openAtLogin": "Abrir al iniciar sesión",
