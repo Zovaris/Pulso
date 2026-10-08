@@ -8,6 +8,7 @@ import {
 } from "@zovaris/sephiro";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/app/hooks/useI18n";
+import { useRootTheme } from "@/app/hooks/useRootTheme";
 import { useStore } from "@/app/store";
 import { AppPicker } from "@/features/shell/components/AppPicker";
 import type { Locale, Palette, ThemePref } from "@/lib/types";
@@ -96,6 +97,7 @@ const CATEGORIES: { value: Category; labelKey: string }[] = [
 
 export function SettingsSection() {
   const { t, locale } = useI18n();
+  const rootTheme = useRootTheme();
   const themePref = useStore((state) => state.themePref);
   const palette = useStore((state) => state.palette);
   const transparency = useStore((state) => state.transparency);
@@ -221,7 +223,20 @@ export function SettingsSection() {
                     }
                     options={PALETTE_CHOICES.map((value) => ({
                       value,
-                      label: PALETTE_NAMES[value],
+                      label: (
+                        <span className="pulso-palette-option">
+                          <span
+                            className="pulso-palette-swatch"
+                            data-sephiro-theme={value}
+                            data-theme={rootTheme}
+                          >
+                            <i aria-hidden />
+                            <i aria-hidden />
+                            <i aria-hidden />
+                          </span>
+                          {PALETTE_NAMES[value]}
+                        </span>
+                      ),
                     }))}
                   />
                 }

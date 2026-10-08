@@ -1,9 +1,13 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useStore } from "@/app/store";
 import { SettingsSection } from "./SettingsSection";
 
 const updatePreferences = vi.fn();
+
+afterEach(() => {
+  delete document.documentElement.dataset.theme;
+});
 
 beforeEach(() => {
   updatePreferences.mockClear();
@@ -65,6 +69,35 @@ describe("SettingsSection", () => {
     fireEvent.click(screen.getByRole("radio", { name: "Rosé Pine" }));
 
     expect(updatePreferences).toHaveBeenCalledWith({ palette: "rose-pine" });
+  });
+
+  it("paints every palette option with its own colours and the current side", () => {
+    document.documentElement.dataset.theme = "dark";
+    useStore.setState({ palette: "pulso" });
+    render(<SettingsSection />);
+    fireEvent.click(screen.getByRole("radio", { name: "Appearance" }));
+
+    const swatch = screen
+      .getByRole("radio", { name: "Rosé Pine" })
+      .querySelector(".pulso-palette-swatch");
+
+    expect(swatch?.getAttribute("data-sephiro-theme")).toBe("rose-pine");
+    expect(swatch?.getAttribute("data-theme")).toBe("dark");
+  });
+
+  it("repaints the swatches when the side changes", async () => {
+    document.documentElement.dataset.theme = "dark";
+    render(<SettingsSection />);
+    fireEvent.click(screen.getByRole("radio", { name: "Appearance" }));
+    const swatch = screen
+      .getByRole("radio", { name: "Nord" })
+      .querySelector(".pulso-palette-swatch");
+
+    await act(async () => {
+      document.documentElement.dataset.theme = "light";
+    });
+
+    expect(swatch?.getAttribute("data-theme")).toBe("light");
   });
 
   it("lists the shortcuts the window actually answers to", () => {

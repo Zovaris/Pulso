@@ -151,7 +151,7 @@
   "language": "Language",
   "languageHint": "Applies to the window and the menu bar.",
   "transparency": "Transparency",
-  "transparencyHint": "macOS material behind the main window. The menu bar menu always uses the system menu material.",
+  "transparencyHint": "macOS material behind the main window. The menu bar menu keeps the macOS material, tinted with the palette.",
   "soundCues": "Sound cues",
   "soundCuesHint": "One sound when something long finishes well and another when something fails. Several at once sound as one.",
   "openAtLogin": "Open at login",
