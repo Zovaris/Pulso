@@ -154,7 +154,11 @@ export const createSessionSlice: StateCreator<
       preferences.palette,
     );
     applyDocumentLocale(preferences.locale);
-    void applyWindowChrome(resolved, preferences.transparency);
+    void applyWindowChrome(
+      preferences.theme,
+      resolved,
+      preferences.transparency,
+    );
     set({
       themePref: preferences.theme,
       palette: preferences.palette,
