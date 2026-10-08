@@ -29,7 +29,7 @@ export default function App() {
   useEffect(() => {
     const resolved = resolveTheme(themePref);
     applyDocumentAppearance(themePref, resolved, transparency, palette);
-    void applyWindowChrome(resolved, transparency);
+    void applyWindowChrome(themePref, resolved, transparency);
   }, [themePref, palette, transparency]);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function App() {
     const onChange = () => {
       const resolved = resolveTheme("system");
       applyDocumentAppearance("system", resolved, transparency, palette);
-      void applyWindowChrome(resolved, transparency);
+      void applyWindowChrome("system", resolved, transparency);
     };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);

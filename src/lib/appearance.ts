@@ -67,6 +67,7 @@ export function applyDocumentAppearance(
 }
 
 export async function applyWindowChrome(
+  pref: ThemePref,
   resolved: ResolvedTheme,
   transparency: boolean,
 ) {
@@ -75,7 +76,7 @@ export async function applyWindowChrome(
       await import("@tauri-apps/api/window");
     const { getCurrentWebview } = await import("@tauri-apps/api/webview");
     const win = getCurrentWindow();
-    await win.setTheme(resolved);
+    await win.setTheme(pref === "system" ? null : resolved);
     const clearWebviewBackground = () =>
       getCurrentWebview()
         .setBackgroundColor(null)
