@@ -184,6 +184,7 @@ function shapePng(shape, size, ink = [0, 0, 0]) {
 }
 
 const dir = dirname(fileURLToPath(import.meta.url));
+const publicDir = join(dir, "..", "..", "public");
 const files = {
   "pulso-icon.svg": appSvg(false),
   "pulso-icon-rounded.svg": appSvg(true),
@@ -196,3 +197,7 @@ for (const [name, body] of Object.entries(files)) {
   writeFileSync(join(dir, name), body);
   console.log(`wrote ${join(dir, name)}`);
 }
+
+const favicon = join(publicDir, "mark.svg");
+writeFileSync(favicon, markSvg);
+console.log(`wrote ${favicon}`);
