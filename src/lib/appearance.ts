@@ -1,5 +1,6 @@
 import type { Palette, ThemePref } from "./types";
 import { PALETTE_CHOICES } from "./types";
+import { onSystemThemeChanged } from "./events";
 
 export type ResolvedTheme = "dark" | "light";
 
@@ -64,6 +65,29 @@ export function applyDocumentAppearance(
     window.localStorage.setItem(PALETTE_KEY, palette);
     window.localStorage.setItem(GLASS_KEY, transparency ? "1" : "0");
   } catch {}
+}
+
+export function watchSystemTheme(
+  onChange: (resolved: ResolvedTheme) => void,
+): () => void {
+  const query = window.matchMedia("(prefers-color-scheme: dark)");
+  const fromQuery = () => onChange(query.matches ? "dark" : "light");
+  query.addEventListener("change", fromQuery);
+
+  let cancelled = false;
+  let stopWatching: (() => void) | undefined;
+  void onSystemThemeChanged(onChange)
+    .then((unlisten) => {
+      if (cancelled) unlisten();
+      else stopWatching = unlisten;
+    })
+    .catch(() => undefined);
+
+  return () => {
+    cancelled = true;
+    query.removeEventListener("change", fromQuery);
+    stopWatching?.();
+  };
 }
 
 export async function applyWindowChrome(
