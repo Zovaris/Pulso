@@ -1,33 +1,14 @@
 import { CaretDownIcon } from "@phosphor-icons/react";
-import { Button } from "@zovaris/sephiro";
-import { useEffect, useRef, useState } from "react";
+import { Button, Menu } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks/useI18n";
 import { useStore } from "@/app/store";
 import { AppIcon } from "@/features/shell/components/AppIcon";
 
-/**
- * Picking a default is configuration, not an action, so it lives here and not in
- * the project header. The chip shows the app's own icon, which is the fastest way
- * to read which one it is.
- */
 export function AppPicker() {
   const { t } = useI18n();
   const editors = useStore((state) => state.editors);
   const preferred = useStore((state) => state.editor);
   const updatePreferences = useStore((state) => state.updatePreferences);
-  const [open, setOpen] = useState(false);
-  const box = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const close = (event: MouseEvent) => {
-      if (!box.current?.contains(event.target as Node)) setOpen(false);
-    };
-
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [open]);
 
   if (editors.length === 0) {
     return (
@@ -41,45 +22,28 @@ export function AppPicker() {
     editors.find((editor) => editor.id === preferred) ?? editors[0];
 
   return (
-    <div ref={box} className="relative">
-      <Button
-        type="button"
-        size="sm"
-        variant="secondary"
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
-        className="pulso-row-fill w-[170px] flex-none"
-      >
-        <AppIcon id={chosen.id} name={chosen.name} />
-        <span className="truncate">{chosen.name}</span>
-        <CaretDownIcon size={10} className="ml-auto flex-none text-faint" />
-      </Button>
-
-      {open ? (
-        <div className="absolute top-[32px] right-0 z-30 max-h-[280px] w-[220px] overflow-auto rounded-[9px] border border-line bg-panel p-1 shadow-[0_16px_40px_rgb(0_0_0/0.42)]">
-          {editors.map((editor) => (
-            <Button
-              key={editor.id}
-              type="button"
-              size="sm"
-              variant="quiet"
-              onClick={() => {
-                setOpen(false);
-                updatePreferences({ editor: editor.id });
-              }}
-              className="pulso-row-fill"
-            >
-              <AppIcon id={editor.id} name={editor.name} />
-              <span className="truncate">{editor.name}</span>
-              {editor.id === chosen.id ? (
-                <span className="ml-auto text-[10.5px] text-faint">
-                  {t("defaultEditor")}
-                </span>
-              ) : null}
-            </Button>
-          ))}
-        </div>
-      ) : null}
-    </div>
+    <Menu
+      align="end"
+      className="flex-none"
+      trigger={
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          className="pulso-row-fill w-[170px] flex-none"
+        >
+          <AppIcon id={chosen.id} name={chosen.name} />
+          <span className="truncate">{chosen.name}</span>
+          <CaretDownIcon size={10} className="ml-auto flex-none text-faint" />
+        </Button>
+      }
+      items={editors.map((editor) => ({
+        value: editor.id,
+        label: editor.name,
+        icon: <AppIcon id={editor.id} name={editor.name} />,
+        shortcut: editor.id === chosen.id ? t("defaultEditor") : undefined,
+      }))}
+      onSelect={(editor) => updatePreferences({ editor })}
+    />
   );
 }
